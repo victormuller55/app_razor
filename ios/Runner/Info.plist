@@ -73,6 +73,10 @@
 		</array>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>Precisamos da sua localização para mostrar barbearias próximas e promoções.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>Precisamos da sua localização para mostrar barbearias próximas e promoções no mapa. O app não rastreia você em segundo plano.</string>
+		<key>NSLocationAlwaysUsageDescription</key>
+		<string>Precisamos da sua localização para mostrar barbearias próximas e promoções no mapa. O app não rastreia você em segundo plano.</string>
 		<key>NSCameraUsageDescription</key>
 		<string>Precisamos da câmera para atualizar sua foto de perfil.</string>
 		<key>NSPhotoLibraryUsageDescription</key>

@@ -42,5 +42,18 @@ post_install do |installer|
     target.build_configurations.each do |config|
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
     end
+
+    # O geolocator liga APIs de localização "Always". Sem este flag a Apple
+    # exige NSLocationAlwaysAndWhenInUseUsageDescription (ITMS-90683).
+    if target.name == 'geolocator_apple'
+      target.build_configurations.each do |config|
+        defs = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] || ['$(inherited)']
+        defs = [defs] unless defs.is_a?(Array)
+        unless defs.include?('BYPASS_PERMISSION_LOCATION_ALWAYS=1')
+          defs << 'BYPASS_PERMISSION_LOCATION_ALWAYS=1'
+        end
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = defs
+      end
+    end
   end
 end
