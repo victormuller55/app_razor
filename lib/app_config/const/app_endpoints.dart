@@ -3,7 +3,7 @@
 /// Emulador Android: use `http://10.0.2.2:5000` no lugar de `localhost`
 /// (10.0.2.2 é o loopback do PC no emulador).
 /// Dispositivo físico na mesma rede: use o IP Wi-Fi do notebook.
-const String server = 'http://10.0.2.2:5000';
+const String server = 'http://192.168.0.105:5000';
 
 class AppEndpoints {
   static String get endpointAuthCadastro => '$server/api/v1/auth/cadastro';

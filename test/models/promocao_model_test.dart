@@ -54,13 +54,13 @@ void main() {
       expect(promocao.valorOriginal, 80);
       expect(promocao.valorPromocional, 40);
       expect(promocao.validade, '2026-08-31');
-      expect(promocao.imagem, 'http://10.0.2.2:5000/uploads/promocoes/promo.jpg');
+      expect(promocao.imagem, 'http://192.168.0.105:5000/uploads/promocoes/promo.jpg');
       expect(promocao.percentualDesconto, closeTo(50, 0.01));
       expect(promocao.badgeTexto, '50%');
       expect(promocao.barbearia?.nome, 'Razor Centro');
       expect(
         promocao.barbearia?.logo,
-        'http://10.0.2.2:5000/uploads/barbearias/abc.jpg',
+        'http://192.168.0.105:5000/uploads/barbearias/abc.jpg',
       );
     });
 

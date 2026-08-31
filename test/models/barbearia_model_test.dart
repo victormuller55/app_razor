@@ -53,7 +53,7 @@ void main() {
 
       expect(barbearia.id, 1);
       expect(barbearia.nome, 'Razor Centro');
-      expect(barbearia.logo, 'http://10.0.2.2:5000/uploads/barbearias/abc.jpg');
+      expect(barbearia.logo, 'http://192.168.0.105:5000/uploads/barbearias/abc.jpg');
       expect(barbearia.nota, 4.5);
       expect(barbearia.distanciaKm, 1.23);
       expect(barbearia.bairro, 'Centro');

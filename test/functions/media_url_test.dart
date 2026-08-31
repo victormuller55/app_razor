@@ -7,7 +7,7 @@ void main() {
     test('prefixa caminho relativo com o server', () {
       expect(
         resolveMediaUrl('/uploads/barbearias/abc.jpg'),
-        'http://10.0.2.2:5000/uploads/barbearias/abc.jpg',
+        'http://192.168.0.105:5000/uploads/barbearias/abc.jpg',
       );
     });
 

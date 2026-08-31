@@ -42,11 +42,11 @@ void main() {
       expect(agendamento.podeCancelar, isTrue);
       expect(
         agendamento.imagemBarbearia,
-        'http://10.0.2.2:5000/uploads/barbearias/abc.jpg',
+        'http://192.168.0.105:5000/uploads/barbearias/abc.jpg',
       );
       expect(
         agendamento.foto,
-        'http://10.0.2.2:5000/uploads/servicos/corte.jpg',
+        'http://192.168.0.105:5000/uploads/servicos/corte.jpg',
       );
     });
 
@@ -106,7 +106,7 @@ void main() {
 
       expect(
         funcionario.foto,
-        'http://10.0.2.2:5000/uploads/funcionarios/joao.jpg',
+        'http://192.168.0.105:5000/uploads/funcionarios/joao.jpg',
       );
     });
   });
