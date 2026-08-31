@@ -44,7 +44,7 @@ workflows:
           echo "Build ID......: $CM_BUILD_ID"
           echo "Workflow......: $CM_WORKFLOW_ID"
           echo "=============================="
-
+          
           flutter --version
           xcodebuild -version
 
@@ -63,17 +63,18 @@ workflows:
 
       - name: Configure Version
         script: |
+          set -e
+          
           VERSION_NAME=$(grep '^version:' pubspec.yaml | cut -d' ' -f2 | cut -d'+' -f1)
-
-          if [ -n "$CM_BUILD_NUMBER" ]; then
-            BUILD_NUMBER=$CM_BUILD_NUMBER
-          else
-            BUILD_NUMBER=1
-          fi
-
-          echo "VERSION_NAME=$VERSION_NAME" >> $CM_ENV
-          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $CM_ENV
-
+          
+          # Gera um Build Number único e crescente baseado no timestamp Unix.
+          # Isso evita o erro da Apple:
+          # "The bundle version must be higher than the previously uploaded version."
+          BUILD_NUMBER=$(date +%s)
+          
+          echo "VERSION_NAME=$VERSION_NAME" >> "$CM_ENV"
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$CM_ENV"
+          
           echo ""
           echo "App Version : $VERSION_NAME"
           echo "Build Number: $BUILD_NUMBER"
@@ -88,57 +89,69 @@ workflows:
       - name: Configure Code Signing
         script: |
           set -euo pipefail
-
+          
           # ios_signing ja baixou certificado + profiles do Codemagic.
           # Nao chamar fetch-signing-files --create aqui (gera erro de private key).
           xcode-project use-profiles
-
+          
           # Garante DEVELOPMENT_TEAM em todos os targets (incl. SessionLiveActivity).
           PROFILE=$(ls "$HOME/Library/MobileDevice/Provisioning Profiles/"*.mobileprovision 2>/dev/null | head -n 1 || true)
+          
           if [ -z "${PROFILE:-}" ]; then
             echo "Nenhum provisioning profile encontrado apos use-profiles"
             exit 1
           fi
-
+          
           TEAM_ID=$(security cms -D -i "$PROFILE" | plutil -extract TeamIdentifier.0 raw -o - -)
           export TEAM_ID
+          
           echo "Applying DEVELOPMENT_TEAM=$TEAM_ID to all Xcode targets"
-
+          
           python3 <<'PY'
           import os
           import pathlib
           import re
-
+          
           team = os.environ["TEAM_ID"]
           path = pathlib.Path("ios/Runner.xcodeproj/project.pbxproj")
           text = path.read_text()
-
+          
           def inject(match: re.Match) -> str:
               block = match.group(0)
+          
               if "DEVELOPMENT_TEAM" in block:
                   return re.sub(
                       r"DEVELOPMENT_TEAM = [^;]+;",
                       f"DEVELOPMENT_TEAM = {team};",
                       block,
                   )
+          
               return block.replace(
                   "buildSettings = {",
                   f"buildSettings = {{\n\t\t\t\tDEVELOPMENT_TEAM = {team};",
                   1,
               )
-
+          
           updated = re.sub(
               r"buildSettings = \{.*?\n\t\t\t\};",
               inject,
               text,
               flags=re.S,
           )
+          
           path.write_text(updated)
+          
           print("Updated DEVELOPMENT_TEAM in project.pbxproj")
           PY
 
       - name: Build IPA
         script: |
+          set -e
+          
+          echo "Building IPA..."
+          echo "Version: $VERSION_NAME"
+          echo "Build Number: $BUILD_NUMBER"
+          
           flutter build ipa \
             --release \
             --build-name="$VERSION_NAME" \
