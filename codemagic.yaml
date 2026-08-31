@@ -1,0 +1,158 @@
+workflows:
+  testflight:
+    name: iOS TestFlight
+
+    instance_type: mac_mini_m2
+    max_build_duration: 120
+
+    integrations:
+      # App Store Connect integration name in Codemagic
+      app_store_connect: Codemagic
+
+    environment:
+      flutter: 3.41.7
+      xcode: 26.0
+      cocoapods: default
+
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.net.convertix.scissor
+
+      vars:
+        # Apple ID from App Store Connect (App information -> Apple ID)
+        APP_STORE_APPLE_ID: "6790021546"
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+      cancel_previous_builds: true
+
+    cache:
+      cache_paths:
+        - $FLUTTER_ROOT/.pub-cache
+        - $HOME/Library/Caches/CocoaPods
+
+    scripts:
+      - name: Environment
+        script: |
+          echo "=============================="
+          echo "Branch........: $CM_BRANCH"
+          echo "Commit........: $CM_COMMIT"
+          echo "Build ID......: $CM_BUILD_ID"
+          echo "Workflow......: $CM_WORKFLOW_ID"
+          echo "=============================="
+
+          flutter --version
+          xcodebuild -version
+
+      - name: Flutter Clean
+        script: |
+          flutter clean
+          flutter pub get
+
+      - name: Analyze
+        script: |
+          flutter analyze --no-fatal-infos || true
+
+      - name: Tests
+        script: |
+          flutter test || true
+
+      - name: Configure Version
+        script: |
+          VERSION_NAME=$(grep '^version:' pubspec.yaml | cut -d' ' -f2 | cut -d'+' -f1)
+
+          if [ -n "$CM_BUILD_NUMBER" ]; then
+            BUILD_NUMBER=$CM_BUILD_NUMBER
+          else
+            BUILD_NUMBER=1
+          fi
+
+          echo "VERSION_NAME=$VERSION_NAME" >> $CM_ENV
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> $CM_ENV
+
+          echo ""
+          echo "App Version : $VERSION_NAME"
+          echo "Build Number: $BUILD_NUMBER"
+          echo ""
+
+      - name: Install CocoaPods
+        script: |
+          cd ios
+          pod install --repo-update
+          cd ..
+
+      - name: Configure Code Signing
+        script: |
+          set -euo pipefail
+
+          # ios_signing ja baixou certificado + profiles do Codemagic.
+          # Nao chamar fetch-signing-files --create aqui (gera erro de private key).
+          xcode-project use-profiles
+
+          # Garante DEVELOPMENT_TEAM em todos os targets (incl. SessionLiveActivity).
+          PROFILE=$(ls "$HOME/Library/MobileDevice/Provisioning Profiles/"*.mobileprovision 2>/dev/null | head -n 1 || true)
+          if [ -z "${PROFILE:-}" ]; then
+            echo "Nenhum provisioning profile encontrado apos use-profiles"
+            exit 1
+          fi
+
+          TEAM_ID=$(security cms -D -i "$PROFILE" | plutil -extract TeamIdentifier.0 raw -o - -)
+          export TEAM_ID
+          echo "Applying DEVELOPMENT_TEAM=$TEAM_ID to all Xcode targets"
+
+          python3 <<'PY'
+          import os
+          import pathlib
+          import re
+
+          team = os.environ["TEAM_ID"]
+          path = pathlib.Path("ios/Runner.xcodeproj/project.pbxproj")
+          text = path.read_text()
+
+          def inject(match: re.Match) -> str:
+              block = match.group(0)
+              if "DEVELOPMENT_TEAM" in block:
+                  return re.sub(
+                      r"DEVELOPMENT_TEAM = [^;]+;",
+                      f"DEVELOPMENT_TEAM = {team};",
+                      block,
+                  )
+              return block.replace(
+                  "buildSettings = {",
+                  f"buildSettings = {{\n\t\t\t\tDEVELOPMENT_TEAM = {team};",
+                  1,
+              )
+
+          updated = re.sub(
+              r"buildSettings = \{.*?\n\t\t\t\};",
+              inject,
+              text,
+              flags=re.S,
+          )
+          path.write_text(updated)
+          print("Updated DEVELOPMENT_TEAM in project.pbxproj")
+          PY
+
+      - name: Build IPA
+        script: |
+          flutter build ipa \
+            --release \
+            --build-name="$VERSION_NAME" \
+            --build-number="$BUILD_NUMBER" \
+            --no-tree-shake-icons \
+            --export-options-plist=/Users/builder/export_options.plist
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - build/ios/archive/*.xcarchive
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        expire_build_submitted_for_review: true

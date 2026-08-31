@@ -1,0 +1,94 @@
+name: app_razor
+description: "A new Flutter project."
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.5
+
+dependencies:
+  muller_package:
+    path: ../muller_package
+
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+  snacky: ^0.5.6
+  flutter_bloc: ^8.1.6
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.2.3
+  flutter_native_splash: ^2.4.4
+  google_maps_flutter: ^2.7.0
+  google_maps_flutter_android: ^2.19.0
+  google_maps_flutter_platform_interface: ^2.9.0
+  geolocator: ^13.0.4
+  url_launcher: ^6.3.1
+  cupertino_native_better: ^1.6.0
+  image_picker: ^1.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/logos/icon.png
+  min_sdk_android: 21
+  remove_alpha_ios: true
+  adaptive_icon_background: "#1C3A5A"
+  adaptive_icon_foreground: assets/logos/icon.png
+
+flutter_native_splash:
+  color: "#1C3A5A"
+  image: assets/logos/splash_logo.png
+  android: true
+  ios: true
+  web: false
+  ios_content_mode: scaleAspectFit
+  android_gravity: center
+  android_12:
+    color: "#1C3A5A"
+    image: assets/logos/icon.png
+    icon_background_color: "#1C3A5A"
+
+flutter:
+
+  uses-material-design: true
+
+  assets:
+    - assets/logos/
+
+  fonts:
+    - family: lato
+      fonts:
+        - asset: assets/fonts/Lato-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Lato-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Lato-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Lato-Bold.ttf
+          weight: 700
+    - family: GoogleSans
+      fonts:
+        - asset: assets/fonts/Lato-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Lato-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Lato-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Lato-Bold.ttf
+          weight: 700
+    - family: Phosphor
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor.ttf
+    - family: PhosphorFill
+      fonts:
+        - asset: assets/fonts/phosphor/Phosphor-Fill.ttf
