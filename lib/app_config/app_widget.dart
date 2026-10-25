@@ -1,5 +1,6 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_fonts.dart';
+import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/functions/local_storage.dart';
 import 'package:app_razor/pages/login/login_page.dart';
 import 'package:app_razor/pages/menu/menu.dart';
@@ -61,6 +62,45 @@ class _AppWidgetState extends State<AppWidget> {
       colorScheme: ColorScheme.fromSeed(
         seedColor: local.AppColors.primary,
         brightness: Brightness.light,
+      ),
+      cardTheme: CardThemeData(
+        elevation: 0,
+        color: local.AppColors.white,
+        shadowColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.externo),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.externo),
+        ),
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadii.externo),
+          ),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadii.externo),
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadii.externo),
+          ),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadii.externo),
+        ),
       ),
       textTheme: ThemeData.light().textTheme.apply(
         fontFamily: AppFonts.family,

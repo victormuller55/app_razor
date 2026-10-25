@@ -1,4 +1,5 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
+import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/models/barbearia_model.dart';
 import 'package:app_razor/pages/home/widgets/home_barbearia_logo.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
@@ -52,9 +53,8 @@ class _BarbeariaMapaCard extends StatelessWidget {
       ),
       child: Material(
         color: local.AppColors.white,
-        elevation: 8,
-        shadowColor: Colors.black.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(AppRadius.medium),
+        elevation: 0,
+        borderRadius: BorderRadius.circular(AppRadii.externo),
         child: Padding(
           padding: EdgeInsets.all(AppSpacing.normal),
           child: Column(

@@ -1,4 +1,5 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
+import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -9,13 +10,14 @@ Widget appElevatedButtonRazor({
   double? width,
   double? radius,
   Color? color,
+  Color? textColor,
   required void Function() onTap,
 }) {
   return Builder(
     builder: (context) {
       final buttonWidth = width ?? MediaQuery.of(context).size.width;
       final buttonHeight = height ?? 50;
-      final buttonRadius = radius ?? AppRadius.medium;
+      final buttonRadius = radius ?? AppRadii.externo;
 
       return Padding(
         padding: EdgeInsets.only(top: padding ?? AppSpacing.normal),
@@ -25,7 +27,7 @@ Widget appElevatedButtonRazor({
           height: buttonHeight,
           width: buttonWidth,
           color: color ?? local.AppColors.primary,
-          textColor: AppColors.white,
+          textColor: textColor ?? AppColors.white,
           borderRadius: buttonRadius,
         ),
       );
@@ -48,7 +50,7 @@ Widget appElevatedButtonRazorTransparent({
 }) {
   final Color resolvedTextColor = textColor ?? local.AppColors.primary;
   final Color resolvedBorderColor = borderColor ?? local.AppColors.primary;
-  final double resolvedRadius = radius ?? AppRadius.medium;
+  final double resolvedRadius = radius ?? AppRadii.externo;
   final double resolvedHeight = height ?? 50;
 
   return Builder(

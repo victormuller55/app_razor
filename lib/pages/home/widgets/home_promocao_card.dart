@@ -1,6 +1,7 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/models/promocao_model.dart';
+import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -10,17 +11,35 @@ Widget homePromocaoCard({
 }) {
   return GestureDetector(
     onTap: onTap,
-    child: appContainer(
+    child: Container(
       width: double.infinity,
-      margin: EdgeInsets.only(bottom: AppSpacing.normal),
-      backgroundColor: local.AppColors.white,
-      radius: BorderRadius.circular(AppRadius.normal),
-      shadow: local.AppColors.cardShadow,
+      margin: EdgeInsets.only(bottom: AppSpacing.normal + 2),
+      padding: EdgeInsets.all(AppSpacing.medium - 4),
+      decoration: BoxDecoration(
+        color: AppEstilo.campoFundo,
+        borderRadius: BorderRadius.circular(AppEstilo.raioCampo + 6),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _cabecalhoPromocao(promocao),
-          _corpoPromocao(promocao),
+          appSizedBox(height: AppSpacing.normal + 2),
+          appText(
+            promocao.nome ?? AppStrings.vazio,
+            bold: true,
+            color: local.AppColors.text,
+            fontSize: 15,
+          ),
+          if ((promocao.descricao ?? '').isNotEmpty) ...[
+            appSizedBox(height: 3),
+            appText(
+              promocao.descricao!,
+              color: local.AppColors.textSecondary,
+              fontSize: 12,
+            ),
+          ],
+          appSizedBox(height: AppSpacing.normal + 2),
+          _rodapePromocao(promocao),
         ],
       ),
     ),
@@ -30,100 +49,88 @@ Widget homePromocaoCard({
 Widget _cabecalhoPromocao(PromocaoModel promocao) {
   final String? badge = promocao.badgeTexto;
 
-  return appContainer(
-    width: double.infinity,
-    padding: EdgeInsets.symmetric(
-      horizontal: AppSpacing.normal,
-      vertical: AppSpacing.normal,
-    ),
-    backgroundColor: local.AppColors.primary,
-    radius: BorderRadius.vertical(top: Radius.circular(AppRadius.normal - 1)),
-    child: Row(
-      children: [
-        Icon(Phosphor.tag, size: 16, color: local.AppColors.white),
-        appSizedBox(width: AppSpacing.small),
-        Expanded(
+  return Row(
+    children: [
+      Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: local.AppColors.primary,
+          borderRadius: BorderRadius.circular(AppEstilo.raioCampo - 2),
+        ),
+        child: const Icon(Phosphor.tag, size: 16, color: local.AppColors.white),
+      ),
+      appSizedBox(width: AppSpacing.normal),
+      Expanded(
+        child: appText(
+          promocao.barbearia?.nome ?? AppStrings.vazio,
+          maxLines: 1,
+          overflow: true,
+          color: local.AppColors.textSecondary,
+          fontSize: 12,
+          bold: true,
+        ),
+      ),
+      if (badge != null)
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+          decoration: BoxDecoration(
+            color: local.AppColors.primary,
+            borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
+          ),
           child: appText(
-            promocao.barbearia?.nome ?? AppStrings.vazio,
-            maxLines: 1,
-            overflow: true,
-            color: local.AppColors.white,
-            fontSize: AppFontSizes.verySmall,
+            badge,
             bold: true,
+            color: local.AppColors.white,
+            fontSize: 11,
           ),
         ),
-        if (badge != null)
-          appContainer(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            radius: BorderRadius.circular(AppRadius.small),
-            backgroundColor: local.AppColors.white.withValues(alpha: 0.18),
-            child: appText(
-              badge,
-              bold: true,
-              color: local.AppColors.white,
-              fontSize: 11,
-            ),
-          ),
-      ],
-    ),
+    ],
   );
 }
 
-Widget _corpoPromocao(PromocaoModel promocao) {
+Widget _rodapePromocao(PromocaoModel promocao) {
   final String original = promocao.valorOriginal != null
       ? formataDinheiro(promocao.valorOriginal!)
       : AppStrings.vazio;
   final String promocional = promocao.valorPromocional != null
       ? formataDinheiro(promocao.valorPromocional!)
       : AppStrings.vazio;
+  final String validade = _formatValidade(promocao.validade);
 
-  return Padding(
-    padding: EdgeInsets.all(AppSpacing.normal),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.end,
+    children: [
+      if (promocional.isNotEmpty)
         appText(
-          promocao.nome ?? AppStrings.vazio,
+          promocional,
           bold: true,
-          color: local.AppColors.text,
-          fontSize: AppFontSizes.small,
+          color: local.AppColors.primary,
+          fontSize: 18,
         ),
-        appSizedBox(height: AppSpacing.small),
-        appText(
-          promocao.descricao ?? AppStrings.vazio,
-          color: local.AppColors.textSecondary,
-          fontSize: AppFontSizes.verySmall,
-        ),
-        appSizedBox(height: AppSpacing.normal),
-        Row(
-          children: [
-            if (original.isNotEmpty)
-              appText(
-                original,
-                cortado: true,
-                color: local.AppColors.textSecondary,
-                fontSize: AppFontSizes.verySmall,
-              ),
-            appSizedBox(width: AppSpacing.normal),
-            if (promocional.isNotEmpty)
-              appText(
-                promocional,
-                bold: true,
-                color: local.AppColors.primary,
-                fontSize: AppFontSizes.small,
-              ),
-            const Spacer(),
-            Icon(Phosphor.clock, size: 14, color: local.AppColors.textSecondary),
-            appSizedBox(width: 4),
-            appText(
-              _formatValidade(promocao.validade),
-              color: local.AppColors.textSecondary,
-              fontSize: 11,
-            ),
-          ],
+      if (original.isNotEmpty) ...[
+        appSizedBox(width: AppSpacing.small + 1),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 2),
+          child: appText(
+            original,
+            cortado: true,
+            color: AppEstilo.campoIcone,
+            fontSize: 12,
+          ),
         ),
       ],
-    ),
+      const Spacer(),
+      if (validade.isNotEmpty) ...[
+        const Icon(Phosphor.clock, size: 13, color: AppEstilo.campoIcone),
+        appSizedBox(width: 3),
+        appText(
+          validade,
+          color: local.AppColors.textSecondary,
+          fontSize: 11,
+        ),
+      ],
+    ],
   );
 }
 

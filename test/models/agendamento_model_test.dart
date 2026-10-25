@@ -62,6 +62,30 @@ void main() {
       expect(agendamento.temRota, isTrue);
     });
 
+    test('ordena o mais atual primeiro', () {
+      final List<AgendamentoModel> ordenados = ordenaAgendamentosMaisAtual(
+        <AgendamentoModel>[
+          AgendamentoModel.fromJson(<String, dynamic>{
+            'id': 1,
+            'data_agendamento': '2026-08-20',
+            'hora_inicio': '10:00:00',
+          }),
+          AgendamentoModel.fromJson(<String, dynamic>{
+            'id': 2,
+            'data_agendamento': '2026-09-01',
+            'hora_inicio': '14:10:00',
+          }),
+          AgendamentoModel.fromJson(<String, dynamic>{
+            'id': 3,
+            'data_agendamento': '2026-09-01',
+            'hora_inicio': '09:00:00',
+          }),
+        ],
+      );
+
+      expect(ordenados.map((AgendamentoModel item) => item.id), <int>[2, 3, 1]);
+    });
+
     test('cancelado identifica status CANCELADO', () {
       expect(
         AgendamentoModel.fromJson(<String, dynamic>{

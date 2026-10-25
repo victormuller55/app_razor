@@ -1,15 +1,12 @@
-import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/functions/validators.dart';
 import 'package:app_razor/pages/cadastro/cadastro_page.dart';
 import 'package:app_razor/pages/login/login_bloc.dart';
 import 'package:app_razor/pages/login/login_event.dart';
 import 'package:app_razor/pages/login/login_state.dart';
+import 'package:app_razor/widgets/app_auth_layout.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
-import 'package:app_razor/widgets/app_loading.dart';
-import 'package:app_razor/widgets/app_logo.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -61,9 +58,9 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _updateAceitePolitica(bool? value) {
+  void _updateAceitePolitica(bool value) {
     setState(() {
-      _aceitouPolitica = value ?? false;
+      _aceitouPolitica = value;
     });
   }
 
@@ -71,295 +68,87 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
 
-    email = AppFormField(
+    email = appAuthFormField(
       context: context,
       hint: AppStrings.digiteSeuEmail,
-      paddingHeight: 15,
-      maxLines: 1,
-      fontSize: 15,
-      errorFontSize: 11,
-      radius: AppRadius.medium,
+      icon: Phosphor.envelope,
       textInputType: TextInputType.emailAddress,
-      backgroundColor: local.AppColors.white,
-      inputColor: local.AppColors.text,
-      hintColor: local.AppColors.textSecondary,
-      borderColor: local.AppColors.border,
-      hoverBorderColor: local.AppColors.primary,
-      iconColor: local.AppColors.iconMuted,
-      icon: Icon(Phosphor.envelope, color: local.AppColors.iconMuted),
       validator: (value) => AppValidators.email(
         value,
         errorMessage: AppStrings.emailInvalido,
       ),
     );
 
-    senha = AppFormField(
+    senha = appAuthFormField(
       context: context,
       hint: AppStrings.digiteSuaSenha,
-      radius: AppRadius.medium,
-      paddingHeight: 15,
-      maxLines: 1,
-      fontSize: 15,
-      errorFontSize: 11,
-      inputColor: local.AppColors.text,
-      hintColor: local.AppColors.textSecondary,
-      borderColor: local.AppColors.border,
-      hoverBorderColor: local.AppColors.primary,
-      backgroundColor: local.AppColors.white,
-      iconColor: local.AppColors.iconMuted,
-      icon: Icon(Phosphor.lock, color: local.AppColors.iconMuted),
+      icon: Phosphor.lock,
       textInputType: TextInputType.visiblePassword,
+      senha: true,
       validator: (value) => AppValidators.required(
         value,
         errorMessage: 'Senha é obrigatória',
       ),
-      showContent: false,
-    );
-  }
-
-  Widget _headerAcoes() {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          appText(
-            '${AppStrings.naoTenhoConta}?',
-            color: local.AppColors.white.withValues(alpha: 0.82),
-            fontSize: 12,
-            maxLines: 1,
-            overflow: true,
-          ),
-          appSizedBox(width: AppSpacing.normal),
-          appElevatedButtonRazorTransparent(
-            title: AppStrings.cadastrar,
-            onTap: _openCadastro,
-            height: 40,
-            padding: AppSpacing.zero,
-            fitContent: true,
-            fontSize: 12,
-            textColor: local.AppColors.white,
-            borderColor: local.AppColors.white.withValues(alpha: 0.7),
-            backgroundColor: local.AppColors.white.withValues(alpha: 0.14),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _headerGradiente() {
-    return appContainer(
-      width: double.infinity,
-      height: MediaQuery.of(context).size.height * 0.34,
-      gradient: local.AppColors.headerGradient,
-      padding: EdgeInsets.fromLTRB(
-        AppSpacing.medium,
-        AppSpacing.big,
-        AppSpacing.medium,
-        AppSpacing.giant,
-      ),
-      child: Column(
-        children: [
-          _headerAcoes(),
-          Expanded(child: appLogoRazor(inverted: true, fill: true)),
-        ],
-      ),
-    );
-  }
-
-  Widget _titleBoasVindas() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        appText(
-          'Bem-vindo de volta',
-          bold: true,
-          fontSize: AppFontSizes.big,
-          color: local.AppColors.text,
-        ),
-        appSizedBox(height: AppSpacing.small),
-        appText(
-          'Insira seus dados abaixo',
-          fontSize: AppFontSizes.verySmall,
-          color: local.AppColors.textSecondary,
-        ),
-      ],
     );
   }
 
   Widget _formCampos() {
-    return Padding(
-      padding: EdgeInsets.only(top: AppSpacing.medium),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: [
-            email.formulario,
-            senha.formulario,
-          ],
-        ),
+    return Form(
+      key: _formKey,
+      child: Column(
+        children: [
+          email.formulario,
+          senha.formulario,
+        ],
       ),
     );
   }
 
-  Widget _checkboxPoliticas() {
-    return Padding(
-      padding: EdgeInsets.only(top: AppSpacing.medium),
-      child: CheckboxListTile(
-        value: _aceitouPolitica,
-        onChanged: _updateAceitePolitica,
-        contentPadding: EdgeInsets.zero,
-        dense: true,
-        controlAffinity: ListTileControlAffinity.leading,
-        activeColor: local.AppColors.primary,
-        checkColor: local.AppColors.white,
-        side: BorderSide(color: local.AppColors.border),
-        title: appText(
-          AppStrings.concordoTermosPoliticas,
-          fontSize: AppFontSizes.verySmall,
-          color: local.AppColors.text,
-        ),
-      ),
-    );
-  }
-
-  Widget _blocoFormulario() {
+  Widget _conteudoCard() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _titleBoasVindas(),
         _formCampos(),
-        _checkboxPoliticas(),
-      ],
-    );
-  }
-
-  Widget _actionsBotoes() {
-    return Column(
-      children: [
+        appSizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.only(left: 5, right: 5),
+          child: AppAuthTermos(
+            value: _aceitouPolitica,
+            onChanged: _updateAceitePolitica,
+          ),
+        ),
+        appSizedBox(height: 10),
         appElevatedButtonRazor(
           title: AppStrings.entrar,
           onTap: _loginUsuario,
+          height: 54,
+          radius: 10,
           padding: AppSpacing.medium,
         ),
-        appTextButton(
-          text: AppStrings.esqueciMinhaSenha,
+        appAuthLink(
+          texto: 'Esqueceu sua senha?',
           onTap: _openRecuperacaoSenha,
-          color: local.AppColors.textSecondary,
         ),
-      ],
-    );
-  }
-
-  Widget _footerConvertix() {
-    return Column(
-      children: [
-        appSizedBox(height: AppSpacing.normal),
-        appText(
-          'Powered by Convertix',
-          fontSize: AppFontSizes.verySmall,
-          color: local.AppColors.textSecondary,
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  Widget _blocoAcoes() {
-    return Column(
-      children: [
-        _actionsBotoes(),
-        _footerConvertix(),
-      ],
-    );
-  }
-
-  Widget _cardConteudo() {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: FractionallySizedBox(
-        heightFactor: 0.72,
-        widthFactor: 1,
-        child: appContainer(
-          backgroundColor: local.AppColors.background,
-          radius: const BorderRadius.vertical(top: Radius.circular(36)),
-          child: AppScrollVertical(
-            center: false,
-            padding: AppSpacing.big,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _blocoFormulario(),
-                _blocoAcoes(),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _cardLoading() {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: FractionallySizedBox(
-        heightFactor: 0.72,
-        widthFactor: 1,
-        child: appContainer(
-          backgroundColor: local.AppColors.background,
-          radius: const BorderRadius.vertical(top: Radius.circular(36)),
-          child: appLoadingRazor(),
-        ),
-      ),
-    );
-  }
-
-  Widget _bodyLoading() {
-    return Stack(
-      children: [
-        _headerGradiente(),
-        _cardLoading(),
-      ],
-    );
-  }
-
-  Widget _bodyTela() {
-    return Stack(
-      children: [
-        _headerGradiente(),
-        _cardConteudo(),
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
-        systemNavigationBarColor: local.AppColors.background,
-        systemNavigationBarIconBrightness: Brightness.dark,
-        systemNavigationBarDividerColor: local.AppColors.background,
-        systemNavigationBarContrastEnforced: false,
-      ),
-      child: scaffold(
-        title: AppStrings.vazio,
-        showAppBar: false,
-        safeBottom: false,
-        background: local.AppColors.primaryDark,
-        body: BlocBuilder<LoginBloc, LoginState>(
-          bloc: bloc,
-          builder: (context, state) {
-            if (state is LoginLoadingState) {
-              return _bodyLoading();
-            }
-
-            return _bodyTela();
-          },
-        ),
-      ),
+    return BlocBuilder<LoginBloc, LoginState>(
+      bloc: bloc,
+      builder: (context, state) {
+        return AppAuthLayout(
+          titulo: 'Entrar no Razor',
+          subtitulo:
+              'Acesse sua conta com seu e-mail e senha\npara agendar seu próximo corte.',
+          rodapePergunta: '${AppStrings.naoTenhoConta}?',
+          rodapeAcao: 'Cadastre-se',
+          onRodapeTap: _openCadastro,
+          loading: state is LoginLoadingState,
+          conteudo: _conteudoCard(),
+        );
+      },
     );
   }
 

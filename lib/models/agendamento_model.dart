@@ -143,6 +143,21 @@ class AgendamentoModel {
     return _horaCurta(horaFim);
   }
 
+  DateTime? get dataHora {
+    final String? data = dataAgendamento;
+
+    if (data == null || data.length < 10) {
+      return null;
+    }
+
+    final String dia = data.substring(0, 10);
+    final String hora = horaInicio != null && horaInicio!.length >= 5
+        ? horaInicio!.substring(0, 5)
+        : '00:00';
+
+    return DateTime.tryParse('${dia}T$hora:00');
+  }
+
   String get periodoLabel {
     if (dataLabel.isEmpty) {
       return horarioFaixa;
@@ -216,6 +231,14 @@ class AgendamentoModel {
     return status == 'CANCELADO';
   }
 
+  bool get concluido {
+    return status == 'CONCLUIDO';
+  }
+
+  bool get pendente {
+    return !concluido && !cancelado && status != 'NO_SHOW';
+  }
+
   bool get podeCancelar {
     return status == 'AGENDADO' || status == 'CONFIRMADO';
   }
@@ -231,6 +254,38 @@ class AgendamentoModel {
       _ => status ?? '',
     };
   }
+}
+
+List<AgendamentoModel> ordenaAgendamentosMaisAtual(
+  List<AgendamentoModel> itens,
+) {
+  final List<AgendamentoModel> ordenados = List<AgendamentoModel>.from(itens);
+  ordenados.sort((AgendamentoModel a, AgendamentoModel b) {
+    final DateTime? dataA = a.dataHora;
+    final DateTime? dataB = b.dataHora;
+
+    if (dataA == null && dataB == null) {
+      return (b.id ?? 0).compareTo(a.id ?? 0);
+    }
+
+    if (dataA == null) {
+      return 1;
+    }
+
+    if (dataB == null) {
+      return -1;
+    }
+
+    final int porData = dataB.compareTo(dataA);
+
+    if (porData != 0) {
+      return porData;
+    }
+
+    return (b.id ?? 0).compareTo(a.id ?? 0);
+  });
+
+  return ordenados;
 }
 
 class AgendamentoServicoOpcao {

@@ -1,4 +1,5 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
+import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/models/barbearia_perfil_model.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,7 @@ IconData iconeServico(String? nome) {
 Widget servicoGridCard({
   required BarbeariaServicoModel servico,
   VoidCallback? onTap,
+  Color? backgroundColor,
 }) {
   final String? descricao = servico.descricao?.trim();
   final bool temDescricao = descricao != null && descricao.isNotEmpty;
@@ -45,9 +47,8 @@ Widget servicoGridCard({
     width: double.infinity,
     height: double.infinity,
     padding: EdgeInsets.zero,
-    backgroundColor: local.AppColors.white,
-    radius: BorderRadius.circular(AppRadius.normal),
-    shadow: local.AppColors.cardShadow,
+    backgroundColor: backgroundColor ?? local.AppColors.white,
+    radius: BorderRadius.circular(AppRadii.externo),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -112,7 +113,7 @@ Widget _foto(BarbeariaServicoModel servico) {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppRadius.normal - 1),
+            top: Radius.circular(AppRadii.interno),
           ),
           child: temFoto
               ? Image.network(
@@ -130,7 +131,7 @@ Widget _foto(BarbeariaServicoModel servico) {
             right: 8,
             child: appContainer(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-              radius: BorderRadius.circular(AppRadius.medium),
+              radius: BorderRadius.circular(AppRadii.interno),
               backgroundColor: local.AppColors.white.withValues(alpha: 0.92),
               child: Row(
                 mainAxisSize: MainAxisSize.min,

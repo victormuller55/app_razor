@@ -109,7 +109,9 @@ class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
 
       emit(
         AgendamentosSuccessState(
-          itens: <AgendamentoModel>[...itensAtuais, ...envelope.itens],
+          itens: ordenaAgendamentosMaisAtual(
+          <AgendamentoModel>[...itensAtuais, ...envelope.itens],
+        ),
           paginacao: envelope.paginacao,
         ),
       );
@@ -159,7 +161,7 @@ class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
 
       emit(
         AgendamentosSuccessState(
-          itens: itens,
+          itens: ordenaAgendamentosMaisAtual(itens),
           paginacao: current.paginacao,
         ),
       );
@@ -212,7 +214,7 @@ class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
         .toList();
 
     return _AgendamentosEnvelope(
-      itens: itens,
+      itens: ordenaAgendamentosMaisAtual(itens),
       paginacao: PaginacaoModel.fromJson(json),
     );
   }

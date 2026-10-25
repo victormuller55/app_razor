@@ -10,10 +10,16 @@ import 'package:app_razor/pages/barbearias/widgets/barbearia_grid_card.dart';
 import 'package:app_razor/pages/home/widgets/home_empty_state.dart';
 import 'package:app_razor/pages/barbearia_perfil/barbearia_perfil_page.dart';
 import 'package:app_razor/pages/pesquisa_barbearias/pesquisa_barbearias_page.dart';
+import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
+
+
+/// Altura dos campos e botões do cabeçalho.
+const double _alturaCampo = 52;
 
 class BarbeariasPage extends StatefulWidget {
   const BarbeariasPage({super.key});
@@ -108,24 +114,25 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
   Widget _campoPesquisa() {
     return GestureDetector(
       onTap: _openPesquisa,
-      child: appContainer(
-        height: 48,
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.normal),
-        backgroundColor: local.AppColors.inputBackground,
-        radius: BorderRadius.circular(AppRadius.medium),
-        border: Border.all(color: local.AppColors.border),
+      child: Container(
+        height: _alturaCampo,
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.medium - 4),
+        decoration: BoxDecoration(
+          color: AppEstilo.campoFundo,
+          borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
+        ),
         child: Row(
           children: [
-            Icon(
+            const Icon(
               Phosphor.magnifyingGlass,
-              size: 18,
-              color: local.AppColors.iconMuted,
+              size: 20,
+              color: AppEstilo.campoIcone,
             ),
-            appSizedBox(width: AppSpacing.normal),
+            appSizedBox(width: AppSpacing.normal + 2),
             Expanded(
               child: appText(
                 AppStrings.digiteAlgoParaPesquisar,
-                color: local.AppColors.textSecondary,
+                color: AppEstilo.campoIcone,
                 fontSize: 15,
                 maxLines: 1,
                 overflow: true,
@@ -138,36 +145,81 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
   }
 
   Widget _botaoFiltros() {
+    final bool ativo = _filtros.hasFiltros;
+
     return GestureDetector(
       onTap: _openFiltros,
       child: Tooltip(
         message: AppStrings.abrirFiltros,
-        child: appContainer(
-          width: 48,
-          height: 48,
-          backgroundColor: _filtros.hasFiltros
-              ? local.AppColors.primaryDark
-              : local.AppColors.primary,
-          radius: BorderRadius.circular(AppRadius.medium),
-          child: Icon(Phosphor.funnel, color: local.AppColors.white),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              width: _alturaCampo,
+              height: _alturaCampo,
+              decoration: BoxDecoration(
+                color: local.AppColors.primary,
+                borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
+              ),
+              child: const Icon(
+                Phosphor.slidersHorizontal,
+                color: local.AppColors.white,
+              ),
+            ),
+            if (ativo)
+              Positioned(
+                top: -3,
+                right: -3,
+                child: Container(
+                  width: 12,
+                  height: 12,
+                  decoration: BoxDecoration(
+                    color: AppEstilo.destaque,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: local.AppColors.white,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _headerBusca() {
+  Widget _cabecalho() {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.medium,
-        AppSpacing.normal,
+        AppSpacing.medium - 4,
         AppSpacing.medium,
-        AppSpacing.normal,
+        AppSpacing.medium - 4,
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: _campoPesquisa()),
-          appSizedBox(width: AppSpacing.normal),
-          _botaoFiltros(),
+          appText(
+            AppStrings.barbearias,
+            bold: true,
+            fontSize: 26,
+            color: local.AppColors.text,
+          ),
+          appSizedBox(height: 2),
+          appText(
+            'Encontre a barbearia ideal perto de você',
+            fontSize: AppFontSizes.verySmall,
+            color: local.AppColors.textSecondary,
+          ),
+          appSizedBox(height: AppSpacing.medium - 4),
+          Row(
+            children: [
+              Expanded(child: _campoPesquisa()),
+              appSizedBox(width: AppSpacing.normal),
+              _botaoFiltros(),
+            ],
+          ),
         ],
       ),
     );
@@ -176,43 +228,34 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
   Widget _footerLoading() {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: AppSpacing.medium),
-      child: appLoadingRazor(size: 40),
+      child: appLoadingRazor(size: 32),
     );
   }
 
-  Widget _listaVazia() {
-    return SliverFillRemaining(
-      hasScrollBody: false,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          AppSpacing.medium,
-          AppSpacing.normal,
-          AppSpacing.medium,
-          kBottomNavigationBarHeight,
-        ),
-        child: Center(
-          child: homeEmptyState(
-            message: AppStrings.nenhumaBarbeariaEncontrada,
-            icon: Phosphor.storefront,
-            iconSize: 48,
-          ),
+  Widget _estadoCentral(Widget child) {
+    return SliverToBoxAdapter(
+      child: SizedBox(
+        height: 320,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: AppSpacing.medium),
+          child: Center(child: child),
         ),
       ),
     );
   }
 
   Widget _listaItens(BarbeariasState state) {
+    final double espacoHorizontal = AppSpacing.medium - 6;
     final double larguraCard =
         (MediaQuery.sizeOf(context).width -
             AppSpacing.medium * 2 -
-            AppSpacing.normal) /
+            espacoHorizontal) /
         2;
-    const double alturaTextoCard = 100;
 
     return SliverPadding(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.medium,
-        AppSpacing.normal,
+        AppSpacing.small,
         AppSpacing.medium,
         AppSpacing.giant + kBottomNavigationBarHeight,
       ),
@@ -221,9 +264,9 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
           SliverGrid(
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              mainAxisSpacing: AppSpacing.normal,
-              crossAxisSpacing: AppSpacing.normal,
-              mainAxisExtent: larguraCard + alturaTextoCard,
+              mainAxisSpacing: AppSpacing.medium,
+              crossAxisSpacing: espacoHorizontal,
+              mainAxisExtent: larguraCard + barbeariaGridCardAlturaTexto,
             ),
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
@@ -248,16 +291,12 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
 
   Widget _conteudoLista(BarbeariasState state) {
     if (state is BarbeariasInitialState || state is BarbeariasLoadingState) {
-      return SliverFillRemaining(
-        hasScrollBody: false,
-        child: appLoadingRazor(),
-      );
+      return _estadoCentral(appLoadingRazor());
     }
 
     if (state is BarbeariasErrorState) {
-      return SliverFillRemaining(
-        hasScrollBody: false,
-        child: appError(
+      return _estadoCentral(
+        appError(
           state.errorModel,
           function: () {
             _loadBarbearias();
@@ -267,22 +306,40 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
     }
 
     if (state.itens.isEmpty) {
-      return _listaVazia();
+      return _estadoCentral(
+        homeEmptyState(
+          message: AppStrings.nenhumaBarbeariaEncontrada,
+          icon: Phosphor.storefront,
+          iconSize: 48,
+        ),
+      );
     }
 
     return _listaItens(state);
   }
 
   Widget _bodyTela(BarbeariasState state) {
-    return RefreshIndicator(
-      color: local.AppColors.primary,
-      onRefresh: () => _loadBarbearias(forceRefresh: true),
-      child: CustomScrollView(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: <Widget>[
-          SliverToBoxAdapter(child: _headerBusca()),
-          _conteudoLista(state),
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          _cabecalho(),
+          Expanded(
+            child: RefreshIndicator(
+              color: local.AppColors.primary,
+              onRefresh: () => _loadBarbearias(forceRefresh: true),
+              child: CustomScrollView(
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: <Widget>[
+                  SliverToBoxAdapter(
+                    child: appSizedBox(height: AppSpacing.small),
+                  ),
+                  _conteudoLista(state),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -290,16 +347,20 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
 
   @override
   Widget build(BuildContext context) {
-    return scaffold(
-      title: AppStrings.barbearias,
-      hideBackIcon: true,
-      background: local.AppColors.background,
-      appBarColor: local.AppColors.primary,
-      body: BlocBuilder<BarbeariasBloc, BarbeariasState>(
-        bloc: bloc,
-        builder: (BuildContext context, BarbeariasState state) {
-          return _bodyTela(state);
-        },
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+      child: Scaffold(
+        backgroundColor: local.AppColors.white,
+        body: BlocBuilder<BarbeariasBloc, BarbeariasState>(
+          bloc: bloc,
+          builder: (BuildContext context, BarbeariasState state) {
+            return _bodyTela(state);
+          },
+        ),
       ),
     );
   }

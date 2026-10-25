@@ -1,6 +1,7 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/pages/barbearias/filters/barbearias_filtros.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
+import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -15,7 +16,7 @@ void showBarbeariasFiltrosModal({
     initialHeight: 0.7,
     minHeight: 0.5,
     maxHeight: 0.95,
-    backgroundColor: local.AppColors.background,
+    backgroundColor: local.AppColors.white,
     child: BarbeariasFiltrosModal(
       filtros: filtros,
       onApply: onApply,
@@ -89,13 +90,11 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
   }) {
     return appContainer(
       width: double.infinity,
-      margin: EdgeInsets.only(bottom: AppSpacing.normal),
-      backgroundColor: local.AppColors.white,
-      radius: BorderRadius.circular(AppRadius.medium),
-      shadow: local.AppColors.cardShadow,
-      border: Border.all(color: local.AppColors.border),
+      margin: EdgeInsets.only(bottom: AppSpacing.normal + 2),
+      backgroundColor: AppEstilo.campoFundo,
+      radius: BorderRadius.circular(AppEstilo.raioCampo + 4),
       child: Padding(
-        padding: EdgeInsets.all(AppSpacing.medium),
+        padding: EdgeInsets.all(AppSpacing.medium - 2),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -129,12 +128,15 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
   SliderThemeData get _sliderTheme {
     return SliderTheme.of(context).copyWith(
       activeTrackColor: local.AppColors.primary,
-      inactiveTrackColor: local.AppColors.inputBackground,
+      inactiveTrackColor: const Color(0xFFDCE1E8),
       thumbColor: local.AppColors.primary,
       overlayColor: local.AppColors.primary.withValues(alpha: 0.12),
       trackHeight: 4,
       padding: EdgeInsets.zero,
-      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+      thumbShape: const RoundSliderThumbShape(
+        enabledThumbRadius: 9,
+        elevation: 2,
+      ),
       overlayShape: SliderComponentShape.noOverlay,
       activeTickMarkColor: Colors.transparent,
       inactiveTickMarkColor: Colors.transparent,
@@ -249,14 +251,12 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
     return Expanded(
       child: GestureDetector(
         onTap: () => _selectAberto(value),
-        child: appContainer(
-          height: 42,
-          backgroundColor: selected
-              ? local.AppColors.primary
-              : local.AppColors.inputBackground,
-          radius: BorderRadius.circular(AppRadius.medium),
-          border: Border.all(
-            color: selected ? local.AppColors.primary : local.AppColors.border,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          height: 44,
+          decoration: BoxDecoration(
+            color: selected ? local.AppColors.primary : local.AppColors.white,
+            borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
           ),
           child: Center(
             child: appText(
@@ -275,28 +275,56 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Align(
-          alignment: Alignment.centerRight,
+        appElevatedButtonRazor(
+          title: 'Aplicar filtros',
+          height: 54,
+          radius: AppEstilo.raioCampo,
+          padding: AppSpacing.small,
+          onTap: _applyFiltros,
+        ),
+        Center(
           child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: _limpar,
             child: Padding(
-              padding: EdgeInsets.only(
-                top: AppSpacing.small,
-                bottom: AppSpacing.small,
-              ),
+              padding: EdgeInsets.symmetric(vertical: AppSpacing.medium - 4),
               child: appText(
                 'Limpar filtros',
                 bold: true,
                 fontSize: AppFontSizes.verySmall,
-                color: local.AppColors.primary,
+                color: local.AppColors.primaryLight,
               ),
             ),
           ),
         ),
-        appElevatedButtonRazor(
-          title: 'Aplicar',
-          padding: 0,
-          onTap: _applyFiltros,
+      ],
+    );
+  }
+
+  Widget _cabecalho() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        appText(
+          'Filtros',
+          bold: true,
+          fontSize: 24,
+          color: local.AppColors.text,
+        ),
+        appSizedBox(height: AppSpacing.small),
+        appText(
+          'Refine a busca para encontrar a barbearia ideal',
+          fontSize: AppFontSizes.verySmall,
+          color: local.AppColors.textSecondary,
+        ),
+        appSizedBox(height: AppSpacing.normal + 2),
+        Container(
+          width: 46,
+          height: 4,
+          decoration: BoxDecoration(
+            color: AppEstilo.destaque,
+            borderRadius: BorderRadius.circular(2),
+          ),
         ),
       ],
     );
@@ -305,17 +333,17 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(AppSpacing.medium),
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.medium + 4,
+        AppSpacing.small,
+        AppSpacing.medium + 4,
+        AppSpacing.medium,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          appText(
-            'Filtros',
-            bold: true,
-            fontSize: AppFontSizes.medium,
-            color: local.AppColors.text,
-          ),
-          appSizedBox(height: AppSpacing.medium),
+          _cabecalho(),
+          appSizedBox(height: AppSpacing.medium + 4),
           _cardDistancia(),
           _cardNota(),
           _cardAberto(),

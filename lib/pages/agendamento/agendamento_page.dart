@@ -1,5 +1,6 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_fonts.dart';
+import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:app_razor/pages/agendamento/agendamento_bloc.dart';
@@ -84,8 +85,7 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
         width: double.infinity,
         padding: EdgeInsets.all(AppSpacing.normal),
         backgroundColor: local.AppColors.white,
-        radius: BorderRadius.circular(AppRadius.normal),
-        shadow: local.AppColors.cardShadow,
+        radius: BorderRadius.circular(AppRadii.externo),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -130,7 +130,7 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
         backgroundColor: selecionado
             ? local.AppColors.primary.withValues(alpha: 0.12)
             : local.AppColors.inputBackground,
-        radius: BorderRadius.circular(AppRadius.medium),
+        radius: BorderRadius.circular(AppRadii.interno),
         border: selecionado
             ? Border.all(color: local.AppColors.primary)
             : null,
@@ -321,6 +321,11 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
 
     return showModalBottomSheet<TimeOfDay>(
       context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadii.externo),
+        ),
+      ),
       builder: (BuildContext context) {
         return SafeArea(
           child: SizedBox(
@@ -424,7 +429,7 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
         backgroundColor: selecionado
             ? local.AppColors.primary.withValues(alpha: 0.12)
             : local.AppColors.inputBackground,
-        radius: BorderRadius.circular(AppRadius.medium),
+        radius: BorderRadius.circular(AppRadii.interno),
         border: selecionado ? Border.all(color: local.AppColors.primary) : null,
         child: Row(
           children: [
@@ -496,15 +501,15 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
           filled: true,
           fillColor: local.AppColors.inputBackground,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.medium),
+            borderRadius: BorderRadius.circular(AppRadii.interno),
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.medium),
+            borderRadius: BorderRadius.circular(AppRadii.interno),
             borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadius.medium),
+            borderRadius: BorderRadius.circular(AppRadii.interno),
             borderSide: BorderSide(color: local.AppColors.primary),
           ),
           contentPadding: EdgeInsets.all(12),

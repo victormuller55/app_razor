@@ -1,4 +1,5 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
+import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -17,7 +18,7 @@ AppFormField criarCampoPerfil({
     maxLines: 1,
     fontSize: 15,
     errorFontSize: 11,
-    radius: AppRadius.medium,
+    radius: AppRadii.externo,
     textInputType: textInputType,
     backgroundColor: local.AppColors.white,
     inputColor: local.AppColors.text,

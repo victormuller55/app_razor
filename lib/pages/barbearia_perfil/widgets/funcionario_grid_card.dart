@@ -1,4 +1,5 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
+import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/models/barbearia_perfil_model.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
@@ -30,8 +31,7 @@ Widget funcionarioGridCard({
       AppSpacing.small,
     ),
     backgroundColor: local.AppColors.white,
-    radius: BorderRadius.circular(AppRadius.normal),
-    shadow: local.AppColors.cardShadow,
+    radius: BorderRadius.circular(AppRadii.externo),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -64,35 +64,66 @@ Widget funcionarioGridCard({
   );
 }
 
-Widget _foto(BarbeariaFuncionarioModel funcionario) {
+Widget funcionarioListaCard({
+  required BarbeariaFuncionarioModel funcionario,
+  VoidCallback? onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: appContainer(
+      width: 96,
+      height: 124,
+      padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
+      backgroundColor: local.AppColors.inputBackground,
+      radius: BorderRadius.circular(AppRadii.externo),
+      child: Column(
+        children: [
+          _foto(funcionario, size: 58),
+          appSizedBox(height: 8),
+          appText(
+            funcionario.nome ?? AppStrings.vazio,
+            bold: true,
+            maxLines: 2,
+            overflow: true,
+            textAlign: TextAlign.center,
+            color: local.AppColors.text,
+            fontSize: 13,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _foto(BarbeariaFuncionarioModel funcionario, {double size = 64}) {
   final String? imagem = funcionario.foto;
   final bool temFoto = imagem != null && imagem.isNotEmpty;
 
   return SizedBox(
-    width: 64,
-    height: 64,
+    width: size,
+    height: size,
     child: ClipOval(
       child: temFoto
           ? Image.network(
               imagem,
               fit: BoxFit.cover,
-              width: 64,
-              height: 64,
-              errorBuilder: (_, _, _) => _fotoFallback(funcionario),
+              width: size,
+              height: size,
+              errorBuilder: (_, _, _) => _fotoFallback(funcionario, size),
             )
-          : _fotoFallback(funcionario),
+          : _fotoFallback(funcionario, size),
     ),
   );
 }
 
-Widget _fotoFallback(BarbeariaFuncionarioModel funcionario) {
+Widget _fotoFallback(BarbeariaFuncionarioModel funcionario, double size) {
   return ColoredBox(
     color: local.AppColors.primary.withValues(alpha: 0.12),
     child: Center(
       child: appText(
         inicialFuncionario(funcionario.nome),
         bold: true,
-        fontSize: AppFontSizes.medium,
+        fontSize: size * 0.38,
         color: local.AppColors.primary,
       ),
     ),

@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 class AppColors {
   static const Color primary = Color(0xFF1C3A5A);
   static const Color primaryDark = Color(0xFF12263C);
-  static const Color primaryLight = Color(0xFF8B2E2E);
+  static const Color primaryLight = Color(0xFF2E5C8A);
   static const Color secondary = Color(0xFF2A3F55);
 
-  static const Color background = Colors.white;
+  static const Color background = Color(0xFFF4F4F6);
   static const Color inputBackground = Color.fromRGBO(236, 236, 240, 1);
 
   static const Color text = Color(0xFF1A1A1A);
@@ -17,12 +17,6 @@ class AppColors {
   static const Color loading = primary;
   static const Color white = Colors.white;
   static const Color danger = Color(0xFFC62828);
-
-  static final BoxShadow cardShadow = BoxShadow(
-    color: Colors.black.withValues(alpha: 0.06),
-    blurRadius: 10,
-    offset: const Offset(0, 2),
-  );
 
   static const Color statusAberto = Color(0xFF157A3F);
   static const Color statusFechado = Color(0xFF9E9E9E);

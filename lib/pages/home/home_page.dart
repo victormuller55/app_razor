@@ -1,4 +1,5 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
+import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/functions/gps.dart';
 import 'package:app_razor/functions/local_storage.dart';
@@ -16,6 +17,7 @@ import 'package:app_razor/pages/home/widgets/home_proxima_card.dart';
 import 'package:app_razor/pages/barbearia_perfil/barbearia_perfil_page.dart';
 import 'package:app_razor/pages/mapa_barbearias/mapa_barbearias_page.dart';
 import 'package:app_razor/pages/pesquisa_barbearias/pesquisa_barbearias_page.dart';
+import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:app_razor/widgets/app_maps.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +38,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const double _folhaRadius = 28;
+  static const double _folhaRadius = AppRadii.externo;
   static const double _headerPaddingTop = 10;
   static const double _headerPaddingBottom = 12;
   static const double _headerAvatarDiameter = 28;
@@ -188,20 +190,24 @@ class _HomePageState extends State<HomePage> {
     _formSearch = AppFormField(
       context: context,
       hint: AppStrings.digiteAlgoParaPesquisar,
-      paddingHeight: 14,
+      paddingHeight: 16,
       maxLines: 1,
       fontSize: 15,
-      radius: AppRadius.medium,
+      radius: AppEstilo.raioCampo,
       topPadding: 0,
       showKeyboard: false,
       onTap: _openBusca,
-      backgroundColor: local.AppColors.inputBackground,
+      backgroundColor: AppEstilo.campoFundo,
       inputColor: local.AppColors.text,
-      hintColor: local.AppColors.textSecondary,
-      borderColor: local.AppColors.border,
+      hintColor: AppEstilo.campoIcone,
+      borderColor: AppEstilo.campoFundo,
       hoverBorderColor: local.AppColors.primary,
-      iconColor: local.AppColors.iconMuted,
-      icon: Icon(Phosphor.magnifyingGlass, color: local.AppColors.iconMuted),
+      iconColor: AppEstilo.campoIcone,
+      icon: const Icon(
+        Phosphor.magnifyingGlass,
+        color: AppEstilo.campoIcone,
+        size: 20,
+      ),
     );
   }
 
@@ -270,24 +276,44 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _blocoPerfil() {
-    final String nome = usuario.nome ?? AppStrings.vazio;
-    final String email = usuario.email ?? AppStrings.vazio;
+    final String nome = (usuario.nome ?? AppStrings.vazio).trim();
+    final String primeiroNome = nome.split(' ').first;
 
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: _openAbaPerfil,
       child: Row(
         children: [
           Expanded(
-            child: appInfoColumn(
-              title: 'Olá, $nome',
-              value: email,
-              ovewflowTitle: true,
-              titleColor: local.AppColors.text,
-              valueColor: local.AppColors.textSecondary,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                appText(
+                  'Olá, $primeiroNome',
+                  bold: true,
+                  fontSize: 24,
+                  maxLines: 1,
+                  overflow: true,
+                  color: local.AppColors.text,
+                ),
+                appSizedBox(height: 2),
+                appText(
+                  'Qual vai ser o corte de hoje?',
+                  fontSize: AppFontSizes.verySmall,
+                  color: local.AppColors.textSecondary,
+                ),
+              ],
             ),
           ),
           appSizedBox(width: AppSpacing.normal),
-          _avatarUsuario(),
+          Container(
+            padding: const EdgeInsets.all(2),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppEstilo.campoFundo,
+            ),
+            child: _avatarUsuario(),
+          ),
         ],
       ),
     );
@@ -302,13 +328,24 @@ class _HomePageState extends State<HomePage> {
 
   Widget _tituloSecao(String titulo) {
     return Padding(
-      padding: EdgeInsets.only(bottom: AppSpacing.normal),
+      padding: EdgeInsets.only(bottom: AppSpacing.normal + 2),
       child: appText(
         titulo,
         bold: true,
-        fontSize: AppFontSizes.medium,
+        fontSize: 18,
         color: local.AppColors.text,
       ),
+    );
+  }
+
+  Widget _estadoSecao(Widget child) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppEstilo.campoFundo,
+        borderRadius: BorderRadius.circular(AppEstilo.raioCampo + 6),
+      ),
+      child: child,
     );
   }
 
@@ -317,21 +354,28 @@ class _HomePageState extends State<HomePage> {
     required ErrorModel errorModel,
     required bool isEmpty,
     required String emptyMessage,
+    IconData? emptyIcon,
     required Widget lista,
   }) {
     if (status == HomeSecaoStatus.error) {
       return GestureDetector(
         onTap: () => _loadHome(forceRefresh: true),
-        child: homeEmptyState(
-          icon: Phosphor.warningCircle,
-          message: errorModel.mensagem ?? AppStrings.ocorreuUmErro,
+        child: _estadoSecao(
+          homeEmptyState(
+            icon: Phosphor.warningCircle,
+            message: errorModel.mensagem ?? AppStrings.ocorreuUmErro,
+          ),
         ),
       );
     }
 
     if (isEmpty) {
-      return homeEmptyState(
-        message: emptyMessage,
+      return _estadoSecao(
+        homeEmptyState(
+          icon: emptyIcon,
+          iconSize: 28,
+          message: emptyMessage,
+        ),
       );
     }
 
@@ -340,7 +384,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _listaFavoritas(List<BarbeariaModel> favoritas) {
     return appScrollHorizontal(
-      height: 96,
+      height: 92,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: favoritas
@@ -357,14 +401,14 @@ class _HomePageState extends State<HomePage> {
 
   Widget _listaProximas(List<BarbeariaModel> proximas) {
     return Column(
-      children: proximas
-          .map(
-            (BarbeariaModel barbearia) => homeProximaCard(
-              barbearia: barbearia,
-              onTap: () => _openBarbearia(barbearia),
-            ),
-          )
-          .toList(),
+      children: <Widget>[
+        for (int i = 0; i < proximas.length; i++)
+          homeProximaCard(
+            barbearia: proximas[i],
+            onTap: () => _openBarbearia(proximas[i]),
+            divisor: i < proximas.length - 1,
+          ),
+      ],
     );
   }
 
@@ -397,6 +441,7 @@ class _HomePageState extends State<HomePage> {
               errorModel: secaoState.favoritas.errorModel,
               isEmpty: secaoState.favoritas.isEmpty,
               emptyMessage: AppStrings.nenhumaFavoritaEncontrada,
+              emptyIcon: Phosphor.heart,
               lista: _listaFavoritas(secaoState.favoritas.itens),
             ),
           ],
@@ -423,6 +468,7 @@ class _HomePageState extends State<HomePage> {
                 errorModel: secaoState.proximas.errorModel,
                 isEmpty: secaoState.proximas.isEmpty,
                 emptyMessage: AppStrings.nenhumaBarbeariaEncontrada,
+                emptyIcon: Phosphor.storefront,
                 lista: _listaProximas(secaoState.proximas.itens),
               ),
             ],
@@ -450,6 +496,7 @@ class _HomePageState extends State<HomePage> {
                 errorModel: secaoState.promocoes.errorModel,
                 isEmpty: secaoState.promocoes.isEmpty,
                 emptyMessage: AppStrings.nenhumaPromocaoEncontrada,
+                emptyIcon: Phosphor.tag,
                 lista: _listaPromocoes(secaoState.promocoes.itens),
               ),
             ],
@@ -535,7 +582,7 @@ class _HomePageState extends State<HomePage> {
 
         return DecoratedBox(
           decoration: BoxDecoration(
-            color: local.AppColors.background,
+            color: local.AppColors.white,
             borderRadius: geometria,
             boxShadow: radius < 0.5
                 ? null
@@ -632,7 +679,7 @@ class _HomePageState extends State<HomePage> {
         systemNavigationBarContrastEnforced: false,
       ),
       child: Scaffold(
-        backgroundColor: local.AppColors.background,
+        backgroundColor: local.AppColors.white,
         body: BlocBuilder<HomeBloc, HomeState>(
           bloc: bloc,
           buildWhen: (HomeState previous, HomeState current) {

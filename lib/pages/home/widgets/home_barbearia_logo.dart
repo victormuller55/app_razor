@@ -4,14 +4,18 @@ import 'package:app_razor/models/barbearia_model.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
 
+/// Logo/foto da barbearia. Circular por padrão; com [radius], vira um
+/// quadrado de cantos arredondados.
 Widget homeBarbeariaLogo({
   required BarbeariaModel barbearia,
   double size = 48,
+  double? radius,
 }) {
   final String? logo = barbearia.logo;
   final bool temFoto = logo != null && logo.isNotEmpty;
 
-  return ClipOval(
+  return ClipRRect(
+    borderRadius: BorderRadius.circular(radius ?? size),
     child: SizedBox(
       width: size,
       height: size,
@@ -62,23 +66,28 @@ Widget _logoFallback(BarbeariaModel barbearia, double size) {
   final String inicial =
       nome.isNotEmpty ? nome.substring(0, 1).toUpperCase() : '?';
 
-  return appContainer(
+  return Container(
     width: size,
     height: size,
-    radius: BorderRadius.circular(size),
-    backgroundColor: local.AppColors.primary.withValues(alpha: 0.12),
+    decoration: const BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [local.AppColors.primary, local.AppColors.primaryLight],
+      ),
+    ),
     child: Center(
       child: nome.isEmpty
           ? Icon(
               Phosphor.scissors,
               size: size * 0.45,
-              color: local.AppColors.primary,
+              color: local.AppColors.white,
             )
           : appText(
               inicial,
               bold: true,
               fontSize: size * 0.38,
-              color: local.AppColors.primary,
+              color: local.AppColors.white,
             ),
     ),
   );
@@ -92,32 +101,43 @@ String? homeTextoDistanciaKm(double? distanciaKm) {
   return '${distanciaKm.toStringAsFixed(1).replaceAll('.', ',')} km';
 }
 
+/// Estrela amarela com a nota da barbearia.
+Widget homeNota(BarbeariaModel barbearia) {
+  final String nota =
+      (barbearia.nota ?? 0).toStringAsFixed(1).replaceAll('.', ',');
+
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      const Icon(PhosphorFill.star, size: 13, color: Color(0xFFF2B01E)),
+      appSizedBox(width: 3),
+      appText(
+        nota,
+        color: local.AppColors.text,
+        fontSize: 12,
+        bold: true,
+      ),
+    ],
+  );
+}
+
 Widget homeNotaDistancia({
   required BarbeariaModel barbearia,
 }) {
-  final String nota =
-      (barbearia.nota ?? 0).toStringAsFixed(1).replaceAll('.', ',');
   final String? distancia = homeTextoDistanciaKm(barbearia.distanciaKm);
 
   return Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Icon(Phosphor.star, size: 14, color: local.AppColors.primary),
-      appSizedBox(width: 4),
-      appText(
-        nota,
-        color: local.AppColors.text,
-        fontSize: AppFontSizes.verySmall,
-        bold: true,
-      ),
+      homeNota(barbearia),
       if (distancia != null) ...[
         appSizedBox(width: AppSpacing.normal),
-        Icon(Phosphor.mapPin, size: 14, color: local.AppColors.textSecondary),
-        appSizedBox(width: 4),
+        const Icon(Phosphor.mapPin, size: 13, color: Color(0xFF98A0AC)),
+        appSizedBox(width: 3),
         appText(
           distancia,
           color: local.AppColors.textSecondary,
-          fontSize: AppFontSizes.verySmall,
+          fontSize: 12,
         ),
       ],
     ],

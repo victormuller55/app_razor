@@ -1,4 +1,5 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
+import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
@@ -25,7 +26,7 @@ Widget profissionalSelectCard({
       backgroundColor: selecionado
           ? local.AppColors.primary.withValues(alpha: 0.12)
           : local.AppColors.inputBackground,
-      radius: BorderRadius.circular(AppRadius.medium),
+      radius: BorderRadius.circular(AppRadii.externo),
       border: selecionado ? Border.all(color: local.AppColors.primary) : null,
       child: Column(
         children: [

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
+import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/functions/api_error.dart';
 import 'package:app_razor/functions/media_url.dart';
@@ -76,7 +77,7 @@ class _PerfilPageState extends State<PerfilPage> {
       backgroundColor: local.AppColors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppRadius.big),
+          top: Radius.circular(AppRadii.externo),
         ),
       ),
       builder: (BuildContext ctx) {
@@ -297,7 +298,6 @@ class _PerfilPageState extends State<PerfilPage> {
               color: local.AppColors.white,
               shape: BoxShape.circle,
               border: Border.all(color: local.AppColors.background, width: 2),
-              boxShadow: <BoxShadow>[local.AppColors.cardShadow],
             ),
             child: _enviandoFoto
                 ? Padding(
@@ -324,9 +324,8 @@ class _PerfilPageState extends State<PerfilPage> {
         AppSpacing.medium,
         AppSpacing.medium,
       ),
-      radius: BorderRadius.circular(AppRadius.normal),
+      radius: BorderRadius.circular(AppRadii.externo),
       backgroundColor: local.AppColors.white,
-      shadow: local.AppColors.cardShadow,
       child: Column(
         children: [
           _avatar(usuario),
@@ -364,9 +363,8 @@ class _PerfilPageState extends State<PerfilPage> {
           ),
         ),
         appContainer(
-          radius: BorderRadius.circular(AppRadius.normal),
+          radius: BorderRadius.circular(AppRadii.externo),
           backgroundColor: local.AppColors.white,
-          shadow: local.AppColors.cardShadow,
           child: Column(
             children: [
               for (int i = 0; i < itens.length; i++) ...[
@@ -406,7 +404,7 @@ class _PerfilPageState extends State<PerfilPage> {
         height: 36,
         decoration: BoxDecoration(
           color: cor.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadii.interno),
         ),
         child: Icon(icon, color: cor, size: 18),
       ),
@@ -519,6 +517,7 @@ class _PerfilPageState extends State<PerfilPage> {
   }
 
   Widget _conteudo(PerfilState state) {
+
     if (state is PerfilSuccessState) {
       return _loaded(state.usuario);
     }

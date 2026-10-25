@@ -10,6 +10,7 @@ import 'package:app_razor/pages/agendamentos/widgets/cancelar_agendamento_modal.
 import 'package:app_razor/pages/home/widgets/home_empty_state.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -155,19 +156,62 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
     return appLoadingRazor();
   }
 
+  Widget _cabecalho() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.medium,
+        AppSpacing.medium - 4,
+        AppSpacing.medium,
+        AppSpacing.small,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          appText(
+            'Agenda',
+            bold: true,
+            fontSize: 26,
+            color: local.AppColors.text,
+          ),
+          appSizedBox(height: 2),
+          appText(
+            'Acompanhe e gerencie seus horários',
+            fontSize: AppFontSizes.verySmall,
+            color: local.AppColors.textSecondary,
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AgendamentosBloc, AgendamentosState>(
-      bloc: bloc,
-      builder: (BuildContext context, AgendamentosState state) {
-        return scaffold(
-          title: 'Agenda',
-          hideBackIcon: true,
-          background: local.AppColors.background,
-          appBarColor: local.AppColors.primary,
-          body: _conteudo(state),
-        );
-      },
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+      child: Scaffold(
+        backgroundColor: local.AppColors.white,
+        body: SafeArea(
+          bottom: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _cabecalho(),
+              Expanded(
+                child: BlocBuilder<AgendamentosBloc, AgendamentosState>(
+                  bloc: bloc,
+                  builder: (BuildContext context, AgendamentosState state) {
+                    return _conteudo(state);
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

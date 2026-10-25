@@ -5,10 +5,7 @@ abstract class BarbeariaPerfilState {
   ErrorModel errorModel;
   BarbeariaPerfilModel? perfil;
 
-  BarbeariaPerfilState({
-    required this.errorModel,
-    this.perfil,
-  });
+  BarbeariaPerfilState({required this.errorModel, this.perfil});
 }
 
 class BarbeariaPerfilInitialState extends BarbeariaPerfilState {
@@ -16,22 +13,14 @@ class BarbeariaPerfilInitialState extends BarbeariaPerfilState {
 }
 
 class BarbeariaPerfilLoadingState extends BarbeariaPerfilState {
-  BarbeariaPerfilLoadingState({BarbeariaPerfilModel? perfil})
-      : super(
-          errorModel: ErrorModel.empty(),
-          perfil: perfil,
-        );
+  BarbeariaPerfilLoadingState({super.perfil}) : super(errorModel: ErrorModel.empty());
 }
 
 class BarbeariaPerfilSuccessState extends BarbeariaPerfilState {
   BarbeariaPerfilSuccessState({required BarbeariaPerfilModel perfil})
-      : super(
-          errorModel: ErrorModel.empty(),
-          perfil: perfil,
-        );
+    : super(errorModel: ErrorModel.empty(), perfil: perfil);
 }
 
 class BarbeariaPerfilErrorState extends BarbeariaPerfilState {
-  BarbeariaPerfilErrorState({required ErrorModel errorModel})
-      : super(errorModel: errorModel);
+  BarbeariaPerfilErrorState({required super.errorModel});
 }

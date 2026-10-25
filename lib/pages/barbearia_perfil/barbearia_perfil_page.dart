@@ -1,4 +1,5 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
+import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/functions/abrir_rota.dart';
 import 'package:app_razor/functions/telefone.dart';
@@ -11,11 +12,11 @@ import 'package:app_razor/pages/barbearia_perfil/barbearia_perfil_state.dart';
 import 'package:app_razor/pages/agendamento/agendamento_page.dart';
 import 'package:app_razor/pages/barbearia_perfil/widgets/funcionario_grid_card.dart';
 import 'package:app_razor/pages/barbearia_perfil/widgets/servico_grid_card.dart';
-import 'package:app_razor/pages/home/widgets/home_barbearia_logo.dart';
 import 'package:app_razor/pages/home/widgets/home_promocao_card.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:app_razor/widgets/app_maps.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -46,6 +47,8 @@ class BarbeariaPerfilPage extends StatefulWidget {
 }
 
 class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
+  static const Color _corAcaoFundo = Color(0xFFE8EEF4);
+
   late final BarbeariaPerfilBloc bloc;
 
   Future<void> _loadPerfil({bool forceRefresh = false}) async {
@@ -67,13 +70,14 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
         latitude: perfil.latitude,
         longitude: perfil.longitude,
         endereco: perfil.enderecoCompleto,
+        nome: perfil.nome,
       );
     } catch (_) {
       showSnackbarWarning(message: rotaMensagemIndisponivel);
     }
   }
 
-  Future<void> _ligar(String telefone) async {
+  Future<void> _ligar(String? telefone) async {
     try {
       await abrirTelefone(telefone);
     } catch (_) {
@@ -81,12 +85,30 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     }
   }
 
-  Future<void> _abrirWhatsApp(String telefone) async {
+  Future<void> _abrirWhatsApp(String? telefone) async {
     try {
       await abrirWhatsApp(telefone);
     } catch (_) {
       showSnackbarWarning(message: contatoMensagemIndisponivel);
     }
+  }
+
+  Future<void> _compartilhar(BarbeariaPerfilModel perfil) async {
+    final String nome = perfil.nome?.trim() ?? '';
+    final String endereco = perfil.enderecoCompleto?.trim() ??
+        perfil.localDescricao.trim();
+    final String texto = <String>[
+      if (nome.isNotEmpty) nome,
+      if (endereco.isNotEmpty) endereco,
+    ].join('\n');
+
+    if (texto.isEmpty) {
+      showSnackbarWarning(message: 'Nada para compartilhar.');
+      return;
+    }
+
+    await Clipboard.setData(ClipboardData(text: texto));
+    showSnackbarSuccess(message: 'Informações copiadas');
   }
 
   @override
@@ -96,8 +118,65 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     _loadPerfil();
   }
 
-  Widget _logo(BarbeariaPerfilModel perfil) {
-    const double size = 88;
+  String _formataInteiro(int value) {
+    final String digits = value.toString();
+    final StringBuffer buffer = StringBuffer();
+
+    for (int i = 0; i < digits.length; i++) {
+      final int fromEnd = digits.length - i;
+      buffer.write(digits[i]);
+      if (fromEnd > 1 && fromEnd % 3 == 1) {
+        buffer.write('.');
+      }
+    }
+
+    return buffer.toString();
+  }
+
+  Widget _badgeStatus(BarbeariaPerfilModel perfil) {
+    final bool aberto = perfil.aberto ?? false;
+    final Color cor = aberto
+        ? local.AppColors.statusAberto
+        : local.AppColors.statusFechado;
+
+    return appContainer(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      backgroundColor: cor.withValues(alpha: 0.12),
+      radius: BorderRadius.circular(20),
+      child: appText(
+        aberto ? 'Aberto' : 'Fechado',
+        bold: true,
+        color: cor,
+        fontSize: 12,
+      ),
+    );
+  }
+
+  Widget _linhaMeta({
+    required IconData icone,
+    required String texto,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 1),
+          child: Icon(icone, size: 16, color: local.AppColors.primary),
+        ),
+        appSizedBox(width: 6),
+        Expanded(
+          child: appText(
+            texto,
+            color: local.AppColors.textSecondary,
+            fontSize: AppFontSizes.verySmall,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _logoIdentidade(BarbeariaPerfilModel perfil) {
+    const double size = 72;
     final String? logo = perfil.logo;
     final bool temFoto = logo != null && logo.isNotEmpty;
     final String nome = perfil.nome ?? '';
@@ -105,7 +184,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
         nome.isNotEmpty ? nome.substring(0, 1).toUpperCase() : '?';
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(AppRadius.normal),
+      borderRadius: BorderRadius.circular(AppRadii.interno),
       child: SizedBox(
         width: size,
         height: size,
@@ -143,57 +222,22 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     );
   }
 
-  Widget _chipInfo({
-    required IconData icone,
-    required String texto,
-    required Color corIcone,
-    required Color corTexto,
-    Color? fundo,
-  }) {
-    return appContainer(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      backgroundColor: fundo ?? local.AppColors.inputBackground,
-      radius: BorderRadius.circular(AppRadius.medium),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icone, size: 14, color: corIcone),
-          appSizedBox(width: 4),
-          appText(
-            texto,
-            bold: true,
-            color: corTexto,
-            fontSize: 11,
-            maxLines: 1,
-            overflow: true,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _identidade(BarbeariaPerfilModel perfil) {
-    final bool aberto = perfil.aberto ?? false;
-    final Color corStatus = aberto
-        ? local.AppColors.statusAberto
-        : local.AppColors.statusFechado;
-    final String status = aberto ? 'Aberto' : 'Fechado';
-    final String? horario = perfil.horarioHoje;
     final String nota =
         (perfil.nota ?? 0).toStringAsFixed(1).replaceAll('.', ',');
     final int? total = perfil.totalAvaliacoes;
-    final String notaTexto =
-        total != null && total > 0 ? '$nota ($total)' : nota;
-    final String? distancia = homeTextoDistanciaKm(perfil.distanciaKm);
+    final String notaTexto = total != null && total > 0
+        ? '$nota (${_formataInteiro(total)} ${total == 1 ? 'avaliação' : 'avaliações'})'
+        : nota;
     final String? descricao = perfil.descricao?.trim();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _logo(perfil),
+            _logoIdentidade(perfil),
             appSizedBox(width: AppSpacing.normal),
             Expanded(
               child: Column(
@@ -203,67 +247,22 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            appText(
-                              perfil.nome ?? AppStrings.vazio,
-                              bold: true,
-                              fontSize: AppFontSizes.medium,
-                              color: local.AppColors.text,
-                            ),
-                            if (perfil.localDescricao.isNotEmpty)
-                              Padding(
-                                padding: EdgeInsets.only(top: 2),
-                                child: appText(
-                                  perfil.localDescricao,
-                                  color: local.AppColors.textSecondary,
-                                  fontSize: AppFontSizes.verySmall,
-                                ),
-                              ),
-                          ],
+                        child: appText(
+                          perfil.nome ?? AppStrings.vazio,
+                          bold: true,
+                          fontSize: AppFontSizes.medium,
+                          color: local.AppColors.text,
                         ),
                       ),
                       appSizedBox(width: AppSpacing.small),
-                      _chipInfo(
-                        icone: Phosphor.clock,
-                        texto: status,
-                        corIcone: corStatus,
-                        corTexto: corStatus,
-                        fundo: corStatus.withValues(alpha: 0.12),
-                      ),
+                      _badgeStatus(perfil),
                     ],
                   ),
+                  appSizedBox(height: 6),
+                  _linhaMeta(icone: Phosphor.star, texto: notaTexto),
                 ],
               ),
             ),
-          ],
-        ),
-        appSizedBox(height: AppSpacing.normal),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _chipInfo(
-              icone: Phosphor.star,
-              texto: notaTexto,
-              corIcone: local.AppColors.primary,
-              corTexto: local.AppColors.text,
-            ),
-            if (distancia != null)
-              _chipInfo(
-                icone: Phosphor.mapPin,
-                texto: distancia,
-                corIcone: local.AppColors.textSecondary,
-                corTexto: local.AppColors.textSecondary,
-              ),
-            if (horario != null)
-              _chipInfo(
-                icone: Phosphor.clock,
-                texto: horario,
-                corIcone: local.AppColors.textSecondary,
-                corTexto: local.AppColors.textSecondary,
-              ),
           ],
         ),
         if (descricao != null && descricao.isNotEmpty) ...[
@@ -275,6 +274,208 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _botaoAcaoRapida({
+    required IconData icone,
+    required String texto,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          children: [
+            appContainer(
+              width: 56,
+              height: 56,
+              backgroundColor: _corAcaoFundo,
+              radius: BorderRadius.circular(AppRadii.interno),
+              child: Center(
+                child: Icon(icone, size: 24, color: local.AppColors.primary),
+              ),
+            ),
+            appSizedBox(height: 6),
+            appText(
+              texto,
+              color: local.AppColors.textSecondary,
+              fontSize: 12,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _acoesRapidas(BarbeariaPerfilModel perfil) {
+    return Padding(
+      padding: EdgeInsets.only(top: AppSpacing.medium),
+      child: Row(
+        children: [
+          _botaoAcaoRapida(
+            icone: Phosphor.whatsappLogo,
+            texto: 'WhatsApp',
+            onTap: () => _abrirWhatsApp(perfil.telefone),
+          ),
+          _botaoAcaoRapida(
+            icone: Phosphor.phone,
+            texto: 'Ligar',
+            onTap: () => _ligar(perfil.telefone),
+          ),
+          _botaoAcaoRapida(
+            icone: Phosphor.mapPin,
+            texto: 'Rota',
+            onTap: () => _abrirRota(perfil),
+          ),
+          _botaoAcaoRapida(
+            icone: Phosphor.shareNetwork,
+            texto: 'Compartilhar',
+            onTap: () => _compartilhar(perfil),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _cabecalhoSecao({
+    required String titulo,
+    String? acao,
+    VoidCallback? onAcao,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: appText(
+            titulo,
+            bold: true,
+            fontSize: AppFontSizes.small,
+            color: local.AppColors.text,
+          ),
+        ),
+        if (acao != null)
+          GestureDetector(
+            onTap: onAcao,
+            child: appText(
+              acao,
+              bold: true,
+              color: local.AppColors.primary,
+              fontSize: AppFontSizes.verySmall,
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _abrirEquipeCompleta(BarbeariaPerfilModel perfil) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext modalContext) {
+        return appContainer(
+          width: double.infinity,
+          backgroundColor: local.AppColors.white,
+          radius: const BorderRadius.vertical(
+            top: Radius.circular(AppRadii.externo),
+          ),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.medium,
+              AppSpacing.normal,
+              AppSpacing.medium,
+              MediaQuery.viewPaddingOf(modalContext).bottom + AppSpacing.medium,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    height: 6,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[400],
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+                appSizedBox(height: AppSpacing.medium),
+                appText(
+                  'Equipe',
+                  bold: true,
+                  fontSize: AppFontSizes.small,
+                  color: local.AppColors.text,
+                ),
+                appSizedBox(height: AppSpacing.normal),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: perfil.funcionarios.length,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: AppSpacing.normal,
+                    crossAxisSpacing: AppSpacing.small,
+                    mainAxisExtent: 148,
+                  ),
+                  itemBuilder: (BuildContext context, int index) {
+                    final BarbeariaFuncionarioModel funcionario =
+                        perfil.funcionarios[index];
+                    return funcionarioGridCard(
+                      funcionario: funcionario,
+                      onTap: () {
+                        Navigator.of(modalContext).pop();
+                        _abrirAgendamento(funcionarioId: funcionario.id);
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _equipe(BarbeariaPerfilModel perfil) {
+    if (perfil.funcionarios.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(top: AppSpacing.big),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _cabecalhoSecao(
+            titulo: 'Equipe',
+            acao: perfil.funcionarios.length > 3 ? 'Ver todos' : null,
+            onAcao: () => _abrirEquipeCompleta(perfil),
+          ),
+          appSizedBox(height: AppSpacing.normal),
+          SizedBox(
+            height: 124,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: perfil.funcionarios.length,
+              separatorBuilder: (_, _) => appSizedBox(width: AppSpacing.normal),
+              itemBuilder: (BuildContext context, int index) {
+                final BarbeariaFuncionarioModel funcionario =
+                    perfil.funcionarios[index];
+                return funcionarioListaCard(
+                  funcionario: funcionario,
+                  onTap: () =>
+                      _abrirAgendamento(funcionarioId: funcionario.id),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -307,119 +508,25 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     return appContainer(
       width: double.infinity,
       padding: padding ?? EdgeInsets.all(AppSpacing.normal),
-      backgroundColor: local.AppColors.white,
-      radius: BorderRadius.circular(AppRadius.normal),
-      shadow: local.AppColors.cardShadow,
+      backgroundColor: local.AppColors.background,
+      radius: BorderRadius.circular(AppRadii.externo),
       child: child,
     );
   }
 
-  Widget _botaoAcao({
-    required IconData icone,
-    required String texto,
-    required Color cor,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: cor.withValues(alpha: 0.08),
-      borderRadius: BorderRadius.circular(AppRadius.medium),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.medium),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icone, size: 16, color: cor),
-              appSizedBox(width: 6),
-              appText(
-                texto,
-                bold: true,
-                color: cor,
-                fontSize: AppFontSizes.verySmall,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _botaoRota(BarbeariaPerfilModel perfil) {
-    return _botaoAcao(
-      icone: Phosphor.navigationArrow,
-      texto: 'Como chegar',
-      cor: local.AppColors.primary,
-      onTap: () => _abrirRota(perfil),
-    );
-  }
-
-  Widget _botoesContato(String telefone) {
-    const Color corWhatsApp = Color(0xFF25D366);
-    final bool whatsapp = ehCelularWhatsApp(telefone);
-
-    return Row(
-      children: [
-        if (whatsapp) ...[
-          Expanded(
-            child: _botaoAcao(
-              icone: Phosphor.whatsappLogo,
-              texto: 'WhatsApp',
-              cor: corWhatsApp,
-              onTap: () => _abrirWhatsApp(telefone),
-            ),
-          ),
-          appSizedBox(width: AppSpacing.small),
-        ],
-        Expanded(
-          child: _botaoAcao(
-            icone: Phosphor.phone,
-            texto: 'Ligar',
-            cor: local.AppColors.primary,
-            onTap: () => _ligar(telefone),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _linhaInfo({
-    required IconData icone,
-    required String texto,
-    bool destaque = false,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icone, size: 16, color: local.AppColors.primary),
-        appSizedBox(width: AppSpacing.small),
-        Expanded(
-          child: appText(
-            texto,
-            color: local.AppColors.text,
-            fontSize: AppFontSizes.verySmall,
-            bold: destaque,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _endereco(BarbeariaPerfilModel perfil) {
-    final String? endereco = perfil.enderecoCompleto;
-    final String? telefone = perfil.telefone;
+    final String endereco = perfil.enderecoCompleto?.trim().isNotEmpty == true
+        ? perfil.enderecoCompleto!.trim()
+        : perfil.localDescricao;
     final bool temMapa = perfil.latitude != null && perfil.longitude != null;
-    final bool temEndereco = endereco != null && endereco.isNotEmpty;
-    final bool temTelefone = telefone != null && telefone.isNotEmpty;
-    final bool temRota = temMapa || temEndereco;
+    final bool temEndereco = endereco.isNotEmpty;
 
-    if (!temEndereco && !temMapa && !temTelefone) {
+    if (!temMapa && !temEndereco) {
       return const SizedBox.shrink();
     }
 
     return Padding(
-      padding: EdgeInsets.only(top: AppSpacing.normal),
+      padding: EdgeInsets.only(top: AppSpacing.medium),
       child: _card(
         padding: EdgeInsets.zero,
         child: Column(
@@ -428,10 +535,13 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
             if (temMapa)
               ClipRRect(
                 borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.normal - 1),
+                  top: Radius.circular(AppRadii.externo),
+                  bottom: temEndereco
+                      ? Radius.zero
+                      : Radius.circular(AppRadii.externo),
                 ),
                 child: SizedBox(
-                  height: 128,
+                  height: 148,
                   width: double.infinity,
                   child: AppMaps.map(
                     latitude: perfil.latitude!,
@@ -441,32 +551,10 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
                   ),
                 ),
               ),
-            if (temEndereco || temTelefone || temRota)
+            if (temEndereco)
               Padding(
                 padding: EdgeInsets.all(AppSpacing.normal),
-                child: Column(
-                  children: [
-                    if (temEndereco)
-                      _linhaInfo(icone: Phosphor.mapPin, texto: endereco),
-                    if (temEndereco && temTelefone)
-                      appSizedBox(height: AppSpacing.small),
-                    if (temTelefone)
-                      _linhaInfo(
-                        icone: Phosphor.phone,
-                        texto: formataTelefone(telefone),
-                        destaque: true,
-                      ),
-                    if (temTelefone) ...[
-                      appSizedBox(height: AppSpacing.normal),
-                      _botoesContato(telefone),
-                    ],
-                    if (temRota) ...[
-                      if (temEndereco || temTelefone)
-                        appSizedBox(height: AppSpacing.normal),
-                      _botaoRota(perfil),
-                    ],
-                  ],
-                ),
+                child: _linhaMeta(icone: Phosphor.mapPin, texto: endereco),
               ),
           ],
         ),
@@ -535,38 +623,8 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
           final BarbeariaServicoModel servico = perfil.servicos[index];
           return servicoGridCard(
             servico: servico,
-            onTap: () => _abrirAgendamento(
-              servicoId: servico.id,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _equipe(BarbeariaPerfilModel perfil) {
-    if (perfil.funcionarios.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return _secao(
-      titulo: 'Equipe',
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: perfil.funcionarios.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          mainAxisSpacing: AppSpacing.normal,
-          crossAxisSpacing: AppSpacing.small,
-          mainAxisExtent: 148,
-        ),
-        itemBuilder: (BuildContext context, int index) {
-          final BarbeariaFuncionarioModel funcionario =
-              perfil.funcionarios[index];
-          return funcionarioGridCard(
-            funcionario: funcionario,
-            onTap: () => _abrirAgendamento(funcionarioId: funcionario.id),
+            backgroundColor: local.AppColors.background,
+            onTap: () => _abrirAgendamento(servicoId: servico.id),
           );
         },
       ),
@@ -662,26 +720,39 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     );
   }
 
+  Widget _folha(BarbeariaPerfilModel perfil) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.medium,
+        AppSpacing.medium,
+        AppSpacing.medium,
+        AppSpacing.giant + MediaQuery.viewPaddingOf(context).bottom,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _identidade(perfil),
+          _acoesRapidas(perfil),
+          _endereco(perfil),
+          _equipe(perfil),
+          _servicos(perfil),
+          _horarios(perfil),
+          _promocoes(perfil),
+          _avaliacoes(perfil),
+        ],
+      ),
+    );
+  }
+
   Widget _conteudo(BarbeariaPerfilModel perfil) {
     return RefreshIndicator(
       color: local.AppColors.primary,
       onRefresh: () => _loadPerfil(forceRefresh: true),
-      child: ListView(
-        padding: EdgeInsets.fromLTRB(
-          AppSpacing.medium,
-          AppSpacing.normal,
-          AppSpacing.medium,
-          AppSpacing.giant,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: ClampingScrollPhysics(),
         ),
-        children: [
-          _identidade(perfil),
-          _endereco(perfil),
-          _horarios(perfil),
-          _servicos(perfil),
-          _equipe(perfil),
-          _promocoes(perfil),
-          _avaliacoes(perfil),
-        ],
+        child: _folha(perfil),
       ),
     );
   }
@@ -692,28 +763,15 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     }
 
     if (state is BarbeariaPerfilErrorState) {
-      return appError(
-        state.errorModel,
-        function: () => _loadPerfil(forceRefresh: true),
+      return Center(
+        child: appError(
+          state.errorModel,
+          function: () => _loadPerfil(forceRefresh: true),
+        ),
       );
     }
 
-    return appLoadingRazor();
-  }
-
-  List<Widget> _actions(BarbeariaPerfilState state) {
-    final bool favorito = state.perfil?.favorito ?? false;
-
-    if (!favorito) {
-      return const <Widget>[];
-    }
-
-    return <Widget>[
-      Padding(
-        padding: EdgeInsets.only(right: AppSpacing.normal),
-        child: Icon(PhosphorFill.heart, color: local.AppColors.white),
-      ),
-    ];
+    return Center(child: appLoadingRazor());
   }
 
   @override
@@ -721,15 +779,26 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     return BlocBuilder<BarbeariaPerfilBloc, BarbeariaPerfilState>(
       bloc: bloc,
       builder: (BuildContext context, BarbeariaPerfilState state) {
-        final String titulo = state.perfil?.nome ??
-            widget.nomeInicial ??
-            AppStrings.barbearias;
+        final BarbeariaPerfilModel? perfil =
+            state is BarbeariaPerfilSuccessState ? state.perfil : null;
 
         return scaffold(
-          title: titulo,
-          background: local.AppColors.background,
+          title: 'Detalhes',
+          centerTitle: true,
+          background: local.AppColors.white,
           appBarColor: local.AppColors.primary,
-          actions: _actions(state),
+          safeBottom: false,
+          actions: perfil != null
+              ? <Widget>[
+                  IconButton(
+                    icon: Icon(
+                      Phosphor.dotsThreeVertical,
+                      color: local.AppColors.white,
+                    ),
+                    onPressed: () => _compartilhar(perfil),
+                  ),
+                ]
+              : null,
           body: _bodyTela(state),
         );
       },

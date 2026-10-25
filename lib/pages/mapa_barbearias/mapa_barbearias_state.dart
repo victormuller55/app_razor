@@ -1,6 +1,5 @@
 import 'package:app_razor/models/barbearia_model.dart';
 import 'package:app_razor/models/paginacao_model.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
 
 abstract class MapaBarbeariasState {
