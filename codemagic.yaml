@@ -87,7 +87,28 @@ workflows:
           # Cria o target RazorLiveActivity (lembrete na Dynamic Island) no
           # Runner.xcodeproj. O gem xcodeproj vem junto com o CocoaPods.
           gem list -i xcodeproj >/dev/null || gem install xcodeproj
-          ruby ios/scripts/adicionar_live_activity.rb
+
+          # A extensão só entra se o ios_signing instalou um perfil para ela;
+          # sem perfil, o app é gerado sem o lembrete em vez de falhar.
+          EXTENSAO="com.net.convertix.scissor.RazorLiveActivity"
+          TEM_PERFIL=0
+          for PERFIL in "$HOME/Library/MobileDevice/Provisioning Profiles/"*.mobileprovision; do
+            [ -e "$PERFIL" ] || continue
+            APP_ID=$(security cms -D -i "$PERFIL" 2>/dev/null \
+              | plutil -extract Entitlements.application-identifier raw -o - - 2>/dev/null || true)
+            case "$APP_ID" in
+              *".$EXTENSAO") TEM_PERFIL=1 ;;
+            esac
+          done
+
+          if [ "$TEM_PERFIL" = "1" ]; then
+            echo "Perfil de $EXTENSAO encontrado: incluindo a extensão"
+            ruby ios/scripts/adicionar_live_activity.rb
+          else
+            echo "AVISO: nenhum perfil para $EXTENSAO no Codemagic."
+            echo "O app vai sem o lembrete na Dynamic Island. Veja docs/LEMBRETE_DYNAMIC_ISLAND.md"
+            SEM_EXTENSAO=1 ruby ios/scripts/adicionar_live_activity.rb
+          fi
 
       - name: Install CocoaPods
         script: |

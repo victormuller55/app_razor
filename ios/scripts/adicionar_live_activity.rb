@@ -39,6 +39,23 @@ plugin = arquivo(grupo_runner, 'LembreteAgendamentoPlugin.swift')
 compilar(runner, plugin)
 compilar(runner, compartilhado)
 
+# O app usa ActivityKit, que só existe do iOS 16.1 em diante; com o mínimo
+# do app em 15, ele é ligado de forma opcional.
+runner.build_configurations.each do |config|
+  flags = Array(config.build_settings['OTHER_LDFLAGS'] || '$(inherited)')
+  unless flags.include?('ActivityKit')
+    config.build_settings['OTHER_LDFLAGS'] = flags + ['-weak_framework', 'ActivityKit']
+  end
+end
+
+# Sem perfil de assinatura para a extensão, o app sai sem ela (e sem o
+# lembrete na Dynamic Island) em vez de o build falhar.
+if ENV['SEM_EXTENSAO'] == '1'
+  project.save
+  puts "Sem a extensão #{NOME}: só os arquivos do app foram adicionados"
+  exit
+end
+
 extensao = project.targets.find { |t| t.name == NOME }
 
 if extensao.nil?
@@ -77,15 +94,6 @@ extensao.build_configurations.each do |config|
       '@executable_path/../../Frameworks',
     ],
   )
-end
-
-# O app usa ActivityKit, que só existe do iOS 16.1 em diante; com o mínimo
-# do app em 15, ele é ligado de forma opcional.
-runner.build_configurations.each do |config|
-  flags = Array(config.build_settings['OTHER_LDFLAGS'] || '$(inherited)')
-  unless flags.include?('ActivityKit')
-    config.build_settings['OTHER_LDFLAGS'] = flags + ['-weak_framework', 'ActivityKit']
-  end
 end
 
 runner.add_dependency(extensao) unless runner.dependencies.any? { |d| d.target == extensao }

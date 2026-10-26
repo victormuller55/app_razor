@@ -26,12 +26,19 @@ O target `RazorLiveActivity` não fica salvo no projeto: o Codemagic roda o
 script a cada build (passo "Add Live Activity Extension", antes do CocoaPods).
 Num Mac, para abrir no Xcode com a extensão: `cd ios && ruby scripts/adicionar_live_activity.rb`.
 
-## Configuração na Apple (uma vez)
+## Assinatura (uma vez)
 
-1. Em Certificates, Identifiers & Profiles, registre o App ID
-   `com.net.convertix.scissor.RazorLiveActivity`.
-2. Crie o perfil App Store para esse App ID (ou deixe o Codemagic buscar/criar
-   junto com o do app) e confira que ele aparece em Codemagic → Code signing
-   identities → iOS provisioning profiles.
-3. O `xcode-project use-profiles` aplica o perfil certo em cada target pelo
-   bundle id.
+Sem um perfil para a extensão, o build do Codemagic gera o app **sem** o
+lembrete (o log mostra "AVISO: nenhum perfil para ..."). Para incluir:
+
+1. developer.apple.com → Certificates, Identifiers & Profiles → Identifiers:
+   registre o App ID `com.net.convertix.scissor.RazorLiveActivity`
+   (tipo App IDs → App, sem capabilities extras).
+2. Profiles → `+` → Distribution → **App Store Connect** → escolha esse App ID
+   → o mesmo certificado de distribuição do app → dê um nome (ex.:
+   `Razor LiveActivity App Store`).
+3. Codemagic → Teams → Code signing identities → iOS provisioning profiles →
+   **Fetch profiles** → marque o perfil novo e salve com uma referência.
+4. Rode o build de novo. O `ios_signing` instala os perfis com o prefixo
+   `com.net.convertix.scissor`, o passo "Add Live Activity Extension" acha o
+   da extensão e o `xcode-project use-profiles` aplica cada perfil no seu target.
