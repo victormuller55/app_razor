@@ -16,8 +16,10 @@ import 'package:app_razor/pages/perfil/perfil_state.dart';
 import 'package:app_razor/pages/perfil/politica_privacidade_page.dart';
 import 'package:app_razor/pages/perfil/trocar_senha_page.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
+import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:muller_package/muller_package.dart';
@@ -297,7 +299,7 @@ class _PerfilPageState extends State<PerfilPage> {
             decoration: BoxDecoration(
               color: local.AppColors.white,
               shape: BoxShape.circle,
-              border: Border.all(color: local.AppColors.background, width: 2),
+              border: Border.all(color: AppEstilo.campoFundo, width: 2),
             ),
             child: _enviandoFoto
                 ? Padding(
@@ -325,7 +327,7 @@ class _PerfilPageState extends State<PerfilPage> {
         AppSpacing.medium,
       ),
       radius: BorderRadius.circular(AppRadii.externo),
-      backgroundColor: local.AppColors.white,
+      backgroundColor: AppEstilo.campoFundo,
       child: Column(
         children: [
           _avatar(usuario),
@@ -364,7 +366,7 @@ class _PerfilPageState extends State<PerfilPage> {
         ),
         appContainer(
           radius: BorderRadius.circular(AppRadii.externo),
-          backgroundColor: local.AppColors.white,
+          backgroundColor: AppEstilo.campoFundo,
           child: Column(
             children: [
               for (int i = 0; i < itens.length; i++) ...[
@@ -436,100 +438,151 @@ class _PerfilPageState extends State<PerfilPage> {
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.fromLTRB(
-          AppSpacing.normal,
-          AppSpacing.normal,
-          AppSpacing.normal,
+          0,
+          0,
+          0,
           AppSpacing.normal + kBottomNavigationBarHeight,
         ),
         children: [
-          _hero(usuario),
-          appSizedBox(height: AppSpacing.medium),
-          _secao(
-            titulo: 'Conta',
-            itens: [
-              _linha(
-                icon: Phosphor.camera,
-                title: 'Alterar foto',
-                subtitle: 'Câmera ou galeria',
-                onTap: () => _escolherFoto(usuario),
-              ),
-              _linha(
-                icon: Phosphor.userCircle,
-                title: 'Editar nome',
-                subtitle: usuario.nome,
-                onTap: () => _abrir(
-                  EditarNomePage(nomeAtual: usuario.nome ?? ''),
-                ),
-              ),
-              _linha(
-                icon: Phosphor.envelopeSimple,
-                title: 'Trocar e-mail',
-                subtitle: usuario.email,
-                onTap: () => _abrir(
-                  EditarEmailPage(emailAtual: usuario.email ?? ''),
-                ),
-              ),
-              _linha(
-                icon: Phosphor.lockKey,
-                title: 'Trocar senha',
-                subtitle: 'Mínimo de 8 caracteres',
-                onTap: () => _abrir(const TrocarSenhaPage()),
-              ),
-            ],
-          ),
-          appSizedBox(height: AppSpacing.medium),
-          _secao(
-            titulo: 'Legal',
-            itens: [
-              _linha(
-                icon: Phosphor.shieldCheck,
-                title: 'Política de privacidade',
-                subtitle: 'Como tratamos seus dados',
-                onTap: () => _abrir(const PoliticaPrivacidadePage()),
-              ),
-            ],
-          ),
-          appSizedBox(height: AppSpacing.medium),
-          _secao(
-            titulo: 'Zona de risco',
-            itens: [
-              _linha(
-                icon: Phosphor.trash,
-                title: 'Excluir conta',
-                subtitle: 'Encerra o acesso a este login',
-                destructive: true,
-                onTap: () => _abrir(const ExcluirContaPage()),
-              ),
-            ],
-          ),
-          appSizedBox(height: AppSpacing.big),
-          appElevatedButtonRazorTransparent(
-            title: 'Sair da conta',
-            onTap: _confirmarSaida,
-            textColor: local.AppColors.danger,
-            borderColor: local.AppColors.danger,
-            height: 50,
-            padding: 0,
+          // O título rola junto com o conteúdo.
+          _cabecalho(),
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.medium,
+              AppSpacing.normal,
+              AppSpacing.medium,
+              0,
+            ),
+            child: Column(
+              children: _secoes(usuario),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _conteudo(PerfilState state) {
+  Widget _cabecalho() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.medium,
+        AppSpacing.medium - 4,
+        AppSpacing.medium,
+        AppSpacing.small,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          appText(
+            'Perfil',
+            bold: true,
+            fontSize: 26,
+            color: local.AppColors.text,
+          ),
+          appSizedBox(height: 2),
+          appText(
+            'Gerencie sua conta e preferências',
+            fontSize: AppFontSizes.verySmall,
+            color: local.AppColors.textSecondary,
+          ),
+        ],
+      ),
+    );
+  }
 
+  List<Widget> _secoes(UsuarioModel usuario) {
+    return <Widget>[
+      _hero(usuario),
+      appSizedBox(height: AppSpacing.medium),
+      _secao(
+        titulo: 'Conta',
+        itens: [
+          _linha(
+            icon: Phosphor.camera,
+            title: 'Alterar foto',
+            subtitle: 'Câmera ou galeria',
+            onTap: () => _escolherFoto(usuario),
+          ),
+          _linha(
+            icon: Phosphor.userCircle,
+            title: 'Editar nome',
+            subtitle: usuario.nome,
+            onTap: () => _abrir(
+              EditarNomePage(nomeAtual: usuario.nome ?? ''),
+            ),
+          ),
+          _linha(
+            icon: Phosphor.envelopeSimple,
+            title: 'Trocar e-mail',
+            subtitle: usuario.email,
+            onTap: () => _abrir(
+              EditarEmailPage(emailAtual: usuario.email ?? ''),
+            ),
+          ),
+          _linha(
+            icon: Phosphor.lockKey,
+            title: 'Trocar senha',
+            subtitle: 'Mínimo de 8 caracteres',
+            onTap: () => _abrir(const TrocarSenhaPage()),
+          ),
+        ],
+      ),
+      appSizedBox(height: AppSpacing.medium),
+      _secao(
+        titulo: 'Legal',
+        itens: [
+          _linha(
+            icon: Phosphor.shieldCheck,
+            title: 'Política de privacidade',
+            subtitle: 'Como tratamos seus dados',
+            onTap: () => _abrir(const PoliticaPrivacidadePage()),
+          ),
+        ],
+      ),
+      appSizedBox(height: AppSpacing.medium),
+      _secao(
+        titulo: 'Zona de risco',
+        itens: [
+          _linha(
+            icon: Phosphor.trash,
+            title: 'Excluir conta',
+            subtitle: 'Encerra o acesso a este login',
+            destructive: true,
+            onTap: () => _abrir(const ExcluirContaPage()),
+          ),
+        ],
+      ),
+      appSizedBox(height: AppSpacing.big),
+      appElevatedButtonRazorTransparent(
+        title: 'Sair da conta',
+        onTap: _confirmarSaida,
+        textColor: local.AppColors.danger,
+        borderColor: local.AppColors.danger,
+        height: 50,
+        padding: 0,
+      ),
+    ];
+  }
+
+  Widget _conteudo(PerfilState state) {
     if (state is PerfilSuccessState) {
       return _loaded(state.usuario);
     }
 
-    if (state is PerfilErrorState) {
-      return appError(
-        state.errorModel,
-        function: () => _load(),
-      );
-    }
-
-    return appLoadingRazor();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _cabecalho(),
+        Expanded(
+          child: state is PerfilErrorState
+              ? appError(
+                  state.errorModel,
+                  function: () => _load(),
+                )
+              : appLoadingRazor(),
+        ),
+      ],
+    );
   }
 
   @override
@@ -540,17 +593,24 @@ class _PerfilPageState extends State<PerfilPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PerfilBloc, PerfilState>(
-      bloc: bloc,
-      builder: (BuildContext context, PerfilState state) {
-        return scaffold(
-          title: 'Perfil',
-          hideBackIcon: true,
-          background: local.AppColors.background,
-          appBarColor: local.AppColors.primary,
-          body: _conteudo(state),
-        );
-      },
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+      child: Scaffold(
+        backgroundColor: local.AppColors.white,
+        body: SafeArea(
+          bottom: false,
+          child: BlocBuilder<PerfilBloc, PerfilState>(
+            bloc: bloc,
+            builder: (BuildContext context, PerfilState state) {
+              return _conteudo(state);
+            },
+          ),
+        ),
+      ),
     );
   }
 

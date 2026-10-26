@@ -44,8 +44,8 @@ flutter_launcher_icons:
   image_path: assets/logos/icon.png
   min_sdk_android: 21
   remove_alpha_ios: true
-  adaptive_icon_background: "#1C3A5A"
-  adaptive_icon_foreground: assets/logos/icon.png
+  adaptive_icon_background: assets/logos/icon_background.png
+  adaptive_icon_foreground: assets/logos/icon_foreground.png
 
 flutter_native_splash:
   color: "#1C3A5A"
@@ -57,7 +57,7 @@ flutter_native_splash:
   android_gravity: center
   android_12:
     color: "#1C3A5A"
-    image: assets/logos/icon.png
+    image: assets/logos/icon_foreground.png
     icon_background_color: "#1C3A5A"
 
 flutter:
