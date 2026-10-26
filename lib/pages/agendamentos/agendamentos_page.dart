@@ -7,6 +7,7 @@ import 'package:app_razor/pages/agendamentos/agendamentos_event.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_state.dart';
 import 'package:app_razor/pages/agendamentos/widgets/agendamento_lista_card.dart';
 import 'package:app_razor/pages/agendamentos/widgets/cancelar_agendamento_modal.dart';
+import 'package:app_razor/pages/agendamentos/widgets/qr_confirmacao_modal.dart';
 import 'package:app_razor/pages/home/widgets/home_empty_state.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:flutter/material.dart';
@@ -120,11 +121,19 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
               return _footerLoading();
             }
 
+            final AgendamentoModel agendamento = state.itens[index];
+
             return agendamentoListaCard(
-              agendamento: state.itens[index],
-              onComoChegar: () => _abrirRota(state.itens[index]),
-              onCancelar: () => _confirmarCancelamento(state.itens[index]),
-              cancelando: state.cancelandoId == state.itens[index].id,
+              agendamento: agendamento,
+              onComoChegar: () => _abrirRota(agendamento),
+              onCancelar: () => _confirmarCancelamento(agendamento),
+              onMostrarQr: agendamento.codigoQr == null
+                  ? null
+                  : () => showQrConfirmacaoModal(
+                        context: context,
+                        agendamento: agendamento,
+                      ),
+              cancelando: state.cancelandoId == agendamento.id,
             );
           },
           childCount: state.itens.length + (state.loadingMore ? 1 : 0),

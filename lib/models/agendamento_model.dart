@@ -69,6 +69,7 @@ class AgendamentoModel {
   double? preco;
   int? duracaoMinutos;
   String? observacao;
+  String? tokenConfirmacao;
   String? enderecoCompleto;
   double? latitude;
   double? longitude;
@@ -90,6 +91,7 @@ class AgendamentoModel {
     this.preco,
     this.duracaoMinutos,
     this.observacao,
+    this.tokenConfirmacao,
     this.enderecoCompleto,
     this.latitude,
     this.longitude,
@@ -113,6 +115,7 @@ class AgendamentoModel {
       preco: _asDouble(json['preco']),
       duracaoMinutos: _asInt(json['duracao_minutos']),
       observacao: _asNonEmptyString(json['observacao']),
+      tokenConfirmacao: _asNonEmptyString(json['token_confirmacao']),
       enderecoCompleto: _asNonEmptyString(json['endereco_completo']),
       latitude: _asDouble(json['latitude']),
       longitude: _asDouble(json['longitude']),
@@ -241,6 +244,17 @@ class AgendamentoModel {
 
   bool get podeCancelar {
     return status == 'AGENDADO' || status == 'CONFIRMADO';
+  }
+
+  /// Texto do QR que o cliente mostra para o barbeiro confirmar presença e serviço.
+  String? get codigoQr {
+    final String? token = tokenConfirmacao?.trim();
+
+    if (token == null || token.isEmpty || status != 'AGENDADO') {
+      return null;
+    }
+
+    return 'razor-confirmacao:$token';
   }
 
   String get statusLabel {

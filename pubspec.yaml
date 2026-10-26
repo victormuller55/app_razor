@@ -30,6 +30,7 @@ dependencies:
   cupertino_native_better: ^1.6.0
   image_picker: ^1.1.2
   permission_handler: ^11.4.0
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

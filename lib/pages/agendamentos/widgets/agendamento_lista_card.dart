@@ -11,6 +11,7 @@ Widget agendamentoListaCard({
   required AgendamentoModel agendamento,
   VoidCallback? onComoChegar,
   VoidCallback? onCancelar,
+  VoidCallback? onMostrarQr,
   bool cancelando = false,
 }) {
   return _AgendamentoListaCard(
@@ -18,6 +19,7 @@ Widget agendamentoListaCard({
     agendamento: agendamento,
     onComoChegar: onComoChegar,
     onCancelar: onCancelar,
+    onMostrarQr: onMostrarQr,
     cancelando: cancelando,
   );
 }
@@ -28,12 +30,14 @@ class _AgendamentoListaCard extends StatefulWidget {
     required this.agendamento,
     this.onComoChegar,
     this.onCancelar,
+    this.onMostrarQr,
     required this.cancelando,
   });
 
   final AgendamentoModel agendamento;
   final VoidCallback? onComoChegar;
   final VoidCallback? onCancelar;
+  final VoidCallback? onMostrarQr;
   final bool cancelando;
 
   @override
@@ -77,7 +81,8 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
   }
 
   bool get _temAcoes {
-    return (!widget.agendamento.cancelado && widget.onComoChegar != null) ||
+    return widget.onMostrarQr != null ||
+        (!widget.agendamento.cancelado && widget.onComoChegar != null) ||
         (widget.onCancelar != null && widget.agendamento.podeCancelar);
   }
 
@@ -115,6 +120,7 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
                 agendamento: agendamento,
                 onComoChegar: widget.onComoChegar,
                 onCancelar: widget.onCancelar,
+                onMostrarQr: widget.onMostrarQr,
                 cancelando: widget.cancelando,
               ),
             ),
@@ -466,26 +472,43 @@ Widget _acoes({
   required AgendamentoModel agendamento,
   VoidCallback? onComoChegar,
   VoidCallback? onCancelar,
+  VoidCallback? onMostrarQr,
   required bool cancelando,
 }) {
-  return Row(
+  final bool mostrarQr = onMostrarQr != null && agendamento.codigoQr != null;
+  final bool mostrarChegar = !agendamento.cancelado && onComoChegar != null;
+  final bool mostrarCancelar = onCancelar != null && agendamento.podeCancelar;
+
+  return Column(
     children: [
-      if (!agendamento.cancelado && onComoChegar != null)
+      if (mostrarQr)
+        SizedBox(
+          width: double.infinity,
+          child: _botaoAcao(
+            icone: Phosphor.qrCode,
+            texto: 'Mostrar QR Code',
+            cor: local.AppColors.primary,
+            solido: true,
+            onTap: onMostrarQr,
+          ),
+        ),
+      if (mostrarQr && (mostrarChegar || mostrarCancelar))
+        appSizedBox(height: AppSpacing.small),
+      if (mostrarChegar || mostrarCancelar)
+        Row(
+        children: [
+      if (mostrarChegar)
         Expanded(
           child: _botaoAcao(
             icone: Phosphor.navigationArrow,
             texto: 'Como chegar',
             cor: local.AppColors.primary,
-            solido: true,
+            solido: !mostrarQr,
             onTap: onComoChegar,
           ),
         ),
-      if (!agendamento.cancelado &&
-          onComoChegar != null &&
-          onCancelar != null &&
-          agendamento.podeCancelar)
-        appSizedBox(width: AppSpacing.small),
-      if (onCancelar != null && agendamento.podeCancelar)
+      if (mostrarChegar && mostrarCancelar) appSizedBox(width: AppSpacing.small),
+      if (mostrarCancelar)
         Expanded(
           child: _botaoAcao(
             icone: Phosphor.xCircle,
@@ -494,6 +517,8 @@ Widget _acoes({
             onTap: cancelando ? () {} : onCancelar,
           ),
         ),
+        ],
+      ),
     ],
   );
 }
