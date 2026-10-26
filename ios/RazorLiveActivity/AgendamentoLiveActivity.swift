@@ -35,64 +35,91 @@ struct AgendamentoLiveActivity: Widget {
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: AgendamentoActivityAttributes.self) { context in
       TelaDeBloqueio(context: context)
-        .activityBackgroundTint(Razor.marcaEscura)
+        .activityBackgroundTint(.black)
         .activitySystemActionForegroundColor(.white)
     } dynamicIsland: { context in
       DynamicIsland {
+        // Os lados da câmera são estreitos: o que não couber desce para
+        // baixo dela (belowIfTooWide) em vez de ser cortado.
         DynamicIslandExpandedRegion(.leading) {
-          IconeTesoura(tamanho: 44)
-            .padding(.leading, 4)
+          HStack(spacing: 10) {
+            IconeTesoura(tamanho: 40)
+            VStack(alignment: .leading, spacing: 2) {
+              Text(context.attributes.servico)
+                .font(.headline)
+                .foregroundStyle(.white)
+                .lineLimit(1)
+              Text(context.attributes.barbearia)
+                .font(.caption)
+                .foregroundStyle(Razor.textoSecundario)
+                .lineLimit(1)
+            }
+          }
+          .padding(.leading, 4)
+          .dynamicIsland(verticalPlacement: .belowIfTooWide)
         }
         DynamicIslandExpandedRegion(.trailing) {
-          VStack(alignment: .trailing, spacing: 2) {
-            Text(context.isStale ? "Agora" : "Faltam")
+          VStack(alignment: .trailing, spacing: 0) {
+            Text(context.isStale ? "Começou:" : "Começa em:")
               .font(.caption2.weight(.medium))
               .foregroundStyle(Razor.textoSecundario)
+            // O cronômetro reserva espaço para "0:00:00": largura fixa
+            // para não cortar nem empurrar o resto.
             Cronometro(estado: context.state, encerrado: context.isStale)
-              .font(.system(size: 26, weight: .semibold, design: .rounded))
+              .font(.system(size: 24, weight: .semibold, design: .rounded))
               .foregroundStyle(Razor.destaque)
+              .lineLimit(1)
+              .frame(width: 92, alignment: .trailing)
           }
           .padding(.trailing, 4)
-        }
-        DynamicIslandExpandedRegion(.center) {
-          VStack(alignment: .leading, spacing: 2) {
-            Text(context.attributes.servico)
-              .font(.headline)
-              .foregroundStyle(.white)
-              .lineLimit(1)
-            Text(context.attributes.barbearia)
-              .font(.caption)
-              .foregroundStyle(Razor.textoSecundario)
-              .lineLimit(1)
-          }
-          .frame(maxWidth: .infinity, alignment: .leading)
+          .dynamicIsland(verticalPlacement: .belowIfTooWide)
         }
         DynamicIslandExpandedRegion(.bottom) {
           VStack(spacing: 8) {
             BarraProgresso(estado: context.state)
             HStack {
-              Label(context.state.horario, systemImage: "clock")
+              Label {
+                Text(context.state.horario)
+              } icon: {
+                Image(systemName: "clock").foregroundStyle(Razor.destaque)
+              }
               Spacer()
               if let profissional = context.attributes.profissional {
-                Label(profissional, systemImage: "person.fill")
-                  .lineLimit(1)
+                Label {
+                  Text(profissional).lineLimit(1)
+                } icon: {
+                  Image(systemName: "person.fill").foregroundStyle(Razor.destaque)
+                }
               }
             }
             .font(.caption)
             .foregroundStyle(Razor.textoSecundario)
           }
           .padding(.horizontal, 4)
-          .padding(.top, 4)
+          .padding(.top, 6)
         }
       } compactLeading: {
+        // Larguras fixas e justas: sem elas o cronômetro reserva espaço para
+        // "0:00:00" e a ilha fechada fica bem mais larga que o necessário.
         Image(systemName: "scissors")
           .font(.system(size: 14, weight: .bold))
           .foregroundStyle(Razor.destaque)
+          .frame(width: 20)
       } compactTrailing: {
-        Cronometro(estado: context.state, encerrado: context.isStale)
-          .font(.system(size: 14, weight: .semibold, design: .rounded))
-          .foregroundStyle(Razor.destaque)
-          .frame(maxWidth: 56)
+        Group {
+          if context.isStale || context.state.inicio <= Date() {
+            Text("Agora")
+          } else {
+            Text(timerInterval: context.state.contagem, countsDown: true)
+              .monospacedDigit()
+              .multilineTextAlignment(.trailing)
+          }
+        }
+        .font(.system(size: 14, weight: .semibold, design: .rounded))
+        .foregroundStyle(Razor.destaque)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
+        .frame(width: 42, alignment: .trailing)
       } minimal: {
         Image(systemName: "scissors")
           .font(.system(size: 13, weight: .bold))
@@ -162,9 +189,6 @@ private struct TelaDeBloqueio: View {
       HStack(alignment: .center, spacing: 12) {
         IconeTesoura(tamanho: 46)
         VStack(alignment: .leading, spacing: 2) {
-          Text(context.isStale ? "Seu horário começou" : "Seu horário está chegando")
-            .font(.caption.weight(.medium))
-            .foregroundStyle(Razor.textoSecundario)
           Text(context.attributes.servico)
             .font(.headline)
             .foregroundStyle(.white)
@@ -175,20 +199,32 @@ private struct TelaDeBloqueio: View {
             .lineLimit(1)
         }
         Spacer(minLength: 8)
-        Cronometro(estado: context.state, encerrado: context.isStale)
-          .font(.system(size: 30, weight: .bold, design: .rounded))
-          .foregroundStyle(.white)
-          .frame(maxWidth: 110, alignment: .trailing)
+        VStack(alignment: .trailing, spacing: 0) {
+          Text(context.isStale ? "Começou:" : "Começa em:")
+            .font(.caption.weight(.medium))
+            .foregroundStyle(Razor.textoSecundario)
+          Cronometro(estado: context.state, encerrado: context.isStale)
+            .font(.system(size: 30, weight: .bold, design: .rounded))
+            .foregroundStyle(Razor.destaque)
+        }
+        .frame(maxWidth: 120, alignment: .trailing)
       }
 
       BarraProgresso(estado: context.state)
 
       HStack {
-        Label(context.state.horario, systemImage: "clock")
+        Label {
+          Text(context.state.horario)
+        } icon: {
+          Image(systemName: "clock").foregroundStyle(Razor.destaque)
+        }
         Spacer()
         if let profissional = context.attributes.profissional {
-          Label(profissional, systemImage: "person.fill")
-            .lineLimit(1)
+          Label {
+            Text(profissional).lineLimit(1)
+          } icon: {
+            Image(systemName: "person.fill").foregroundStyle(Razor.destaque)
+          }
         }
       }
       .font(.caption)
