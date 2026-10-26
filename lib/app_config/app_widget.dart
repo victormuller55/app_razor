@@ -2,8 +2,10 @@ import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_fonts.dart';
 import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/functions/local_storage.dart';
+import 'package:app_razor/functions/permissoes.dart';
 import 'package:app_razor/pages/login/login_page.dart';
 import 'package:app_razor/pages/menu/menu.dart';
+import 'package:app_razor/pages/permissoes/permissoes_page.dart';
 import 'package:cupertino_native_better/cupertino_native_better.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,9 +31,11 @@ class _AppWidgetState extends State<AppWidget> {
 
   Future<void> _decidirHome() async {
     bool autenticado = false;
+    bool localizacao = false;
 
     try {
       autenticado = await hasLocalData();
+      localizacao = autenticado && await localizacaoPermitida();
     } catch (_) {
       autenticado = false;
     }
@@ -43,7 +47,11 @@ class _AppWidgetState extends State<AppWidget> {
     }
 
     setState(() {
-      _home = autenticado ? const MenuScreen() : const LoginPage();
+      if (!autenticado) {
+        _home = const LoginPage();
+      } else {
+        _home = localizacao ? const MenuScreen() : const PermissoesPage();
+      }
     });
   }
 

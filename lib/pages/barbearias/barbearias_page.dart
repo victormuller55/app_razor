@@ -10,6 +10,7 @@ import 'package:app_razor/pages/barbearias/widgets/barbearia_grid_card.dart';
 import 'package:app_razor/pages/home/widgets/home_empty_state.dart';
 import 'package:app_razor/pages/barbearia_perfil/barbearia_perfil_page.dart';
 import 'package:app_razor/pages/pesquisa_barbearias/pesquisa_barbearias_page.dart';
+import 'package:app_razor/widgets/app_campo_busca.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,7 @@ import 'package:muller_package/muller_package.dart';
 
 
 /// Altura dos campos e botões do cabeçalho.
-const double _alturaCampo = 52;
+const double _alturaCampo = appCampoBuscaAltura;
 
 class BarbeariasPage extends StatefulWidget {
   const BarbeariasPage({super.key});
@@ -112,36 +113,7 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
   }
 
   Widget _campoPesquisa() {
-    return GestureDetector(
-      onTap: _openPesquisa,
-      child: Container(
-        height: _alturaCampo,
-        padding: EdgeInsets.symmetric(horizontal: AppSpacing.medium - 4),
-        decoration: BoxDecoration(
-          color: AppEstilo.campoFundo,
-          borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
-        ),
-        child: Row(
-          children: [
-            const Icon(
-              Phosphor.magnifyingGlass,
-              size: 20,
-              color: AppEstilo.campoIcone,
-            ),
-            appSizedBox(width: AppSpacing.normal + 2),
-            Expanded(
-              child: appText(
-                AppStrings.digiteAlgoParaPesquisar,
-                color: AppEstilo.campoIcone,
-                fontSize: 15,
-                maxLines: 1,
-                overflow: true,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    return appCampoBusca(onTap: _openPesquisa);
   }
 
   Widget _botaoFiltros() {
@@ -321,26 +293,21 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
   Widget _bodyTela(BarbeariasState state) {
     return SafeArea(
       bottom: false,
-      child: Column(
-        children: [
-          _cabecalho(),
-          Expanded(
-            child: RefreshIndicator(
-              color: local.AppColors.primary,
-              onRefresh: () => _loadBarbearias(forceRefresh: true),
-              child: CustomScrollView(
-                controller: _scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: <Widget>[
-                  SliverToBoxAdapter(
-                    child: appSizedBox(height: AppSpacing.small),
-                  ),
-                  _conteudoLista(state),
-                ],
-              ),
+      child: RefreshIndicator(
+        color: local.AppColors.primary,
+        onRefresh: () => _loadBarbearias(forceRefresh: true),
+        child: CustomScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: <Widget>[
+            // O título e a busca rolam junto com a lista.
+            SliverToBoxAdapter(child: _cabecalho()),
+            SliverToBoxAdapter(
+              child: appSizedBox(height: AppSpacing.small),
             ),
-          ),
-        ],
+            _conteudoLista(state),
+          ],
+        ),
       ),
     );
   }

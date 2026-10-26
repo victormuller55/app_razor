@@ -55,5 +55,18 @@ post_install do |installer|
         config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = defs
       end
     end
+
+    # O permission_handler só compila as permissões ligadas aqui; as demais
+    # sempre retornam "negada". O app pede câmera e fotos (foto de perfil).
+    if target.name == 'permission_handler_apple'
+      target.build_configurations.each do |config|
+        defs = config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] || ['$(inherited)']
+        defs = [defs] unless defs.is_a?(Array)
+        ['PERMISSION_CAMERA=1', 'PERMISSION_PHOTOS=1'].each do |flag|
+          defs << flag unless defs.include?(flag)
+        end
+        config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = defs
+      end
+    end
   end
 end

@@ -1,5 +1,5 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
-import 'package:app_razor/app_config/const/app_radius.dart';
+import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -12,7 +12,7 @@ Widget perfilInfoBanner({
     child: appContainer(
       width: double.infinity,
       padding: EdgeInsets.all(AppSpacing.normal),
-      radius: BorderRadius.circular(AppRadii.externo),
+      radius: BorderRadius.circular(AppEstilo.raioCampo),
       backgroundColor: Colors.black.withValues(alpha: 0.8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

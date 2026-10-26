@@ -89,7 +89,7 @@ class _TrocarSenhaPageState extends State<TrocarSenhaPage> {
   Widget build(BuildContext context) {
     return scaffold(
       title: 'Trocar senha',
-      background: local.AppColors.background,
+      background: local.AppColors.white,
       appBarColor: local.AppColors.primary,
       body: _carregando
           ? appLoadingRazor()
@@ -110,6 +110,8 @@ class _TrocarSenhaPageState extends State<TrocarSenhaPage> {
                     title: 'Atualizar senha',
                     onTap: _salvar,
                     padding: AppSpacing.medium,
+                    height: 54,
+                    radius: 10,
                   ),
                 ],
               ),

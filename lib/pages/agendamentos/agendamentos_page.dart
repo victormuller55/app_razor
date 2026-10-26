@@ -141,19 +141,29 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
         child: CustomScrollView(
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
-          slivers: <Widget>[_lista(state)],
+          slivers: <Widget>[
+            // O título rola junto com a lista.
+            SliverToBoxAdapter(child: _cabecalho()),
+            _lista(state),
+          ],
         ),
       );
     }
 
-    if (state is AgendamentosErrorState) {
-      return appError(
-        state.errorModel,
-        function: () => _loadAgendamentos(forceRefresh: true),
-      );
-    }
-
-    return appLoadingRazor();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _cabecalho(),
+        Expanded(
+          child: state is AgendamentosErrorState
+              ? appError(
+                  state.errorModel,
+                  function: () => _loadAgendamentos(forceRefresh: true),
+                )
+              : appLoadingRazor(),
+        ),
+      ],
+    );
   }
 
   Widget _cabecalho() {
@@ -196,19 +206,11 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
         backgroundColor: local.AppColors.white,
         body: SafeArea(
           bottom: false,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _cabecalho(),
-              Expanded(
-                child: BlocBuilder<AgendamentosBloc, AgendamentosState>(
-                  bloc: bloc,
-                  builder: (BuildContext context, AgendamentosState state) {
-                    return _conteudo(state);
-                  },
-                ),
-              ),
-            ],
+          child: BlocBuilder<AgendamentosBloc, AgendamentosState>(
+            bloc: bloc,
+            builder: (BuildContext context, AgendamentosState state) {
+              return _conteudo(state);
+            },
           ),
         ),
       ),

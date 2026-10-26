@@ -107,6 +107,7 @@ class _MenuScreenState extends State<MenuScreen> {
       currentIndex: MenuConst.currentIndex,
       onTap: _selectAba,
       tint: local.AppColors.primary,
+      iconSize: 18,
       items: const <CNTabBarItem>[
         CNTabBarItem(
           label: 'Início',

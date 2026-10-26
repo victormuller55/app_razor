@@ -64,7 +64,7 @@ class _EditarNomePageState extends State<EditarNomePage> {
   Widget build(BuildContext context) {
     return scaffold(
       title: 'Editar nome',
-      background: local.AppColors.background,
+      background: local.AppColors.white,
       appBarColor: local.AppColors.primary,
       body: _carregando
           ? appLoadingRazor()
@@ -83,6 +83,8 @@ class _EditarNomePageState extends State<EditarNomePage> {
                     title: 'Salvar',
                     onTap: _salvar,
                     padding: AppSpacing.medium,
+                    height: 54,
+                    radius: 10,
                   ),
                 ],
               ),

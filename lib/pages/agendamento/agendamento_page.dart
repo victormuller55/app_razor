@@ -9,6 +9,7 @@ import 'package:app_razor/pages/agendamento/agendamento_state.dart';
 import 'package:app_razor/pages/agendamento/widgets/profissional_select_card.dart';
 import 'package:app_razor/pages/agendamento/widgets/servico_agendamento_card.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
+import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -495,21 +496,21 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
           hintText: 'Ex.: preferência de corte, alergia...',
           hintStyle: TextStyle(
             fontFamily: AppFonts.family,
-            color: local.AppColors.textSecondary,
+            color: AppEstilo.campoIcone,
             fontSize: AppFontSizes.verySmall,
           ),
           filled: true,
-          fillColor: local.AppColors.inputBackground,
+          fillColor: AppEstilo.campoFundo,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadii.interno),
+            borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadii.interno),
+            borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
             borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(AppRadii.interno),
+            borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
             borderSide: BorderSide(color: local.AppColors.primary),
           ),
           contentPadding: EdgeInsets.all(12),

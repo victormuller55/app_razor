@@ -66,7 +66,7 @@ class _ExcluirContaPageState extends State<ExcluirContaPage> {
   Widget build(BuildContext context) {
     return scaffold(
       title: 'Excluir conta',
-      background: local.AppColors.background,
+      background: local.AppColors.white,
       appBarColor: local.AppColors.primary,
       body: _carregando
           ? appLoadingRazor()
@@ -88,6 +88,8 @@ class _ExcluirContaPageState extends State<ExcluirContaPage> {
                     onTap: _excluir,
                     color: local.AppColors.danger,
                     padding: AppSpacing.medium,
+                    height: 54,
+                    radius: 10,
                   ),
                 ],
               ),

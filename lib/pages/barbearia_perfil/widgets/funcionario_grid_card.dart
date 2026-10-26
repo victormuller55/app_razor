@@ -14,14 +14,11 @@ String inicialFuncionario(String? nome) {
 
 Widget funcionarioGridCard({
   required BarbeariaFuncionarioModel funcionario,
-  VoidCallback? onTap,
 }) {
   final String? cargo = funcionario.cargo?.trim();
   final bool temCargo = cargo != null && cargo.isNotEmpty;
 
-  return GestureDetector(
-    onTap: onTap,
-    child: appContainer(
+  return appContainer(
     width: double.infinity,
     height: double.infinity,
     padding: EdgeInsets.fromLTRB(
@@ -60,37 +57,32 @@ Widget funcionarioGridCard({
           ),
       ],
     ),
-    ),
   );
 }
 
 Widget funcionarioListaCard({
   required BarbeariaFuncionarioModel funcionario,
-  VoidCallback? onTap,
 }) {
-  return GestureDetector(
-    onTap: onTap,
-    child: appContainer(
-      width: 96,
-      height: 124,
-      padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
-      backgroundColor: local.AppColors.inputBackground,
-      radius: BorderRadius.circular(AppRadii.externo),
-      child: Column(
-        children: [
-          _foto(funcionario, size: 58),
-          appSizedBox(height: 8),
-          appText(
-            funcionario.nome ?? AppStrings.vazio,
-            bold: true,
-            maxLines: 2,
-            overflow: true,
-            textAlign: TextAlign.center,
-            color: local.AppColors.text,
-            fontSize: 13,
-          ),
-        ],
-      ),
+  return appContainer(
+    width: 96,
+    height: 124,
+    padding: EdgeInsets.fromLTRB(8, 10, 8, 8),
+    backgroundColor: local.AppColors.inputBackground,
+    radius: BorderRadius.circular(AppRadii.externo),
+    child: Column(
+      children: [
+        _foto(funcionario, size: 58),
+        appSizedBox(height: 8),
+        appText(
+          funcionario.nome ?? AppStrings.vazio,
+          bold: true,
+          maxLines: 2,
+          overflow: true,
+          textAlign: TextAlign.center,
+          color: local.AppColors.text,
+          fontSize: 13,
+        ),
+      ],
     ),
   );
 }

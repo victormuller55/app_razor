@@ -17,6 +17,7 @@ import 'package:app_razor/pages/home/widgets/home_proxima_card.dart';
 import 'package:app_razor/pages/barbearia_perfil/barbearia_perfil_page.dart';
 import 'package:app_razor/pages/mapa_barbearias/mapa_barbearias_page.dart';
 import 'package:app_razor/pages/pesquisa_barbearias/pesquisa_barbearias_page.dart';
+import 'package:app_razor/widgets/app_campo_busca.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:app_razor/widgets/app_maps.dart';
@@ -51,7 +52,6 @@ class _HomePageState extends State<HomePage> {
   final ValueNotifier<bool> _showTitle = ValueNotifier(false);
   final ValueNotifier<double> _folhaRadiusAtual = ValueNotifier(_folhaRadius);
 
-  late AppFormField _formSearch;
 
   Future<void> _loadUsuario() async {
     final UsuarioModel local = await getLocalUserModel();
@@ -186,35 +186,9 @@ class _HomePageState extends State<HomePage> {
     openBarbeariaPerfil(barbeariaId: id, nome: promocao.barbearia?.nome);
   }
 
-  void _rebuildCampoBusca() {
-    _formSearch = AppFormField(
-      context: context,
-      hint: AppStrings.digiteAlgoParaPesquisar,
-      paddingHeight: 16,
-      maxLines: 1,
-      fontSize: 15,
-      radius: AppEstilo.raioCampo,
-      topPadding: 0,
-      showKeyboard: false,
-      onTap: _openBusca,
-      backgroundColor: AppEstilo.campoFundo,
-      inputColor: local.AppColors.text,
-      hintColor: AppEstilo.campoIcone,
-      borderColor: AppEstilo.campoFundo,
-      hoverBorderColor: local.AppColors.primary,
-      iconColor: AppEstilo.campoIcone,
-      icon: const Icon(
-        Phosphor.magnifyingGlass,
-        color: AppEstilo.campoIcone,
-        size: 20,
-      ),
-    );
-  }
-
   @override
   void initState() {
     super.initState();
-    _rebuildCampoBusca();
     _scrollController.addListener(_handleScroll);
     _loadUsuario();
     _loadHome();
@@ -322,7 +296,7 @@ class _HomePageState extends State<HomePage> {
   Widget _campoBusca() {
     return Padding(
       padding: EdgeInsets.only(top: AppSpacing.medium, bottom: AppSpacing.medium),
-      child: _formSearch.formulario,
+      child: appCampoBusca(onTap: _openBusca),
     );
   }
 

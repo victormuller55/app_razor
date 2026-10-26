@@ -424,13 +424,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
                   itemBuilder: (BuildContext context, int index) {
                     final BarbeariaFuncionarioModel funcionario =
                         perfil.funcionarios[index];
-                    return funcionarioGridCard(
-                      funcionario: funcionario,
-                      onTap: () {
-                        Navigator.of(modalContext).pop();
-                        _abrirAgendamento(funcionarioId: funcionario.id);
-                      },
-                    );
+                    return funcionarioGridCard(funcionario: funcionario);
                   },
                 ),
               ],
@@ -466,11 +460,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
               itemBuilder: (BuildContext context, int index) {
                 final BarbeariaFuncionarioModel funcionario =
                     perfil.funcionarios[index];
-                return funcionarioListaCard(
-                  funcionario: funcionario,
-                  onTap: () =>
-                      _abrirAgendamento(funcionarioId: funcionario.id),
-                );
+                return funcionarioListaCard(funcionario: funcionario);
               },
             ),
           ),
@@ -779,26 +769,12 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     return BlocBuilder<BarbeariaPerfilBloc, BarbeariaPerfilState>(
       bloc: bloc,
       builder: (BuildContext context, BarbeariaPerfilState state) {
-        final BarbeariaPerfilModel? perfil =
-            state is BarbeariaPerfilSuccessState ? state.perfil : null;
-
         return scaffold(
           title: 'Detalhes',
           centerTitle: true,
           background: local.AppColors.white,
           appBarColor: local.AppColors.primary,
           safeBottom: false,
-          actions: perfil != null
-              ? <Widget>[
-                  IconButton(
-                    icon: Icon(
-                      Phosphor.dotsThreeVertical,
-                      color: local.AppColors.white,
-                    ),
-                    onPressed: () => _compartilhar(perfil),
-                  ),
-                ]
-              : null,
           body: _bodyTela(state),
         );
       },
