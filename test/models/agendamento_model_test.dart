@@ -173,16 +173,15 @@ void main() {
             'status': status,
           });
 
-      final List<AgendamentoModel> itens = ordenaAgendamentosMaisAtual(
-        <AgendamentoModel>[
-          em(1, '2026-10-28', '15:00:00', 'CANCELADO'),
-          em(2, '2026-10-27', '11:50:00', 'CANCELADO'),
-          em(3, '2026-10-27', '10:00:00', 'AGENDADO'),
-          em(4, '2026-10-26', '10:00:00', 'CONCLUIDO'),
-          em(5, '2026-10-26', '09:00:00', 'AGENDADO'),
-          em(6, '2026-09-01', '09:00:00', 'CANCELADO'),
-        ],
-      );
+      final List<AgendamentoModel> itens =
+          ordenaAgendamentosMaisAtual(<AgendamentoModel>[
+            em(1, '2026-10-28', '15:00:00', 'CANCELADO'),
+            em(2, '2026-10-27', '11:50:00', 'CANCELADO'),
+            em(3, '2026-10-27', '10:00:00', 'AGENDADO'),
+            em(4, '2026-10-26', '10:00:00', 'CONCLUIDO'),
+            em(5, '2026-10-26', '09:00:00', 'AGENDADO'),
+            em(6, '2026-09-01', '09:00:00', 'CANCELADO'),
+          ]);
 
       final grupos = agrupaAgendamentos(itens, agora);
 
@@ -195,6 +194,18 @@ void main() {
       // O pendente das 9h vem antes do concluído das 10h.
       expect(grupos[1].itens.map((a) => a.id), <int>[5, 4]);
       expect(grupos[2].itens.map((a) => a.id), <int>[1, 2, 6]);
+    });
+
+    test('confirmado não pode mais cancelar nem fica aguardando', () {
+      AgendamentoModel com(String status) =>
+          AgendamentoModel.fromJson(<String, dynamic>{'status': status});
+
+      expect(com('AGENDADO').aguardando, isTrue);
+      expect(com('AGENDADO').podeCancelar, isTrue);
+      expect(com('CONFIRMADO').confirmado, isTrue);
+      expect(com('CONFIRMADO').aguardando, isFalse);
+      expect(com('CONFIRMADO').podeCancelar, isFalse);
+      expect(com('CONCLUIDO').podeCancelar, isFalse);
     });
 
     test('dataRelativaLabel usa ontem, hoje, amanhã ou a data', () {

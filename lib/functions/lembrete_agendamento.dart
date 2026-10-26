@@ -11,9 +11,10 @@ import 'package:muller_package/muller_package.dart';
 /// Quanto antes do serviço o lembrete aparece na Dynamic Island.
 const Duration antecedenciaLembrete = Duration(hours: 1);
 
-/// O agendamento que deve estar no lembrete agora: ainda pendente, começando
-/// em até [antecedenciaLembrete] (ou já em andamento). Se houver mais de
-/// um, o que começa primeiro.
+/// O agendamento que deve estar no lembrete agora: ainda aguardando o
+/// cliente (presença não confirmada), começando em até
+/// [antecedenciaLembrete] ou já no horário. Se houver mais de um, o que
+/// começa primeiro.
 AgendamentoModel? agendamentoParaLembrete(
   List<AgendamentoModel> itens,
   DateTime agora,
@@ -24,7 +25,7 @@ AgendamentoModel? agendamentoParaLembrete(
     final DateTime? inicio = item.dataHora;
     final DateTime? fim = item.dataHoraFim;
 
-    if (!item.pendente || item.id == null || inicio == null || fim == null) {
+    if (!item.aguardando || item.id == null || inicio == null || fim == null) {
       continue;
     }
 

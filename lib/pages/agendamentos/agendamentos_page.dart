@@ -12,6 +12,7 @@ import 'package:app_razor/pages/agendamentos/widgets/agendamento_lista_card.dart
 import 'package:app_razor/pages/agendamentos/widgets/cancelar_agendamento_modal.dart';
 import 'package:app_razor/pages/agendamentos/widgets/qr_confirmacao_modal.dart';
 import 'package:app_razor/pages/home/widgets/home_empty_state.dart';
+import 'package:app_razor/pages/pagamento/pagamento_modal.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -68,6 +69,14 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
       context: context,
       onConfirmar: () => bloc.add(AgendamentosCancelEvent(id)),
     );
+  }
+
+  /// Ao fechar o pagamento, recarrega: o status vem da API, não do checkout.
+  Future<void> _pagar(AgendamentoModel agendamento) async {
+    await showPagamentoModal(context: context, agendamento: agendamento);
+    if (mounted) {
+      await _loadAgendamentos(forceRefresh: true);
+    }
   }
 
   void _handleScroll() {
@@ -157,6 +166,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                     context: context,
                     agendamento: agendamento,
                   ),
+            onPagar: () => _pagar(agendamento),
             cancelando: state.cancelandoId == agendamento.id,
           );
         }, childCount: linhas.length + (state.loadingMore ? 1 : 0)),

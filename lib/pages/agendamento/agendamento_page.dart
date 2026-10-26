@@ -9,6 +9,7 @@ import 'package:app_razor/pages/agendamento/agendamento_event.dart';
 import 'package:app_razor/pages/agendamento/agendamento_state.dart';
 import 'package:app_razor/pages/agendamento/widgets/profissional_select_card.dart';
 import 'package:app_razor/pages/agendamento/widgets/servico_agendamento_card.dart';
+import 'package:app_razor/pages/pagamento/pagamento_modal.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
@@ -494,11 +495,17 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
   Widget build(BuildContext context) {
     return BlocConsumer<AgendamentoBloc, AgendamentoState>(
       bloc: bloc,
-      listener: (BuildContext context, AgendamentoState state) {
+      listener: (BuildContext context, AgendamentoState state) async {
         if (state is AgendamentoSuccessState) {
           // Se o horário for daqui a menos de 1h, o lembrete já aparece.
           LembreteAgendamento.instance.atualizar();
-          Navigator.of(context).pop();
+          // O horário já está reservado; pagar pelo app é opcional (dá para pagar depois na agenda).
+          if (state.agendamento.podePagarPeloApp) {
+            await showPagamentoModal(context: context, agendamento: state.agendamento);
+          }
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
         }
       },
       builder: (BuildContext context, AgendamentoState state) {

@@ -61,6 +61,7 @@ void main() {
       expect(
         agendamentoParaLembrete(<AgendamentoModel>[
           em(1, '09:30:00', status: 'CANCELADO'),
+          em(4, '09:30:00', status: 'CONFIRMADO'),
           em(2, '09:30:00', status: 'CONCLUIDO'),
           em(3, '09:30:00', data: '2026-10-27'),
         ], agora),

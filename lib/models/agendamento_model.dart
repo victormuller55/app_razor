@@ -74,6 +74,12 @@ class AgendamentoModel {
   double? latitude;
   double? longitude;
 
+  /// Último pagamento pelo app (`APROVADO`, `PENDENTE`...), ou null quando não houve.
+  String? statusPagamento;
+
+  /// A barbearia recebe pagamento pelo app.
+  bool pagamentoOnline;
+
   AgendamentoModel({
     this.id,
     this.idBarbearia,
@@ -95,6 +101,8 @@ class AgendamentoModel {
     this.enderecoCompleto,
     this.latitude,
     this.longitude,
+    this.statusPagamento,
+    this.pagamentoOnline = false,
   });
 
   factory AgendamentoModel.fromJson(Map<String, dynamic> json) {
@@ -121,6 +129,8 @@ class AgendamentoModel {
       enderecoCompleto: _asNonEmptyString(json['endereco_completo']),
       latitude: _asDouble(json['latitude']),
       longitude: _asDouble(json['longitude']),
+      statusPagamento: _asNonEmptyString(json['status_pagamento']),
+      pagamentoOnline: json['pagamento_online'] == true,
     );
   }
 
@@ -297,8 +307,33 @@ class AgendamentoModel {
     return !pendente;
   }
 
+  /// Presença confirmada pelo barbeiro (leitura do QR): o serviço já começou.
+  bool get confirmado {
+    return status == 'CONFIRMADO';
+  }
+
+  /// Ainda à espera do cliente: só aqui valem QR, "Como chegar" e cancelar.
+  bool get aguardando {
+    return status == 'AGENDADO';
+  }
+
   bool get podeCancelar {
-    return status == 'AGENDADO' || status == 'CONFIRMADO';
+    return aguardando;
+  }
+
+  /// Pago pelo app, confirmado pela API.
+  bool get pago {
+    return statusPagamento == 'APROVADO';
+  }
+
+  /// Mostra "Pagar com Pix": aguardando, barbearia recebe e não há pagamento feito ou em análise.
+  bool get podePagarPeloApp {
+    return aguardando &&
+        pagamentoOnline &&
+        statusPagamento != 'APROVADO' &&
+        statusPagamento != 'PROCESSANDO' &&
+        statusPagamento != 'CONTESTADO' &&
+        statusPagamento != 'REEMBOLSO_PARCIAL';
   }
 
   /// Texto do QR que o cliente mostra para o barbeiro confirmar presença e serviço.

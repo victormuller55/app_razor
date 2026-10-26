@@ -12,6 +12,7 @@ Widget agendamentoListaCard({
   VoidCallback? onComoChegar,
   VoidCallback? onCancelar,
   VoidCallback? onMostrarQr,
+  VoidCallback? onPagar,
   bool cancelando = false,
 }) {
   return _AgendamentoListaCard(
@@ -20,6 +21,7 @@ Widget agendamentoListaCard({
     onComoChegar: onComoChegar,
     onCancelar: onCancelar,
     onMostrarQr: onMostrarQr,
+    onPagar: onPagar,
     cancelando: cancelando,
   );
 }
@@ -31,6 +33,7 @@ class _AgendamentoListaCard extends StatefulWidget {
     this.onComoChegar,
     this.onCancelar,
     this.onMostrarQr,
+    this.onPagar,
     required this.cancelando,
   });
 
@@ -38,6 +41,7 @@ class _AgendamentoListaCard extends StatefulWidget {
   final VoidCallback? onComoChegar;
   final VoidCallback? onCancelar;
   final VoidCallback? onMostrarQr;
+  final VoidCallback? onPagar;
   final bool cancelando;
 
   @override
@@ -53,7 +57,8 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
   @override
   void initState() {
     super.initState();
-    _aberto = widget.agendamento.pendente;
+    // Confirmado ou encerrado começa fechado: não há mais o que fazer nele.
+    _aberto = widget.agendamento.aguardando;
     _fade = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 280),
@@ -81,9 +86,11 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
   }
 
   bool get _temAcoes {
-    return widget.onMostrarQr != null ||
-        (!widget.agendamento.cancelado && widget.onComoChegar != null) ||
-        (widget.onCancelar != null && widget.agendamento.podeCancelar);
+    return widget.agendamento.aguardando &&
+        (widget.onMostrarQr != null ||
+            widget.onPagar != null ||
+            widget.onComoChegar != null ||
+            widget.onCancelar != null);
   }
 
   Widget _detalhes() {
@@ -121,6 +128,7 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
                 onComoChegar: widget.onComoChegar,
                 onCancelar: widget.onCancelar,
                 onMostrarQr: widget.onMostrarQr,
+                onPagar: widget.onPagar,
                 cancelando: widget.cancelando,
               ),
             ),
@@ -249,6 +257,10 @@ Widget _cabecalho(AgendamentoModel agendamento, {required bool aberto}) {
                   ),
                 ),
                 appSizedBox(width: 8),
+                if (agendamento.pago) ...[
+                  _selo('Pago', local.AppColors.statusAberto),
+                  appSizedBox(width: 4),
+                ],
                 _status(agendamento),
               ],
             ),
@@ -503,14 +515,30 @@ Widget _acoes({
   VoidCallback? onComoChegar,
   VoidCallback? onCancelar,
   VoidCallback? onMostrarQr,
+  VoidCallback? onPagar,
   required bool cancelando,
 }) {
+  final bool mostrarPagar = onPagar != null && agendamento.podePagarPeloApp;
   final bool mostrarQr = onMostrarQr != null && agendamento.codigoQr != null;
-  final bool mostrarChegar = !agendamento.cancelado && onComoChegar != null;
+  final bool mostrarChegar = agendamento.aguardando && onComoChegar != null;
   final bool mostrarCancelar = onCancelar != null && agendamento.podeCancelar;
 
   return Column(
     children: [
+      if (mostrarPagar) ...[
+        SizedBox(
+          width: double.infinity,
+          child: _botaoAcao(
+            icone: Phosphor.pixLogo,
+            texto: 'Pagar com Pix',
+            cor: local.AppColors.statusAberto,
+            solido: true,
+            onTap: onPagar,
+          ),
+        ),
+        if (mostrarQr || mostrarChegar || mostrarCancelar)
+          appSizedBox(height: AppSpacing.small),
+      ],
       if (mostrarQr)
         SizedBox(
           width: double.infinity,
@@ -589,10 +617,19 @@ Widget _botaoAcao({
   );
 }
 
+Widget _selo(String texto, Color cor) {
+  return appContainer(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    radius: BorderRadius.circular(AppEstilo.raioCampo),
+    backgroundColor: cor.withValues(alpha: 0.12),
+    child: appText(texto, bold: true, color: cor, fontSize: 11),
+  );
+}
+
 Widget _status(AgendamentoModel agendamento) {
   final Color cor = agendamento.cancelado
       ? const Color(0xFFB3261E)
-      : agendamento.concluido
+      : agendamento.concluido || agendamento.confirmado
       ? local.AppColors.statusAberto
       : agendamento.pendente
       ? local.AppColors.primaryLight
