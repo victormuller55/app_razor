@@ -119,9 +119,16 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
     if (state.itens.isEmpty) {
       return SliverFillRemaining(
         hasScrollBody: false,
-        child: homeEmptyState(
-          message: 'Nenhum agendamento por aqui',
-          icon: Phosphor.calendarBlank,
+        // Centraliza no espaço restante, descontando a barra de navegação.
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+          child: Center(
+            child: homeEmptyState(
+              message: 'Nenhum agendamento por aqui',
+              icon: Phosphor.calendarBlank,
+              iconSize: 48,
+            ),
+          ),
         ),
       );
     }

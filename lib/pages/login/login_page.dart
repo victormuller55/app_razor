@@ -52,12 +52,6 @@ class _LoginPageState extends State<LoginPage> {
     open(screen: const CadastroPage(), closePrevious: true);
   }
 
-  void _openRecuperacaoSenha() {
-    showSnackbarWarning(
-      message: 'Recuperação de senha ainda não está disponível',
-    );
-  }
-
   void _updateAceitePolitica(bool value) {
     setState(() {
       _aceitouPolitica = value;
@@ -124,10 +118,6 @@ class _LoginPageState extends State<LoginPage> {
           height: 54,
           radius: 10,
           padding: AppSpacing.medium,
-        ),
-        appAuthLink(
-          texto: 'Esqueceu sua senha?',
-          onTap: _openRecuperacaoSenha,
         ),
       ],
     );

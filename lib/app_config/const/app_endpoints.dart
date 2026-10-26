@@ -3,7 +3,7 @@
 /// Emulador Android: use `http://10.0.2.2:5000` no lugar de `localhost`
 /// (10.0.2.2 é o loopback do PC no emulador).
 /// Dispositivo físico na mesma rede: use o IP Wi-Fi do notebook.
-const String server = 'http://192.168.0.201:5000';
+const String server = 'https://razor.api.codexin.com.br';
 
 class AppEndpoints {
 

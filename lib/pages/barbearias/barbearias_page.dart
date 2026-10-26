@@ -205,13 +205,18 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
   }
 
   Widget _estadoCentral(Widget child) {
-    return SliverToBoxAdapter(
-      child: SizedBox(
-        height: 320,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.medium),
-          child: Center(child: child),
+    // Ocupa o espaço restante abaixo da busca e centraliza o conteúdo nele,
+    // descontando a barra de navegação que fica por cima do corpo.
+    return SliverFillRemaining(
+      hasScrollBody: false,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          AppSpacing.medium,
+          0,
+          AppSpacing.medium,
+          kBottomNavigationBarHeight,
         ),
+        child: Center(child: child),
       ),
     );
   }
