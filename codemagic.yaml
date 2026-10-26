@@ -90,7 +90,7 @@ workflows:
 
           # A extensão só entra se o ios_signing instalou um perfil para ela;
           # sem perfil, o app é gerado sem o lembrete em vez de falhar.
-          EXTENSAO="com.net.convertix.scissor.RazorLiveActivity"
+          EXTENSAO="com.net.convertix.scissor.SessionLiveActivity"
           TEM_PERFIL=0
           for PERFIL in "$HOME/Library/MobileDevice/Provisioning Profiles/"*.mobileprovision; do
             [ -e "$PERFIL" ] || continue

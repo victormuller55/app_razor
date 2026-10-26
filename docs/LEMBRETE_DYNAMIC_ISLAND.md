@@ -31,14 +31,16 @@ Num Mac, para abrir no Xcode com a extensão: `cd ios && ruby scripts/adicionar_
 Sem um perfil para a extensão, o build do Codemagic gera o app **sem** o
 lembrete (o log mostra "AVISO: nenhum perfil para ..."). Para incluir:
 
+A extensão usa o bundle id `com.net.convertix.scissor.SessionLiveActivity`,
+que já tem o perfil App Store `app_scissor_activity` no Codemagic. Se ele
+expirar ou sumir:
+
 1. developer.apple.com → Certificates, Identifiers & Profiles → Identifiers:
-   registre o App ID `com.net.convertix.scissor.RazorLiveActivity`
-   (tipo App IDs → App, sem capabilities extras).
-2. Profiles → `+` → Distribution → **App Store Connect** → escolha esse App ID
-   → o mesmo certificado de distribuição do app → dê um nome (ex.:
-   `Razor LiveActivity App Store`).
+   confira o App ID `com.net.convertix.scissor.SessionLiveActivity`.
+2. Profiles → `+` → Distribution → **App Store Connect** → esse App ID → o
+   mesmo certificado de distribuição do app.
 3. Codemagic → Teams → Code signing identities → iOS provisioning profiles →
-   **Fetch profiles** → marque o perfil novo e salve com uma referência.
+   **Fetch profiles** → marque o perfil e salve.
 4. Rode o build de novo. O `ios_signing` instala os perfis com o prefixo
    `com.net.convertix.scissor`, o passo "Add Live Activity Extension" acha o
    da extensão e o `xcode-project use-profiles` aplica cada perfil no seu target.
