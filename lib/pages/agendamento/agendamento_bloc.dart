@@ -200,6 +200,7 @@ class AgendamentoBloc extends Bloc<AgendamentoEvent, AgendamentoState> {
         data: current.data,
         horaInicio: event.horaInicio,
         horarios: current.horarios,
+        motivoHorarios: current.motivoHorarios,
       ),
     );
   }
@@ -233,6 +234,7 @@ class AgendamentoBloc extends Bloc<AgendamentoEvent, AgendamentoState> {
         data: data,
         horaInicio: horaInicio,
         horarios: current.horarios,
+        motivoHorarios: current.motivoHorarios,
         salvando: true,
       ),
     );
@@ -264,6 +266,7 @@ class AgendamentoBloc extends Bloc<AgendamentoEvent, AgendamentoState> {
           data: data,
           horaInicio: horaInicio,
           horarios: current.horarios,
+          motivoHorarios: current.motivoHorarios,
         ),
       );
       _notifyErro(errorModel);
@@ -315,6 +318,7 @@ class AgendamentoBloc extends Bloc<AgendamentoEvent, AgendamentoState> {
               )
               .toList()
           : const <AgendamentoHorarioModel>[];
+      final dynamic motivo = json['motivo'];
 
       emit(
         AgendamentoReadyState(
@@ -323,6 +327,7 @@ class AgendamentoBloc extends Bloc<AgendamentoEvent, AgendamentoState> {
           idFuncionario: idFuncionario,
           data: data,
           horarios: horarios,
+          motivoHorarios: motivo is String && motivo.isNotEmpty ? motivo : null,
         ),
       );
     } catch (e) {

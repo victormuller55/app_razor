@@ -1,5 +1,6 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
+import 'package:app_razor/functions/lembrete_agendamento.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_page.dart';
 import 'package:app_razor/pages/barbearias/barbearias_page.dart';
 import 'package:app_razor/pages/home/home_page.dart';
@@ -23,8 +24,7 @@ class MenuScreen extends StatefulWidget {
 class _MenuScreenState extends State<MenuScreen> {
   late final List<Widget> _screens;
 
-  bool get _iosNativo =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+  bool get _iosNativo => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   void _selectAba(int index) {
     setState(() {
@@ -40,12 +40,19 @@ class _MenuScreenState extends State<MenuScreen> {
   void initState() {
     super.initState();
     MenuConst.currentIndex = 0;
+    LembreteAgendamento.instance.iniciar();
     _screens = <Widget>[
       HomePage(onOpenPerfil: _openAbaPerfil),
       const BarbeariasPage(),
       const AgendamentosPage(),
       const PerfilPage(),
     ];
+  }
+
+  @override
+  void dispose() {
+    LembreteAgendamento.instance.parar();
+    super.dispose();
   }
 
   BottomNavigationBarItem _itemNavegacao({
@@ -134,10 +141,7 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 
   Widget _bodyTela() {
-    return IndexedStack(
-      index: MenuConst.currentIndex,
-      children: _screens,
-    );
+    return IndexedStack(index: MenuConst.currentIndex, children: _screens);
   }
 
   @override

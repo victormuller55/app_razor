@@ -14,5 +14,8 @@ import GoogleMaps
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "LembreteAgendamentoPlugin") {
+      LembreteAgendamentoPlugin.register(with: registrar)
+    }
   }
 }

@@ -54,83 +54,95 @@ void main() {
   }
 
   group('HomeBloc seções independentes', () {
-    test('GPS negado carrega favoritas e coloca próximas/promoções em erro', () async {
-      bool proximasChamada = false;
-      bool promocoesChamada = false;
+    test(
+      'GPS negado carrega favoritas e coloca próximas/promoções em erro',
+      () async {
+        bool proximasChamada = false;
+        bool promocoesChamada = false;
 
-      final HomeBloc bloc = HomeBloc(
-        getFavoritas: ({
-          double? latitude,
-          double? longitude,
-          bool forceRefresh = false,
-        }) async {
-          return ok(barbeariaJson);
-        },
-        getProximas: ({
-          required double latitude,
-          required double longitude,
-          bool forceRefresh = false,
-        }) async {
-          proximasChamada = true;
-          return ok(barbeariaJson);
-        },
-        getPromocoes: ({
-          required double latitude,
-          required double longitude,
-          bool forceRefresh = false,
-        }) async {
-          promocoesChamada = true;
-          return ok(promocaoJson);
-        },
-        getGps: () async {
-          throw const GpsException(gpsMensagemPermissaoNegada);
-        },
-      );
+        final HomeBloc bloc = HomeBloc(
+          getFavoritas:
+              ({
+                double? latitude,
+                double? longitude,
+                bool forceRefresh = false,
+              }) async {
+                return ok(barbeariaJson);
+              },
+          getProximas:
+              ({
+                required double latitude,
+                required double longitude,
+                bool forceRefresh = false,
+              }) async {
+                proximasChamada = true;
+                return ok(barbeariaJson);
+              },
+          getPromocoes:
+              ({
+                required double latitude,
+                required double longitude,
+                bool forceRefresh = false,
+              }) async {
+                promocoesChamada = true;
+                return ok(promocaoJson);
+              },
+          getGps: () async {
+            throw const GpsException(gpsMensagemPermissaoNegada);
+          },
+        );
 
-      final Future<HomeState> done = waitDone(bloc);
-      bloc.add(HomeLoadEvent());
-      final HomeState state = await done;
+        final Future<HomeState> done = waitDone(bloc);
+        bloc.add(HomeLoadEvent());
+        final HomeState state = await done;
 
-      expect(state.favoritas.status, HomeSecaoStatus.success);
-      expect(state.favoritas.itens, isNotEmpty);
-      expect(state.favoritas.itens.first.nome, 'Razor Centro');
-      expect(state.proximas.status, HomeSecaoStatus.error);
-      expect(state.promocoes.status, HomeSecaoStatus.error);
-      expect(state.proximas.errorModel.mensagem, gpsMensagemPermissaoNegada);
-      expect(state.promocoes.errorModel.mensagem, gpsMensagemPermissaoNegada);
-      expect(state.latitude, isNull);
-      expect(state.longitude, isNull);
-      expect(proximasChamada, isFalse);
-      expect(promocoesChamada, isFalse);
+        expect(state.favoritas.status, HomeSecaoStatus.success);
+        expect(state.favoritas.itens, isNotEmpty);
+        expect(state.favoritas.itens.first.nome, 'Razor Centro');
+        expect(state.proximas.status, HomeSecaoStatus.error);
+        expect(state.promocoes.status, HomeSecaoStatus.error);
+        expect(state.proximas.errorModel.mensagem, gpsMensagemPermissaoNegada);
+        expect(state.promocoes.errorModel.mensagem, gpsMensagemPermissaoNegada);
+        expect(state.latitude, isNull);
+        expect(state.longitude, isNull);
+        expect(proximasChamada, isFalse);
+        expect(promocoesChamada, isFalse);
 
-      await bloc.close();
-    });
+        await bloc.close();
+      },
+    );
 
     test('falha de próximas não zera favoritas nem promoções', () async {
       final HomeBloc bloc = HomeBloc(
-        getFavoritas: ({
-          double? latitude,
-          double? longitude,
-          bool forceRefresh = false,
-        }) async {
-          return ok(barbeariaJson);
-        },
-        getProximas: ({
-          required double latitude,
-          required double longitude,
-          bool forceRefresh = false,
-        }) async {
-          throw ApiException(
-            AppResponse(statusCode: 500, body: '{"message":"falha próximas"}'),
-          );
-        },
-        getPromocoes: ({
-          required double latitude,
-          required double longitude,
-          bool forceRefresh = false,
-        }) async {
-          return ok(promocaoJson);
-        },
+        getFavoritas:
+            ({
+              double? latitude,
+              double? longitude,
+              bool forceRefresh = false,
+            }) async {
+              return ok(barbeariaJson);
+            },
+        getProximas:
+            ({
+              required double latitude,
+              required double longitude,
+              bool forceRefresh = false,
+            }) async {
+              throw ApiException(
+                AppResponse(
+                  statusCode: 500,
+                  body: '{"message":"falha próximas"}',
+                ),
+              );
+            },
+        getPromocoes:
+            ({
+              required double latitude,
+              required double longitude,
+              bool forceRefresh = false,
+            }) async {
+              return ok(promocaoJson);
+            },
         getGps: () async {
           return const GpsPosition(latitude: -23.55, longitude: -46.63);
         },
@@ -155,27 +167,30 @@ void main() {
 
     test('listas vazias entram em sucesso vazio, não em erro', () async {
       final HomeBloc bloc = HomeBloc(
-        getFavoritas: ({
-          double? latitude,
-          double? longitude,
-          bool forceRefresh = false,
-        }) async {
-          return ok('[]');
-        },
-        getProximas: ({
-          required double latitude,
-          required double longitude,
-          bool forceRefresh = false,
-        }) async {
-          return ok('[]');
-        },
-        getPromocoes: ({
-          required double latitude,
-          required double longitude,
-          bool forceRefresh = false,
-        }) async {
-          return ok('[]');
-        },
+        getFavoritas:
+            ({
+              double? latitude,
+              double? longitude,
+              bool forceRefresh = false,
+            }) async {
+              return ok('[]');
+            },
+        getProximas:
+            ({
+              required double latitude,
+              required double longitude,
+              bool forceRefresh = false,
+            }) async {
+              return ok('[]');
+            },
+        getPromocoes:
+            ({
+              required double latitude,
+              required double longitude,
+              bool forceRefresh = false,
+            }) async {
+              return ok('[]');
+            },
         getGps: () async {
           return const GpsPosition(latitude: -23.55, longitude: -46.63);
         },
@@ -196,4 +211,56 @@ void main() {
       await bloc.close();
     });
   });
+  test(
+    'HomeFavoritasEvent recarrega só as favoritas, forçando a busca',
+    () async {
+      int favoritasChamadas = 0;
+      int proximasChamadas = 0;
+      bool? ultimoForce;
+
+      final HomeBloc bloc = HomeBloc(
+        getFavoritas:
+            ({
+              double? latitude,
+              double? longitude,
+              bool forceRefresh = false,
+            }) async {
+              favoritasChamadas++;
+              ultimoForce = forceRefresh;
+              return ok(favoritasChamadas == 1 ? '[]' : barbeariaJson);
+            },
+        getProximas:
+            ({
+              required double latitude,
+              required double longitude,
+              bool forceRefresh = false,
+            }) async {
+              proximasChamadas++;
+              return ok(barbeariaJson);
+            },
+        getPromocoes:
+            ({
+              required double latitude,
+              required double longitude,
+              bool forceRefresh = false,
+            }) async {
+              return ok(promocaoJson);
+            },
+        getGps: () async => const GpsPosition(latitude: 0, longitude: 0),
+      );
+
+      bloc.add(HomeLoadEvent());
+      final HomeState inicial = await waitDone(bloc);
+      expect(inicial.favoritas.itens, isEmpty);
+
+      bloc.add(HomeFavoritasEvent());
+      final HomeState depois = await bloc.stream.first;
+
+      expect(depois.favoritas.itens.map((b) => b.id), <int>[1]);
+      expect(depois.proximas.itens, hasLength(1));
+      expect(ultimoForce, isTrue);
+      expect(proximasChamadas, 1);
+      await bloc.close();
+    },
+  );
 }

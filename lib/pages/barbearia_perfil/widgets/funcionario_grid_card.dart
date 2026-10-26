@@ -12,9 +12,7 @@ String inicialFuncionario(String? nome) {
   return nome.trim().substring(0, 1).toUpperCase();
 }
 
-Widget funcionarioGridCard({
-  required BarbeariaFuncionarioModel funcionario,
-}) {
+Widget funcionarioGridCard({required BarbeariaFuncionarioModel funcionario}) {
   final String? cargo = funcionario.cargo?.trim();
   final bool temCargo = cargo != null && cargo.isNotEmpty;
 
@@ -60,9 +58,7 @@ Widget funcionarioGridCard({
   );
 }
 
-Widget funcionarioListaCard({
-  required BarbeariaFuncionarioModel funcionario,
-}) {
+Widget funcionarioListaCard({required BarbeariaFuncionarioModel funcionario}) {
   return appContainer(
     width: 96,
     height: 124,

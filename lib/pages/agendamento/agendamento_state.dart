@@ -9,6 +9,9 @@ abstract class AgendamentoState {
   DateTime? data;
   String? horaInicio;
   List<AgendamentoHorarioModel> horarios;
+
+  /// Por que não há horário livre na data (barbearia fechada, folga...).
+  String? motivoHorarios;
   bool loadingHorarios;
   bool salvando;
 
@@ -20,6 +23,7 @@ abstract class AgendamentoState {
     this.data,
     this.horaInicio,
     this.horarios = const <AgendamentoHorarioModel>[],
+    this.motivoHorarios,
     this.loadingHorarios = false,
     this.salvando = false,
   });
@@ -47,6 +51,7 @@ class AgendamentoReadyState extends AgendamentoState {
     super.data,
     super.horaInicio,
     super.horarios,
+    super.motivoHorarios,
     super.loadingHorarios,
     super.salvando,
   }) : super(errorModel: ErrorModel.empty(), contexto: contexto);

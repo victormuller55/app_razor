@@ -2,6 +2,7 @@ import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_fonts.dart';
 import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
+import 'package:app_razor/functions/lembrete_agendamento.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:app_razor/pages/agendamento/agendamento_bloc.dart';
 import 'package:app_razor/pages/agendamento/agendamento_event.dart';
@@ -11,7 +12,6 @@ import 'package:app_razor/pages/agendamento/widgets/servico_agendamento_card.dar
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
@@ -132,16 +132,16 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
             ? local.AppColors.primary.withValues(alpha: 0.12)
             : local.AppColors.inputBackground,
         radius: BorderRadius.circular(AppRadii.interno),
-        border: selecionado
-            ? Border.all(color: local.AppColors.primary)
-            : null,
+        border: selecionado ? Border.all(color: local.AppColors.primary) : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             appText(
               texto,
               bold: true,
-              color: selecionado ? local.AppColors.primary : local.AppColors.text,
+              color: selecionado
+                  ? local.AppColors.primary
+                  : local.AppColors.text,
               fontSize: AppFontSizes.verySmall,
             ),
             if (detalhe != null)
@@ -161,10 +161,13 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
 
   Widget _servicos(AgendamentoReadyState state) {
     if (widget.servicoId != null) {
-      final Iterable<AgendamentoServicoOpcao> escolhidos = state.contexto!.servicos
+      final Iterable<AgendamentoServicoOpcao> escolhidos = state
+          .contexto!
+          .servicos
           .where((AgendamentoServicoOpcao item) => item.id == widget.servicoId);
-      final AgendamentoServicoOpcao? servico =
-          escolhidos.isEmpty ? null : escolhidos.first;
+      final AgendamentoServicoOpcao? servico = escolhidos.isEmpty
+          ? null
+          : escolhidos.first;
 
       if (servico == null) {
         return const SizedBox.shrink();
@@ -200,7 +203,9 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
   }
 
   Widget _funcionarios(AgendamentoReadyState state) {
-    final List<AgendamentoFuncionarioOpcao> opcoes = state.contexto!.funcionarios
+    final List<AgendamentoFuncionarioOpcao> opcoes = state
+        .contexto!
+        .funcionarios
         .where(
           (AgendamentoFuncionarioOpcao item) =>
               item.realizaServico(state.idServico),
@@ -249,12 +254,12 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
   }
 
   Widget _datas(AgendamentoReadyState state) {
-    final DateTime hoje = DateTime.now();
+    // Começa hoje: os horários que já passaram vêm desativados da API.
+    final DateTime agora = DateTime.now();
+    final DateTime hoje = DateTime(agora.year, agora.month, agora.day);
     final List<DateTime> dias = List<DateTime>.generate(
       14,
-      (int index) => DateTime(hoje.year, hoje.month, hoje.day).add(
-        Duration(days: index + 1),
-      ),
+      (int index) => DateTime(hoje.year, hoje.month, hoje.day + index),
     );
 
     return _cardSecao(
@@ -268,14 +273,16 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
           separatorBuilder: (_, _) => appSizedBox(width: 8),
           itemBuilder: (BuildContext context, int index) {
             final DateTime dia = dias[index];
-            final bool selecionado = state.data != null &&
+            final bool selecionado =
+                state.data != null &&
                 state.data!.year == dia.year &&
                 state.data!.month == dia.month &&
                 state.data!.day == dia.day;
 
             return _chip(
-              texto: _diasSemana[dia.weekday - 1],
-              detalhe: '${dia.day.toString().padLeft(2, '0')}/${dia.month.toString().padLeft(2, '0')}',
+              texto: index == 0 ? 'hoje' : _diasSemana[dia.weekday - 1],
+              detalhe:
+                  '${dia.day.toString().padLeft(2, '0')}/${dia.month.toString().padLeft(2, '0')}',
               selecionado: selecionado,
               onTap: () => bloc.add(AgendamentoSelectDataEvent(dia)),
             );
@@ -285,195 +292,99 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
     );
   }
 
-  String? _labelHora(String? horaInicio) {
-    if (horaInicio == null || horaInicio.length < 5) {
-      return null;
-    }
-
-    return horaInicio.substring(0, 5);
-  }
-
-  TimeOfDay _horaInicial(String? horaInicio) {
-    final String? label = _labelHora(horaInicio);
-
-    if (label == null) {
-      return TimeOfDay.now();
-    }
-
-    final List<String> partes = label.split(':');
-    final int? hora = int.tryParse(partes.first);
-    final int? minuto = partes.length > 1 ? int.tryParse(partes[1]) : null;
-
-    if (hora == null || minuto == null) {
-      return TimeOfDay.now();
-    }
-
-    return TimeOfDay(hour: hora, minute: minuto);
-  }
-
-  String _horaApi(TimeOfDay hora) {
-    final String horas = hora.hour.toString().padLeft(2, '0');
-    final String minutos = hora.minute.toString().padLeft(2, '0');
-    return '$horas:$minutos:00';
-  }
-
-  Future<TimeOfDay?> _abrirSeletorIos(TimeOfDay inicial) {
-    TimeOfDay selecionado = inicial;
-
-    return showModalBottomSheet<TimeOfDay>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppRadii.externo),
-        ),
-      ),
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: SizedBox(
-            height: 280,
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CupertinoButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('Cancelar'),
-                    ),
-                    CupertinoButton(
-                      onPressed: () => Navigator.of(context).pop(selecionado),
-                      child: const Text('OK'),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: CupertinoDatePicker(
-                    mode: CupertinoDatePickerMode.time,
-                    use24hFormat: true,
-                    initialDateTime: DateTime(
-                      2020,
-                      1,
-                      1,
-                      inicial.hour,
-                      inicial.minute,
-                    ),
-                    onDateTimeChanged: (DateTime data) {
-                      selecionado = TimeOfDay(
-                        hour: data.hour,
-                        minute: data.minute,
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Future<TimeOfDay?> _abrirSeletorAndroid(TimeOfDay inicial) {
-    return showTimePicker(
-      context: context,
-      initialTime: inicial,
-      helpText: 'Selecione o horário',
-      cancelText: 'Cancelar',
-      confirmText: 'OK',
-      hourLabelText: 'Hora',
-      minuteLabelText: 'Minuto',
-      builder: (BuildContext context, Widget? child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: ColorScheme.light(
-                primary: local.AppColors.primary,
-                onPrimary: local.AppColors.white,
-                surface: local.AppColors.white,
-                onSurface: local.AppColors.text,
-              ),
-            ),
-            child: child!,
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _abrirSeletorHorario(AgendamentoReadyState state) async {
-    final TimeOfDay inicial = _horaInicial(state.horaInicio);
-    final bool ios = Theme.of(context).platform == TargetPlatform.iOS;
-    final TimeOfDay? escolhido = ios
-        ? await _abrirSeletorIos(inicial)
-        : await _abrirSeletorAndroid(inicial);
-
-    if (escolhido == null) {
-      return;
-    }
-
-    bloc.add(AgendamentoSelectHorarioEvent(_horaApi(escolhido)));
-  }
-
-  Widget _campoHorario({
-    required String? horaInicio,
-    required VoidCallback onTap,
+  Widget _chipHorario({
+    required AgendamentoHorarioModel horario,
+    required bool selecionado,
   }) {
-    final String? label = _labelHora(horaInicio);
-    final bool selecionado = label != null;
+    final String? hora = horario.horaInicio;
+    final bool ativo = horario.disponivel && hora != null;
 
     return GestureDetector(
-      onTap: onTap,
-      child: appContainer(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        backgroundColor: selecionado
-            ? local.AppColors.primary.withValues(alpha: 0.12)
-            : local.AppColors.inputBackground,
-        radius: BorderRadius.circular(AppRadii.interno),
-        border: selecionado ? Border.all(color: local.AppColors.primary) : null,
-        child: Row(
-          children: [
-            Expanded(
-              child: appText(
-                label ?? 'Escolher horário',
-                bold: true,
+      onTap: ativo ? () => bloc.add(AgendamentoSelectHorarioEvent(hora)) : null,
+      child: Opacity(
+        opacity: ativo ? 1 : 0.4,
+        child: appContainer(
+          width: 68,
+          padding: EdgeInsets.symmetric(vertical: 10),
+          backgroundColor: selecionado
+              ? local.AppColors.primary.withValues(alpha: 0.12)
+              : local.AppColors.inputBackground,
+          radius: BorderRadius.circular(AppRadii.interno),
+          border: selecionado
+              ? Border.all(color: local.AppColors.primary)
+              : null,
+          child: Center(
+            child: Text(
+              horario.label,
+              style: TextStyle(
+                fontFamily: AppFonts.family,
+                fontWeight: FontWeight.bold,
+                fontSize: AppFontSizes.verySmall,
                 color: selecionado
                     ? local.AppColors.primary
+                    : ativo
+                    ? local.AppColors.text
                     : local.AppColors.textSecondary,
-                fontSize: AppFontSizes.small,
+                decoration: ativo ? null : TextDecoration.lineThrough,
               ),
             ),
-            Icon(
-              Phosphor.clock,
-              size: 18,
-              color: selecionado
-                  ? local.AppColors.primary
-                  : local.AppColors.textSecondary,
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _horarios(AgendamentoReadyState state) {
+    Widget secao(Widget child) =>
+        _cardSecao(titulo: 'Horário', icone: Phosphor.clock, child: child);
+
     if (state.idServico == null ||
         state.idFuncionario == null ||
         state.data == null) {
-      return _cardSecao(
-        titulo: 'Horário',
-        icone: Phosphor.clock,
-        child: _textoApoio('Escolha profissional e data para ver os horários'),
+      return secao(
+        _textoApoio('Escolha profissional e data para ver os horários'),
       );
     }
 
-    return _cardSecao(
-      titulo: 'Horário',
-      icone: Phosphor.clock,
-      child: _campoHorario(
-        horaInicio: state.horaInicio,
-        onTap: () => _abrirSeletorHorario(state),
+    if (state.loadingHorarios) {
+      return secao(appLoadingRazor(size: 20));
+    }
+
+    final List<AgendamentoHorarioModel> horarios = state.horarios;
+    final bool algumLivre = horarios.any(
+      (AgendamentoHorarioModel item) => item.disponivel,
+    );
+
+    if (horarios.isEmpty) {
+      return secao(
+        _textoApoio(state.motivoHorarios ?? 'Nenhum horário neste dia'),
+      );
+    }
+
+    return secao(
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!algumLivre) ...[
+            _textoApoio(
+              state.motivoHorarios ?? 'Não há horários livres neste dia',
+            ),
+            appSizedBox(height: AppSpacing.small),
+          ],
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final AgendamentoHorarioModel horario in horarios)
+                _chipHorario(
+                  horario: horario,
+                  selecionado:
+                      horario.horaInicio != null &&
+                      horario.horaInicio == state.horaInicio,
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -527,7 +438,11 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Phosphor.checkCircle, size: 48, color: local.AppColors.primary),
+              Icon(
+                Phosphor.checkCircle,
+                size: 48,
+                color: local.AppColors.primary,
+              ),
               appSizedBox(height: AppSpacing.normal),
               appText(
                 'Horário reservado',
@@ -581,11 +496,14 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
       bloc: bloc,
       listener: (BuildContext context, AgendamentoState state) {
         if (state is AgendamentoSuccessState) {
+          // Se o horário for daqui a menos de 1h, o lembrete já aparece.
+          LembreteAgendamento.instance.atualizar();
           Navigator.of(context).pop();
         }
       },
       builder: (BuildContext context, AgendamentoState state) {
-        final bool podeSalvar = state is AgendamentoReadyState &&
+        final bool podeSalvar =
+            state is AgendamentoReadyState &&
             state.idServico != null &&
             state.idFuncionario != null &&
             state.data != null &&
@@ -610,10 +528,10 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
                       title: state.salvando ? 'Salvando...' : 'Confirmar',
                       onTap: podeSalvar
                           ? () => bloc.add(
-                                AgendamentoSalvarEvent(
-                                  observacao: _observacaoController.text,
-                                ),
-                              )
+                              AgendamentoSalvarEvent(
+                                observacao: _observacaoController.text,
+                              ),
+                            )
                           : () {},
                     ),
                   ),

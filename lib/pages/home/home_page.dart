@@ -1,6 +1,7 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
+import 'package:app_razor/functions/favoritas.dart';
 import 'package:app_razor/functions/gps.dart';
 import 'package:app_razor/functions/local_storage.dart';
 import 'package:app_razor/functions/media_url.dart';
@@ -190,8 +191,13 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_handleScroll);
+    favoritasAlteradas.addListener(_recarregarFavoritas);
     _loadUsuario();
     _loadHome();
+  }
+
+  void _recarregarFavoritas() {
+    bloc.add(HomeFavoritasEvent());
   }
 
   Widget _avatarUsuario({double radius = 24}) {
@@ -672,6 +678,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _scrollController.removeListener(_handleScroll);
+    favoritasAlteradas.removeListener(_recarregarFavoritas);
     _scrollController.dispose();
     _showTitle.dispose();
     _folhaRadiusAtual.dispose();

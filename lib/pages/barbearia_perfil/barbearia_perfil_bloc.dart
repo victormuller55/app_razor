@@ -9,29 +9,79 @@ import 'package:app_razor/pages/barbearia_perfil/barbearia_perfil_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
 
-typedef GetBarbeariaPerfil = Future<AppResponse> Function({
-  required int id,
-  double? latitude,
-  double? longitude,
-  bool forceRefresh,
-});
+typedef GetBarbeariaPerfil =
+    Future<AppResponse> Function({
+      required int id,
+      double? latitude,
+      double? longitude,
+      bool forceRefresh,
+    });
 
 typedef GetGpsPosition = Future<GpsPosition> Function();
 
-class BarbeariaPerfilBloc extends Bloc<BarbeariaPerfilEvent, BarbeariaPerfilState> {
+typedef SalvarFavorito =
+    Future<void> Function({required int id, required bool favorito});
+
+class BarbeariaPerfilBloc
+    extends Bloc<BarbeariaPerfilEvent, BarbeariaPerfilState> {
   BarbeariaPerfilBloc({
     required this.barbeariaId,
     GetBarbeariaPerfil? getPerfil,
     GetGpsPosition? getGps,
-  })  : _getPerfil = getPerfil ?? getBarbeariaPerfil,
-        _getGps = getGps ?? getCurrentGps,
-        super(BarbeariaPerfilInitialState()) {
+    SalvarFavorito? salvarFavorito,
+  }) : _getPerfil = getPerfil ?? getBarbeariaPerfil,
+       _getGps = getGps ?? getCurrentGps,
+       _salvarFavorito = salvarFavorito ?? salvarBarbeariaFavorita,
+       super(BarbeariaPerfilInitialState()) {
     on<BarbeariaPerfilLoadEvent>(_loadPerfil);
+    on<BarbeariaPerfilFavoritoEvent>(_alternarFavorito);
   }
 
   final int barbeariaId;
   final GetBarbeariaPerfil _getPerfil;
   final GetGpsPosition _getGps;
+  final SalvarFavorito _salvarFavorito;
+  bool _salvandoFavorito = false;
+
+  /// Troca o coração na hora e volta atrás se a API recusar.
+  Future<void> _alternarFavorito(
+    BarbeariaPerfilFavoritoEvent event,
+    Emitter<BarbeariaPerfilState> emit,
+  ) async {
+    final BarbeariaPerfilModel? perfil = state.perfil;
+
+    // Ignora toques enquanto o anterior ainda está salvando.
+    if (state is! BarbeariaPerfilSuccessState ||
+        perfil == null ||
+        _salvandoFavorito) {
+      return;
+    }
+
+    final bool anterior = perfil.favorito ?? false;
+    _salvandoFavorito = true;
+    perfil.favorito = !anterior;
+    emit(BarbeariaPerfilSuccessState(perfil: perfil));
+
+    try {
+      await _salvarFavorito(id: barbeariaId, favorito: !anterior);
+    } catch (e) {
+      perfil.favorito = anterior;
+      emit(BarbeariaPerfilSuccessState(perfil: perfil));
+      _notifyErro(errorModelFromApi(e));
+    } finally {
+      _salvandoFavorito = false;
+    }
+  }
+
+  void _notifyErro(ErrorModel errorModel) {
+    try {
+      if (AppContext.navigatorKey.currentContext == null) {
+        return;
+      }
+
+      showSnackbarError(message: errorModel.mensagem);
+    } catch (_) {}
+  }
 
   Future<void> _loadPerfil(
     BarbeariaPerfilLoadEvent event,

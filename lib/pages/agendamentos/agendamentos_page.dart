@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/functions/abrir_rota.dart';
+import 'package:app_razor/functions/lembrete_agendamento.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_bloc.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_event.dart';
@@ -25,6 +28,7 @@ class AgendamentosPage extends StatefulWidget {
 class _AgendamentosPageState extends State<AgendamentosPage> {
   AgendamentosBloc bloc = AgendamentosBloc();
   final ScrollController _scrollController = ScrollController();
+  late final StreamSubscription<AgendamentosState> _lembrete;
 
   Future<void> _loadAgendamentos({bool forceRefresh = false}) async {
     final Future<AgendamentosState> done = bloc.stream.firstWhere(
@@ -86,6 +90,12 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_handleScroll);
+    // Cancelou ou atualizou a lista: o lembrete da Dynamic Island acompanha.
+    _lembrete = bloc.stream.listen((AgendamentosState state) {
+      if (state is AgendamentosSuccessState) {
+        LembreteAgendamento.instance.usarAgendamentos(state.itens);
+      }
+    });
     _loadAgendamentos();
   }
 
@@ -107,37 +117,66 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
       );
     }
 
+    // Cabeçalho de cada grupo (Próximos, Hoje, Ontem, ...) seguido dos cards dele.
+    final List<Object> linhas = <Object>[
+      for (final ({GrupoAgendamento grupo, List<AgendamentoModel> itens}) bloco
+          in agrupaAgendamentos(state.itens, DateTime.now())) ...[
+        bloco.grupo,
+        ...bloco.itens,
+      ],
+    ];
+
     return SliverPadding(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.medium,
-        AppSpacing.normal,
+        AppSpacing.small,
         AppSpacing.medium,
         AppSpacing.giant + kBottomNavigationBarHeight,
       ),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (BuildContext context, int index) {
-            if (index >= state.itens.length) {
-              return _footerLoading();
-            }
+        delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
+          if (index >= linhas.length) {
+            return _footerLoading();
+          }
 
-            final AgendamentoModel agendamento = state.itens[index];
+          final Object linha = linhas[index];
 
-            return agendamentoListaCard(
-              agendamento: agendamento,
-              onComoChegar: () => _abrirRota(agendamento),
-              onCancelar: () => _confirmarCancelamento(agendamento),
-              onMostrarQr: agendamento.codigoQr == null
-                  ? null
-                  : () => showQrConfirmacaoModal(
-                        context: context,
-                        agendamento: agendamento,
-                      ),
-              cancelando: state.cancelandoId == agendamento.id,
-            );
-          },
-          childCount: state.itens.length + (state.loadingMore ? 1 : 0),
-        ),
+          if (linha is GrupoAgendamento) {
+            return _tituloGrupo(linha, primeiro: index == 0);
+          }
+
+          final AgendamentoModel agendamento = linha as AgendamentoModel;
+
+          return agendamentoListaCard(
+            agendamento: agendamento,
+            onComoChegar: () => _abrirRota(agendamento),
+            onCancelar: () => _confirmarCancelamento(agendamento),
+            onMostrarQr: agendamento.codigoQr == null
+                ? null
+                : () => showQrConfirmacaoModal(
+                    context: context,
+                    agendamento: agendamento,
+                  ),
+            cancelando: state.cancelandoId == agendamento.id,
+          );
+        }, childCount: linhas.length + (state.loadingMore ? 1 : 0)),
+      ),
+    );
+  }
+
+  Widget _tituloGrupo(GrupoAgendamento grupo, {required bool primeiro}) {
+    return Padding(
+      key: ValueKey<String>('grupo-${grupo.name}'),
+      padding: EdgeInsets.only(
+        top: primeiro ? 0 : AppSpacing.medium,
+        bottom: AppSpacing.small,
+        left: 2,
+      ),
+      child: appText(
+        grupo.titulo,
+        bold: true,
+        fontSize: AppFontSizes.small,
+        color: local.AppColors.textSecondary,
       ),
     );
   }
@@ -228,6 +267,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
 
   @override
   void dispose() {
+    _lembrete.cancel();
     _scrollController.dispose();
     bloc.close();
     super.dispose();

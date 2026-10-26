@@ -19,6 +19,7 @@ class AppEndpoints {
   static String get endpointBarbeariasProximas => '$server/api/v1/barbearias/proximas';
   static String get endpointPromocoesProximas => '$server/api/v1/barbearias/promocoes-proximas';
   static String endpointBarbeariaPerfil(int id) => '$server/api/v1/barbearias/$id';
+  static String endpointBarbeariaFavorito(int id) => '$server/api/v1/barbearias/$id/favorito';
   static String endpointAgendamentosCancelar(int id) => '$server/api/v1/agendamentos/$id/cancelar';
   static String get endpointAgendamentos => '$server/api/v1/agendamentos';
   static String get endpointAgendamentosContexto => '$server/api/v1/agendamentos/contexto';

@@ -102,7 +102,9 @@ class AgendamentoModel {
       id: _asInt(json['id']),
       idBarbearia: _asInt(json['id_barbearia']),
       nomeBarbearia: json['nome_barbearia'] as String?,
-      imagemBarbearia: resolveMediaUrl(_asNonEmptyString(json['imagem_barbearia'])),
+      imagemBarbearia: resolveMediaUrl(
+        _asNonEmptyString(json['imagem_barbearia']),
+      ),
       idFuncionarioBarbearia: _asInt(json['id_funcionario_barbearia']),
       nomeFuncionario: json['nome_funcionario'] as String?,
       idBarbeariaServico: _asInt(json['id_barbearia_servico']),
@@ -138,6 +140,33 @@ class AgendamentoModel {
     return '${partes[2]}/${partes[1]}/${partes[0]}';
   }
 
+  /// "Ontem", "Hoje" ou "Amanhã" em relação a [agora]; nos outros dias, a data.
+  String dataRelativaLabel(DateTime agora) {
+    final DateTime? dia = DateTime.tryParse(
+      (dataAgendamento ?? '').length >= 10
+          ? dataAgendamento!.substring(0, 10)
+          : '',
+    );
+
+    if (dia == null) {
+      return dataLabel;
+    }
+
+    // Em dias de calendário: Duration.inDays erraria na troca de horário de verão.
+    final int diferenca = DateTime.utc(
+      dia.year,
+      dia.month,
+      dia.day,
+    ).difference(DateTime.utc(agora.year, agora.month, agora.day)).inDays;
+
+    return switch (diferenca) {
+      -1 => 'Ontem',
+      0 => 'Hoje',
+      1 => 'Amanhã',
+      _ => dataLabel,
+    };
+  }
+
   String get horaLabel {
     return _horaCurta(horaInicio);
   }
@@ -159,6 +188,27 @@ class AgendamentoModel {
         : '00:00';
 
     return DateTime.tryParse('${dia}T$hora:00');
+  }
+
+  /// Fim do serviço; sem hora de fim, usa a duração a partir do início.
+  DateTime? get dataHoraFim {
+    final DateTime? inicio = dataHora;
+    final String? data = dataAgendamento;
+
+    if (inicio == null || data == null) {
+      return null;
+    }
+
+    if (horaFim != null && horaFim!.length >= 5) {
+      final DateTime? fim = DateTime.tryParse(
+        '${data.substring(0, 10)}T${horaFim!.substring(0, 5)}:00',
+      );
+      if (fim != null && fim.isAfter(inicio)) {
+        return fim;
+      }
+    }
+
+    return inicio.add(Duration(minutes: duracaoMinutos ?? 0));
   }
 
   String get periodoLabel {
@@ -242,6 +292,11 @@ class AgendamentoModel {
     return !concluido && !cancelado && status != 'NO_SHOW';
   }
 
+  /// Cancelado, concluído ou sem comparecimento: aparece esmaecido na agenda.
+  bool get encerrado {
+    return !pendente;
+  }
+
   bool get podeCancelar {
     return status == 'AGENDADO' || status == 'CONFIRMADO';
   }
@@ -268,6 +323,84 @@ class AgendamentoModel {
       _ => status ?? '',
     };
   }
+}
+
+/// Grupos da agenda, na ordem em que aparecem na tela.
+enum GrupoAgendamento {
+  proximos('Próximos'),
+  hoje('Hoje'),
+  ontem('Ontem'),
+  essaSemana('Essa semana'),
+  maisAntigos('Mais antigos'),
+  cancelados('Cancelados');
+
+  const GrupoAgendamento(this.titulo);
+
+  final String titulo;
+}
+
+/// Grupo pelo dia do agendamento em relação a [agora]: depois de hoje é
+/// "Próximos"; de 2 a 6 dias atrás, "Essa semana"; sem data, "Mais antigos".
+/// Os cancelados vão todos para "Cancelados", no fim da lista.
+GrupoAgendamento grupoDoAgendamento(
+  AgendamentoModel agendamento,
+  DateTime agora,
+) {
+  if (agendamento.cancelado) {
+    return GrupoAgendamento.cancelados;
+  }
+
+  final DateTime? dataHora = agendamento.dataHora;
+
+  if (dataHora == null) {
+    return GrupoAgendamento.maisAntigos;
+  }
+
+  final DateTime hoje = DateTime(agora.year, agora.month, agora.day);
+  final DateTime dia = DateTime(dataHora.year, dataHora.month, dataHora.day);
+  // Em dias de calendário: Duration.inDays erraria na troca de horário de verão.
+  final int diasAtras = DateTime.utc(
+    hoje.year,
+    hoje.month,
+    hoje.day,
+  ).difference(DateTime.utc(dia.year, dia.month, dia.day)).inDays;
+
+  if (diasAtras < 0) {
+    return GrupoAgendamento.proximos;
+  }
+
+  return switch (diasAtras) {
+    0 => GrupoAgendamento.hoje,
+    1 => GrupoAgendamento.ontem,
+    < 7 => GrupoAgendamento.essaSemana,
+    _ => GrupoAgendamento.maisAntigos,
+  };
+}
+
+/// Separa a lista (já ordenada, mais recente primeiro) nos grupos da agenda,
+/// só com os grupos que têm agendamentos. Em cada grupo os pendentes vêm
+/// primeiro; fora isso a ordem dos itens é mantida.
+List<({GrupoAgendamento grupo, List<AgendamentoModel> itens})>
+agrupaAgendamentos(List<AgendamentoModel> itens, DateTime agora) {
+  final Map<GrupoAgendamento, List<AgendamentoModel>> porGrupo =
+      <GrupoAgendamento, List<AgendamentoModel>>{};
+
+  for (final AgendamentoModel item in <AgendamentoModel>[
+    ...itens.where((AgendamentoModel item) => item.pendente),
+    ...itens.where((AgendamentoModel item) => !item.pendente),
+  ]) {
+    porGrupo
+        .putIfAbsent(
+          grupoDoAgendamento(item, agora),
+          () => <AgendamentoModel>[],
+        )
+        .add(item);
+  }
+
+  return <({GrupoAgendamento grupo, List<AgendamentoModel> itens})>[
+    for (final GrupoAgendamento grupo in GrupoAgendamento.values)
+      if (porGrupo[grupo] != null) (grupo: grupo, itens: porGrupo[grupo]!),
+  ];
 }
 
 List<AgendamentoModel> ordenaAgendamentosMaisAtual(
@@ -409,12 +542,12 @@ class AgendamentoContextoModel {
     return AgendamentoContextoModel(
       idBarbearia: _asInt(json['id_barbearia']),
       nomeBarbearia: json['nome_barbearia'] as String?,
-      servicos: _asMapList(json['servicos'])
-          .map(AgendamentoServicoOpcao.fromJson)
-          .toList(),
-      funcionarios: _asMapList(json['funcionarios'])
-          .map(AgendamentoFuncionarioOpcao.fromJson)
-          .toList(),
+      servicos: _asMapList(
+        json['servicos'],
+      ).map(AgendamentoServicoOpcao.fromJson).toList(),
+      funcionarios: _asMapList(
+        json['funcionarios'],
+      ).map(AgendamentoFuncionarioOpcao.fromJson).toList(),
     );
   }
 }
@@ -423,15 +556,21 @@ class AgendamentoHorarioModel {
   String? horaInicio;
   String? horaFim;
 
+  /// Falso quando o profissional não atende, o horário já passou ou está ocupado.
+  bool disponivel;
+
   AgendamentoHorarioModel({
     this.horaInicio,
     this.horaFim,
+    this.disponivel = true,
   });
 
   factory AgendamentoHorarioModel.fromJson(Map<String, dynamic> json) {
     return AgendamentoHorarioModel(
       horaInicio: _asNonEmptyString(json['hora_inicio']),
       horaFim: _asNonEmptyString(json['hora_fim']),
+      // A API antiga só mandava os livres, sem o campo.
+      disponivel: json['disponivel'] != false,
     );
   }
 

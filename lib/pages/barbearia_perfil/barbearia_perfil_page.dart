@@ -16,19 +16,12 @@ import 'package:app_razor/pages/home/widgets/home_promocao_card.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:app_razor/widgets/app_maps.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
 
-void openBarbeariaPerfil({
-  required int barbeariaId,
-  String? nome,
-}) {
+void openBarbeariaPerfil({required int barbeariaId, String? nome}) {
   open(
-    screen: BarbeariaPerfilPage(
-      barbeariaId: barbeariaId,
-      nomeInicial: nome,
-    ),
+    screen: BarbeariaPerfilPage(barbeariaId: barbeariaId, nomeInicial: nome),
   );
 }
 
@@ -93,24 +86,6 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     }
   }
 
-  Future<void> _compartilhar(BarbeariaPerfilModel perfil) async {
-    final String nome = perfil.nome?.trim() ?? '';
-    final String endereco = perfil.enderecoCompleto?.trim() ??
-        perfil.localDescricao.trim();
-    final String texto = <String>[
-      if (nome.isNotEmpty) nome,
-      if (endereco.isNotEmpty) endereco,
-    ].join('\n');
-
-    if (texto.isEmpty) {
-      showSnackbarWarning(message: 'Nada para compartilhar.');
-      return;
-    }
-
-    await Clipboard.setData(ClipboardData(text: texto));
-    showSnackbarSuccess(message: 'Informações copiadas');
-  }
-
   @override
   void initState() {
     super.initState();
@@ -152,10 +127,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     );
   }
 
-  Widget _linhaMeta({
-    required IconData icone,
-    required String texto,
-  }) {
+  Widget _linhaMeta({required IconData icone, required String texto}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -180,8 +152,9 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     final String? logo = perfil.logo;
     final bool temFoto = logo != null && logo.isNotEmpty;
     final String nome = perfil.nome ?? '';
-    final String inicial =
-        nome.isNotEmpty ? nome.substring(0, 1).toUpperCase() : '?';
+    final String inicial = nome.isNotEmpty
+        ? nome.substring(0, 1).toUpperCase()
+        : '?';
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppRadii.interno),
@@ -223,8 +196,9 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
   }
 
   Widget _identidade(BarbeariaPerfilModel perfil) {
-    final String nota =
-        (perfil.nota ?? 0).toStringAsFixed(1).replaceAll('.', ',');
+    final String nota = (perfil.nota ?? 0)
+        .toStringAsFixed(1)
+        .replaceAll('.', ',');
     final int? total = perfil.totalAvaliacoes;
     final String notaTexto = total != null && total > 0
         ? '$nota (${_formataInteiro(total)} ${total == 1 ? 'avaliação' : 'avaliações'})'
@@ -332,9 +306,11 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
             onTap: () => _abrirRota(perfil),
           ),
           _botaoAcaoRapida(
-            icone: Phosphor.shareNetwork,
-            texto: 'Compartilhar',
-            onTap: () => _compartilhar(perfil),
+            icone: perfil.favorito == true
+                ? PhosphorFill.heart
+                : Phosphor.heart,
+            texto: 'Favorito',
+            onTap: () => bloc.add(BarbeariaPerfilFavoritoEvent()),
           ),
         ],
       ),
@@ -469,10 +445,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     );
   }
 
-  Widget _secao({
-    required String titulo,
-    required Widget child,
-  }) {
+  Widget _secao({required String titulo, required Widget child}) {
     return Padding(
       padding: EdgeInsets.only(top: AppSpacing.medium),
       child: Column(
@@ -491,10 +464,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     );
   }
 
-  Widget _card({
-    required Widget child,
-    EdgeInsets? padding,
-  }) {
+  Widget _card({required Widget child, EdgeInsets? padding}) {
     return appContainer(
       width: double.infinity,
       padding: padding ?? EdgeInsets.all(AppSpacing.normal),
@@ -631,10 +601,8 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
       child: Column(
         children: perfil.promocoes
             .map(
-              (PromocaoModel promocao) => homePromocaoCard(
-                promocao: promocao,
-                onTap: () {},
-              ),
+              (PromocaoModel promocao) =>
+                  homePromocaoCard(promocao: promocao, onTap: () {}),
             )
             .toList(),
       ),

@@ -97,7 +97,7 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
           if (agendamento.nomeFuncionario != null)
             _destaqueProfissional(agendamento.nomeFuncionario!),
           if (agendamento.nomeFuncionario != null)
-            appSizedBox(height: AppSpacing.normal),
+            appSizedBox(height: AppSpacing.small),
           _cardsMetricas(agendamento),
           if (agendamento.enderecoCompleto != null) ...[
             appSizedBox(height: AppSpacing.small),
@@ -133,38 +133,43 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
   Widget build(BuildContext context) {
     final BorderRadius raio = BorderRadius.circular(_raioCard);
 
-    return Container(
-      width: double.infinity,
-      margin: EdgeInsets.only(bottom: AppSpacing.normal + 2),
-      decoration: BoxDecoration(
-        color: AppEstilo.campoFundo,
-        borderRadius: raio,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _alternar,
+    // Encerrado (cancelado, concluído ou sem comparecimento) fica com cara de desativado,
+    // mas continua abrindo para consultar os detalhes.
+    return Opacity(
+      opacity: widget.agendamento.encerrado ? _opacidadeEncerrado : 1,
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.only(bottom: AppSpacing.normal + 2),
+        decoration: BoxDecoration(
+          color: AppEstilo.campoFundo,
           borderRadius: raio,
-          child: Padding(
-            padding: EdgeInsets.all(AppSpacing.normal + 2),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _cabecalho(widget.agendamento, aberto: _aberto),
-                ClipRect(
-                  child: AnimatedSize(
-                    duration: const Duration(milliseconds: 280),
-                    curve: Curves.easeOutCubic,
-                    alignment: Alignment.topCenter,
-                    child: _aberto
-                        ? FadeTransition(
-                            opacity: _opacidade,
-                            child: _detalhes(),
-                          )
-                        : const SizedBox(width: double.infinity),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _alternar,
+            borderRadius: raio,
+            child: Padding(
+              padding: EdgeInsets.all(AppSpacing.normal + 2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _cabecalho(widget.agendamento, aberto: _aberto),
+                  ClipRect(
+                    child: AnimatedSize(
+                      duration: const Duration(milliseconds: 280),
+                      curve: Curves.easeOutCubic,
+                      alignment: Alignment.topCenter,
+                      child: _aberto
+                          ? FadeTransition(
+                              opacity: _opacidade,
+                              child: _detalhes(),
+                            )
+                          : const SizedBox(width: double.infinity),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -175,6 +180,33 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
 
 /// Raio do card de agendamento.
 const double _raioCard = AppEstilo.raioCampo + 6;
+
+/// Opacidade do card de agendamento encerrado.
+const double _opacidadeEncerrado = 0.55;
+
+/// Tira a cor da foto de agendamento encerrado (luminância Rec. 709).
+const ColorFilter _cinza = ColorFilter.matrix(<double>[
+  0.2126,
+  0.7152,
+  0.0722,
+  0,
+  0,
+  0.2126,
+  0.7152,
+  0.0722,
+  0,
+  0,
+  0.2126,
+  0.7152,
+  0.0722,
+  0,
+  0,
+  0,
+  0,
+  0,
+  1,
+  0,
+]);
 
 Widget _cardInterno({required Widget child}) {
   return Container(
@@ -289,7 +321,12 @@ Widget _cardsMetricas(AgendamentoModel agendamento) {
   final List<Widget> cards = <Widget>[];
 
   if (agendamento.dataLabel.isNotEmpty) {
-    cards.add(_cardMetrica(rotulo: 'Data', valor: agendamento.dataLabel));
+    cards.add(
+      _cardMetrica(
+        rotulo: 'Data',
+        valor: agendamento.dataRelativaLabel(DateTime.now()),
+      ),
+    );
   }
 
   if (agendamento.horarioFaixa.isNotEmpty) {
@@ -297,7 +334,9 @@ Widget _cardsMetricas(AgendamentoModel agendamento) {
   }
 
   if (agendamento.duracaoLabel != null) {
-    cards.add(_cardMetrica(rotulo: 'Duração', valor: agendamento.duracaoLabel!));
+    cards.add(
+      _cardMetrica(rotulo: 'Duração', valor: agendamento.duracaoLabel!),
+    );
   }
 
   if (cards.isEmpty) {
@@ -351,12 +390,7 @@ Widget _cardMetrica({required String rotulo, required String valor}) {
 Widget _destaqueProfissional(String nome) {
   return appContainer(
     width: double.infinity,
-    padding: EdgeInsets.fromLTRB(
-      AppSpacing.normal,
-      8,
-      AppSpacing.normal,
-      8,
-    ),
+    padding: EdgeInsets.fromLTRB(AppSpacing.normal, 8, AppSpacing.normal, 8),
     backgroundColor: local.AppColors.white,
     radius: BorderRadius.circular(AppEstilo.raioCampo),
     child: Row(
@@ -451,11 +485,7 @@ Widget _observacao(String texto) {
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Icon(
-        Phosphor.notePencil,
-        size: 14,
-        color: local.AppColors.textSecondary,
-      ),
+      Icon(Phosphor.notePencil, size: 14, color: local.AppColors.textSecondary),
       appSizedBox(width: 6),
       Expanded(
         child: appText(
@@ -496,29 +526,30 @@ Widget _acoes({
         appSizedBox(height: AppSpacing.small),
       if (mostrarChegar || mostrarCancelar)
         Row(
-        children: [
-      if (mostrarChegar)
-        Expanded(
-          child: _botaoAcao(
-            icone: Phosphor.navigationArrow,
-            texto: 'Como chegar',
-            cor: local.AppColors.primary,
-            solido: !mostrarQr,
-            onTap: onComoChegar,
-          ),
+          children: [
+            if (mostrarChegar)
+              Expanded(
+                child: _botaoAcao(
+                  icone: Phosphor.navigationArrow,
+                  texto: 'Como chegar',
+                  cor: local.AppColors.primary,
+                  solido: !mostrarQr,
+                  onTap: onComoChegar,
+                ),
+              ),
+            if (mostrarChegar && mostrarCancelar)
+              appSizedBox(width: AppSpacing.small),
+            if (mostrarCancelar)
+              Expanded(
+                child: _botaoAcao(
+                  icone: Phosphor.xCircle,
+                  texto: cancelando ? 'Cancelando...' : 'Cancelar',
+                  cor: const Color(0xFFB3261E),
+                  onTap: cancelando ? () {} : onCancelar,
+                ),
+              ),
+          ],
         ),
-      if (mostrarChegar && mostrarCancelar) appSizedBox(width: AppSpacing.small),
-      if (mostrarCancelar)
-        Expanded(
-          child: _botaoAcao(
-            icone: Phosphor.xCircle,
-            texto: cancelando ? 'Cancelando...' : 'Cancelar',
-            cor: const Color(0xFFB3261E),
-            onTap: cancelando ? () {} : onCancelar,
-          ),
-        ),
-        ],
-      ),
     ],
   );
 }
@@ -562,10 +593,10 @@ Widget _status(AgendamentoModel agendamento) {
   final Color cor = agendamento.cancelado
       ? const Color(0xFFB3261E)
       : agendamento.concluido
-          ? local.AppColors.statusAberto
-          : agendamento.pendente
-              ? local.AppColors.primaryLight
-              : local.AppColors.textSecondary;
+      ? local.AppColors.statusAberto
+      : agendamento.pendente
+      ? local.AppColors.primaryLight
+      : local.AppColors.textSecondary;
 
   return appContainer(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -584,7 +615,7 @@ Widget _foto(AgendamentoModel agendamento) {
   final String? imagem = agendamento.foto;
   final bool temFoto = imagem != null && imagem.isNotEmpty;
 
-  return ClipRRect(
+  final Widget foto = ClipRRect(
     borderRadius: BorderRadius.circular(AppEstilo.raioCampo + 2),
     child: SizedBox(
       width: 76,
@@ -600,6 +631,10 @@ Widget _foto(AgendamentoModel agendamento) {
           : _fotoFallback(agendamento),
     ),
   );
+
+  return agendamento.encerrado
+      ? ColorFiltered(colorFilter: _cinza, child: foto)
+      : foto;
 }
 
 Widget _fotoFallback(AgendamentoModel agendamento) {

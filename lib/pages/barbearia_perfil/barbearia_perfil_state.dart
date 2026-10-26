@@ -13,7 +13,8 @@ class BarbeariaPerfilInitialState extends BarbeariaPerfilState {
 }
 
 class BarbeariaPerfilLoadingState extends BarbeariaPerfilState {
-  BarbeariaPerfilLoadingState({super.perfil}) : super(errorModel: ErrorModel.empty());
+  BarbeariaPerfilLoadingState({super.perfil})
+    : super(errorModel: ErrorModel.empty());
 }
 
 class BarbeariaPerfilSuccessState extends BarbeariaPerfilState {

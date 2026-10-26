@@ -44,59 +44,59 @@ Widget servicoGridCard({
   return GestureDetector(
     onTap: onTap,
     child: appContainer(
-    width: double.infinity,
-    height: double.infinity,
-    padding: EdgeInsets.zero,
-    backgroundColor: backgroundColor ?? local.AppColors.white,
-    radius: BorderRadius.circular(AppRadii.externo),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _foto(servico),
-        Expanded(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.normal,
-              AppSpacing.small + 2,
-              AppSpacing.normal,
-              AppSpacing.small + 2,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                appText(
-                  servico.nome ?? AppStrings.vazio,
-                  bold: true,
-                  maxLines: 2,
-                  overflow: true,
-                  color: local.AppColors.text,
-                  fontSize: AppFontSizes.verySmall,
-                ),
-                if (temDescricao)
-                  Padding(
-                    padding: EdgeInsets.only(top: 2),
-                    child: appText(
-                      descricao,
-                      maxLines: 2,
-                      overflow: true,
-                      color: local.AppColors.textSecondary,
-                      fontSize: 11,
-                    ),
-                  ),
-                const Spacer(),
-                if (servico.preco != null)
+      width: double.infinity,
+      height: double.infinity,
+      padding: EdgeInsets.zero,
+      backgroundColor: backgroundColor ?? local.AppColors.white,
+      radius: BorderRadius.circular(AppRadii.externo),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _foto(servico),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.normal,
+                AppSpacing.small + 2,
+                AppSpacing.normal,
+                AppSpacing.small + 2,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   appText(
-                    formataDinheiro(servico.preco!),
+                    servico.nome ?? AppStrings.vazio,
                     bold: true,
-                    color: local.AppColors.primary,
-                    fontSize: AppFontSizes.small,
+                    maxLines: 2,
+                    overflow: true,
+                    color: local.AppColors.text,
+                    fontSize: AppFontSizes.verySmall,
                   ),
-              ],
+                  if (temDescricao)
+                    Padding(
+                      padding: EdgeInsets.only(top: 2),
+                      child: appText(
+                        descricao,
+                        maxLines: 2,
+                        overflow: true,
+                        color: local.AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                    ),
+                  const Spacer(),
+                  if (servico.preco != null)
+                    appText(
+                      formataDinheiro(servico.preco!),
+                      bold: true,
+                      color: local.AppColors.primary,
+                      fontSize: AppFontSizes.small,
+                    ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
-    ),
+        ],
+      ),
     ),
   );
 }

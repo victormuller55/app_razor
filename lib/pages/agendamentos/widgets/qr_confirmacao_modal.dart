@@ -19,16 +19,18 @@ void showQrConfirmacaoModal({
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (BuildContext modalContext) {
-      return Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.viewPaddingOf(modalContext).bottom,
+      // O fundo branco desce até a borda da tela; só o conteúdo respeita a
+      // área do indicador de início do iOS.
+      return appContainer(
+        width: double.infinity,
+        backgroundColor: local.AppColors.white,
+        radius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
         ),
-        child: appContainer(
-          width: double.infinity,
-          backgroundColor: local.AppColors.white,
-          radius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+        child: Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.viewPaddingOf(modalContext).bottom,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

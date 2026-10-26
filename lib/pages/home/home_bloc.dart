@@ -10,23 +10,26 @@ import 'package:app_razor/pages/home/home_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
 
-typedef GetBarbeariasFavoritas = Future<AppResponse> Function({
-  double? latitude,
-  double? longitude,
-  bool forceRefresh,
-});
+typedef GetBarbeariasFavoritas =
+    Future<AppResponse> Function({
+      double? latitude,
+      double? longitude,
+      bool forceRefresh,
+    });
 
-typedef GetBarbeariasProximas = Future<AppResponse> Function({
-  required double latitude,
-  required double longitude,
-  bool forceRefresh,
-});
+typedef GetBarbeariasProximas =
+    Future<AppResponse> Function({
+      required double latitude,
+      required double longitude,
+      bool forceRefresh,
+    });
 
-typedef GetPromocoesProximas = Future<AppResponse> Function({
-  required double latitude,
-  required double longitude,
-  bool forceRefresh,
-});
+typedef GetPromocoesProximas =
+    Future<AppResponse> Function({
+      required double latitude,
+      required double longitude,
+      bool forceRefresh,
+    });
 
 typedef GetGpsPosition = Future<GpsPosition> Function();
 
@@ -36,12 +39,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     GetBarbeariasProximas? getProximas,
     GetPromocoesProximas? getPromocoes,
     GetGpsPosition? getGps,
-  })  : _getFavoritas = getFavoritas ?? getBarbeariasFavoritas,
-        _getProximas = getProximas ?? getBarbeariasProximas,
-        _getPromocoes = getPromocoes ?? getPromocoesProximas,
-        _getGps = getGps ?? getCurrentGps,
-        super(HomeInitialState()) {
+  }) : _getFavoritas = getFavoritas ?? getBarbeariasFavoritas,
+       _getProximas = getProximas ?? getBarbeariasProximas,
+       _getPromocoes = getPromocoes ?? getPromocoesProximas,
+       _getGps = getGps ?? getCurrentGps,
+       super(HomeInitialState()) {
     on<HomeLoadEvent>(_loadHome);
+    on<HomeFavoritasEvent>(_recarregarFavoritas);
   }
 
   final GetBarbeariasFavoritas _getFavoritas;
@@ -49,10 +53,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetPromocoesProximas _getPromocoes;
   final GetGpsPosition _getGps;
 
-  Future<void> _loadHome(
-    HomeLoadEvent event,
-    Emitter<HomeState> emit,
-  ) async {
+  Future<void> _loadHome(HomeLoadEvent event, Emitter<HomeState> emit) async {
     HomeState current = HomeLoadingState(
       favoritas: HomeSecao<BarbeariaModel>.loading(),
       proximas: HomeSecao<BarbeariaModel>.loading(),
@@ -69,15 +70,22 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
 
     await Future.wait<void>(<Future<void>>[
-      _loadFavoritas(
-        forceRefresh: event.forceRefresh,
-        emitNext: emitNext,
-      ),
-      _loadSecoesComGps(
-        forceRefresh: event.forceRefresh,
-        emitNext: emitNext,
-      ),
+      _loadFavoritas(forceRefresh: event.forceRefresh, emitNext: emitNext),
+      _loadSecoesComGps(forceRefresh: event.forceRefresh, emitNext: emitNext),
     ]);
+  }
+
+  /// Busca as favoritas de novo sem mexer nas outras seções.
+  Future<void> _recarregarFavoritas(
+    HomeFavoritasEvent event,
+    Emitter<HomeState> emit,
+  ) async {
+    await _loadFavoritas(
+      forceRefresh: true,
+      emitNext: (HomeState Function(HomeState state) update) {
+        emit(update(state));
+      },
+    );
   }
 
   Future<void> _loadFavoritas({
@@ -127,10 +135,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
 
     emitNext((HomeState state) {
-      return state.copyWith(
-        latitude: gps.latitude,
-        longitude: gps.longitude,
-      );
+      return state.copyWith(latitude: gps.latitude, longitude: gps.longitude);
     });
 
     await Future.wait<void>(<Future<void>>[
@@ -208,15 +213,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   List<BarbeariaModel> _parseBarbearias(AppResponse response) {
-    return _parseList(response)
-        .map(BarbeariaModel.fromJson)
-        .toList();
+    return _parseList(response).map(BarbeariaModel.fromJson).toList();
   }
 
   List<PromocaoModel> _parsePromocoes(AppResponse response) {
-    return _parseList(response)
-        .map(PromocaoModel.fromJson)
-        .toList();
+    return _parseList(response).map(PromocaoModel.fromJson).toList();
   }
 
   List<Map<String, dynamic>> _parseList(AppResponse response) {
@@ -228,10 +229,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
     return decoded
         .whereType<Map>()
-        .map(
-          (Map<dynamic, dynamic> item) =>
-              Map<String, dynamic>.from(item),
-        )
+        .map((Map<dynamic, dynamic> item) => Map<String, dynamic>.from(item))
         .toList();
   }
 }

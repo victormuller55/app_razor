@@ -1,0 +1,3 @@
+// Mesma versão e build do app (FLUTTER_BUILD_NAME / FLUTTER_BUILD_NUMBER),
+// senão a App Store reclama da extensão com versão diferente.
+#include "../Flutter/Generated.xcconfig"

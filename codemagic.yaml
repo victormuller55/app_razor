@@ -80,6 +80,15 @@ workflows:
           echo "Build Number: $BUILD_NUMBER"
           echo ""
 
+      - name: Add Live Activity Extension
+        script: |
+          set -e
+
+          # Cria o target RazorLiveActivity (lembrete na Dynamic Island) no
+          # Runner.xcodeproj. O gem xcodeproj vem junto com o CocoaPods.
+          gem list -i xcodeproj >/dev/null || gem install xcodeproj
+          ruby ios/scripts/adicionar_live_activity.rb
+
       - name: Install CocoaPods
         script: |
           cd ios

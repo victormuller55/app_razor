@@ -7,3 +7,6 @@ class HomeLoadEvent extends HomeEvent {
     this.forceRefresh = false,
   });
 }
+
+/// Recarrega só a seção "Barbearias Favoritas".
+class HomeFavoritasEvent extends HomeEvent {}
