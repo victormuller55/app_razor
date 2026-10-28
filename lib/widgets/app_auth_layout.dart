@@ -308,6 +308,7 @@ AppFormField appAuthFormField({
   required TextInputType textInputType,
   String? Function(String? value)? validator,
   bool senha = false,
+  TextInputFormatter? textInputFormatter,
 }) {
   final Color iconeCor = AppEstilo.campoIcone;
 
@@ -329,6 +330,7 @@ AppFormField appAuthFormField({
     iconColor: iconeCor,
     icon: Icon(icon, color: iconeCor, size: 20),
     validator: validator,
+    textInputFormatter: textInputFormatter,
     showContent: senha ? false : null,
   );
 }
