@@ -47,7 +47,7 @@ Widget servicoGridCard({
       width: double.infinity,
       height: double.infinity,
       padding: EdgeInsets.zero,
-      backgroundColor: backgroundColor ?? local.AppColors.white,
+      backgroundColor: backgroundColor ?? local.AppColors.surface,
       radius: BorderRadius.circular(AppRadii.externo),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -132,7 +132,7 @@ Widget _foto(BarbeariaServicoModel servico) {
             child: appContainer(
               padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
               radius: BorderRadius.circular(AppRadii.interno),
-              backgroundColor: local.AppColors.white.withValues(alpha: 0.92),
+              backgroundColor: local.AppColors.surface.withValues(alpha: 0.92),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

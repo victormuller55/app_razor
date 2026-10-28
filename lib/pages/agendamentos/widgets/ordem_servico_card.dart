@@ -113,7 +113,7 @@ class _OrdemServicoCardState extends State<_OrdemServicoCard> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [local.AppColors.primary, local.AppColors.primaryLight],
+          colors: [local.AppColors.primaryBrand, local.AppColors.primaryLight],
         ),
       ),
       child: Column(
@@ -177,7 +177,7 @@ class _OrdemServicoCardState extends State<_OrdemServicoCard> {
                 padding: const EdgeInsets.only(top: 6),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Phosphor.calendarBlank,
                       size: 13,
                       color: AppEstilo.campoIcone,
@@ -218,7 +218,7 @@ class _OrdemServicoCardState extends State<_OrdemServicoCard> {
                     AnimatedRotation(
                       turns: _aberto ? 0.5 : 0,
                       duration: const Duration(milliseconds: 250),
-                      child: const Icon(
+                      child: Icon(
                         Phosphor.caretDown,
                         size: 18,
                         color: AppEstilo.campoIcone,
@@ -245,7 +245,7 @@ class _OrdemServicoCardState extends State<_OrdemServicoCard> {
         child: appContainer(
           width: double.infinity,
           padding: EdgeInsets.all(AppSpacing.normal),
-          backgroundColor: local.AppColors.white,
+          backgroundColor: local.AppColors.surface,
           radius: BorderRadius.circular(AppEstilo.raioCampo),
           child: Row(
             children: [
@@ -271,7 +271,7 @@ class _OrdemServicoCardState extends State<_OrdemServicoCard> {
                 width: 1,
                 height: 32,
                 margin: EdgeInsets.symmetric(horizontal: AppSpacing.normal),
-                color: const Color(0xFFE3E6EB),
+                color: local.AppColors.divisor,
               ),
               Expanded(
                 child: Column(
@@ -363,7 +363,7 @@ class _OrdemServicoCardState extends State<_OrdemServicoCard> {
                       alpha: 0.08,
                     ),
                     radius: BorderRadius.circular(AppEstilo.raioCampo - 2),
-                    child: const Center(
+                    child: Center(
                       child: Icon(
                         Phosphor.qrCode,
                         size: 16,

@@ -22,7 +22,7 @@ Widget appCampoBusca({required VoidCallback onTap}) {
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Phosphor.magnifyingGlass,
             size: 20,
             color: AppEstilo.campoIcone,

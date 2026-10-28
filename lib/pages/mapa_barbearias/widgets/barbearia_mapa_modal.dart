@@ -52,7 +52,7 @@ class _BarbeariaMapaCard extends StatelessWidget {
         AppSpacing.medium + bottomInset,
       ),
       child: Material(
-        color: local.AppColors.white,
+        color: local.AppColors.surface,
         elevation: 0,
         borderRadius: BorderRadius.circular(AppRadii.externo),
         child: Padding(

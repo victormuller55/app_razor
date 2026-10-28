@@ -394,7 +394,7 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
             appContainer(
               width: 38,
               height: 38,
-              backgroundColor: local.AppColors.white,
+              backgroundColor: local.AppColors.surface,
               radius: BorderRadius.circular(AppRadii.interno),
               child: Center(
                 child: Icon(icone, size: 18, color: AppEstilo.campoIcone),
@@ -533,7 +533,7 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
             padding: EdgeInsets.fromLTRB(_margem, 0, _margem, 6),
             child: Row(
               children: [
-                const Icon(
+                Icon(
                   Phosphor.scissors,
                   size: 14,
                   color: local.AppColors.textSecondary,
@@ -746,14 +746,14 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
           color: selecionado
               ? local.AppColors.primary
               : ativo
-              ? local.AppColors.white
+              ? local.AppColors.surface
               : AppEstilo.campoFundo,
           borderRadius: BorderRadius.circular(AppRadii.interno + 2),
           border: Border.all(
             color: selecionado
                 ? local.AppColors.primary
                 : ativo
-                ? const Color(0xFFD5DAE1)
+                ? local.AppColors.contorno
                 : AppEstilo.campoFundo,
           ),
         ),
@@ -933,7 +933,7 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
               width: 36,
               height: 36,
               alignment: Alignment.center,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: local.AppColors.primary,
                 shape: BoxShape.circle,
               ),
@@ -1100,7 +1100,7 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadii.externo - 4),
-                borderSide: const BorderSide(color: local.AppColors.primary),
+                borderSide: BorderSide(color: local.AppColors.primary),
               ),
               contentPadding: const EdgeInsets.all(14),
             ),
@@ -1170,7 +1170,7 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
             height: 42,
             backgroundColor: local.AppColors.primary.withValues(alpha: 0.08),
             radius: BorderRadius.circular(AppRadii.interno + 2),
-            child: const Center(
+            child: Center(
               child: Icon(
                 Phosphor.calendarCheck,
                 size: 20,
@@ -1219,7 +1219,7 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
 
     return Container(
       decoration: BoxDecoration(
-        color: local.AppColors.white,
+        color: local.AppColors.surface,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppRadii.externo + 4),
         ),
@@ -1346,8 +1346,8 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
               ? 'Editar reserva'
               : widget.nomeBarbearia ?? 'Agendar',
           centerTitle: true,
-          background: local.AppColors.white,
-          appBarColor: local.AppColors.primary,
+          background: local.AppColors.surface,
+          appBarColor: local.AppColors.primaryBrand,
           safeBottom: false,
           body: _conteudo(state),
           bottomNavigationBar: state is AgendamentoReadyState

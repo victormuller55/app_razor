@@ -359,13 +359,13 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
+      value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: local.AppColors.iconesBarraStatus,
+        statusBarBrightness: local.AppColors.brilhoBarraStatus,
       ),
       child: Scaffold(
-        backgroundColor: local.AppColors.white,
+        backgroundColor: local.AppColors.surface,
         body: SafeArea(
           bottom: false,
           child: BlocBuilder<AgendamentosBloc, AgendamentosState>(

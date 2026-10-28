@@ -122,7 +122,7 @@ Widget _rodapePromocao(PromocaoModel promocao) {
       ],
       const Spacer(),
       if (validade.isNotEmpty) ...[
-        const Icon(Phosphor.clock, size: 13, color: AppEstilo.campoIcone),
+        Icon(Phosphor.clock, size: 13, color: AppEstilo.campoIcone),
         appSizedBox(width: 3),
         appText(
           validade,

@@ -96,7 +96,7 @@ class _MenuScreenState extends State<MenuScreen> {
 
   Widget _barraNavegacaoAndroid() {
     return BottomNavigationBar(
-      backgroundColor: local.AppColors.primary,
+      backgroundColor: local.AppColors.primaryBrand,
       currentIndex: MenuConst.currentIndex,
       onTap: _selectAba,
       type: BottomNavigationBarType.fixed,

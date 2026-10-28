@@ -89,8 +89,8 @@ class _TrocarSenhaPageState extends State<TrocarSenhaPage> {
   Widget build(BuildContext context) {
     return scaffold(
       title: 'Trocar senha',
-      background: local.AppColors.white,
-      appBarColor: local.AppColors.primary,
+      background: local.AppColors.surface,
+      appBarColor: local.AppColors.primaryBrand,
       body: _carregando
           ? appLoadingRazor()
           : Form(

@@ -90,8 +90,8 @@ class _EditarEmailPageState extends State<EditarEmailPage> {
   Widget build(BuildContext context) {
     return scaffold(
       title: 'Trocar e-mail',
-      background: local.AppColors.white,
-      appBarColor: local.AppColors.primary,
+      background: local.AppColors.surface,
+      appBarColor: local.AppColors.primaryBrand,
       body: _carregando
           ? appLoadingRazor()
           : Form(

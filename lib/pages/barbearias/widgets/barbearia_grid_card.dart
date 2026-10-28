@@ -76,7 +76,7 @@ Widget _capaFallback(BarbeariaModel barbearia) {
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [local.AppColors.primary, local.AppColors.primaryLight],
+        colors: [local.AppColors.primaryBrand, local.AppColors.primaryLight],
       ),
     ),
     child: Center(
@@ -100,7 +100,7 @@ Widget _pill({required List<Widget> children}) {
   return Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
     decoration: BoxDecoration(
-      color: local.AppColors.white.withValues(alpha: 0.94),
+      color: local.AppColors.surface.withValues(alpha: 0.94),
       borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
     ),
     child: Row(mainAxisSize: MainAxisSize.min, children: children),
@@ -211,7 +211,7 @@ Widget _horarioEDistancia(BarbeariaModel barbearia) {
   return Row(
     children: [
       if (horario != null) ...[
-        const Icon(Phosphor.clock, size: 13, color: AppEstilo.campoIcone),
+        Icon(Phosphor.clock, size: 13, color: AppEstilo.campoIcone),
         appSizedBox(width: 3),
         Flexible(
           child: appText(
@@ -226,7 +226,7 @@ Widget _horarioEDistancia(BarbeariaModel barbearia) {
       if (horario != null && distancia != null)
         appSizedBox(width: AppSpacing.small + 1),
       if (distancia != null) ...[
-        const Icon(Phosphor.mapPin, size: 13, color: AppEstilo.campoIcone),
+        Icon(Phosphor.mapPin, size: 13, color: AppEstilo.campoIcone),
         appSizedBox(width: 3),
         appText(
           distancia,

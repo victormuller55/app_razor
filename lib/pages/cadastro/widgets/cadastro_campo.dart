@@ -207,7 +207,7 @@ class _CadastroCampoState extends State<CadastroCampo> {
               padding: const EdgeInsets.only(top: 10),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Phosphor.warningCircle,
                     size: 16,
                     color: local.AppColors.danger,

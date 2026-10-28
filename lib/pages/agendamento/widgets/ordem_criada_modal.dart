@@ -66,7 +66,7 @@ class _OrdemCriadaSheet extends StatelessWidget {
           appContainer(
             width: 58,
             padding: const EdgeInsets.symmetric(vertical: 8),
-            backgroundColor: local.AppColors.white,
+            backgroundColor: local.AppColors.surface,
             radius: BorderRadius.circular(AppRadii.interno),
             child: Column(
               children: [
@@ -125,8 +125,8 @@ class _OrdemCriadaSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: local.AppColors.white,
+      decoration: BoxDecoration(
+        color: local.AppColors.surface,
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppEstilo.raioFolha),
         ),
@@ -151,7 +151,7 @@ class _OrdemCriadaSheet extends StatelessWidget {
                 alpha: 0.12,
               ),
               radius: BorderRadius.circular(32),
-              child: const Center(
+              child: Center(
                 child: Icon(
                   Phosphor.checkCircle,
                   size: 34,
@@ -193,7 +193,7 @@ class _OrdemCriadaSheet extends StatelessWidget {
                 Container(
                   height: 1,
                   margin: EdgeInsets.only(bottom: AppSpacing.small + 3),
-                  color: const Color(0xFFE3E6EB),
+                  color: local.AppColors.divisor,
                 ),
                 Padding(
                   padding: EdgeInsets.only(bottom: AppSpacing.small),

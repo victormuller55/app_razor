@@ -161,7 +161,7 @@ class _AvaliarServicoSheetState extends State<AvaliarServicoSheet> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadii.externo - 4),
-          borderSide: const BorderSide(color: local.AppColors.primary),
+          borderSide: BorderSide(color: local.AppColors.primary),
         ),
         contentPadding: const EdgeInsets.all(14),
       ),
@@ -180,7 +180,7 @@ class _AvaliarServicoSheetState extends State<AvaliarServicoSheet> {
       ),
       child: appContainer(
         width: double.infinity,
-        backgroundColor: local.AppColors.white,
+        backgroundColor: local.AppColors.surface,
         radius: const BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),

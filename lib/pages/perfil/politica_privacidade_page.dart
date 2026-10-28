@@ -33,7 +33,7 @@ class PoliticaPrivacidadePage extends StatelessWidget {
     return scaffold(
       title: 'Política de privacidade',
       background: local.AppColors.background,
-      appBarColor: local.AppColors.primary,
+      appBarColor: local.AppColors.primaryBrand,
       body: ListView(
         padding: EdgeInsets.all(AppSpacing.normal),
         children: [

@@ -247,7 +247,7 @@ Widget _cardInterno({required Widget child}) {
     width: double.infinity,
     padding: EdgeInsets.all(AppSpacing.normal + 2),
     decoration: BoxDecoration(
-      color: local.AppColors.white,
+      color: local.AppColors.surface,
       borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
     ),
     child: child,
@@ -306,7 +306,7 @@ Widget _cabecalho(AgendamentoModel agendamento, {required bool aberto}) {
                 padding: const EdgeInsets.only(top: 6),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Phosphor.calendarBlank,
                       size: 13,
                       color: AppEstilo.campoIcone,
@@ -339,7 +339,7 @@ Widget _cabecalho(AgendamentoModel agendamento, {required bool aberto}) {
                   AnimatedRotation(
                     turns: aberto ? 0.5 : 0,
                     duration: const Duration(milliseconds: 250),
-                    child: const Icon(
+                    child: Icon(
                       Phosphor.caretDown,
                       size: 18,
                       color: AppEstilo.campoIcone,
@@ -399,7 +399,7 @@ Widget _cardMetrica({required String rotulo, required String valor}) {
       horizontal: AppSpacing.small,
       vertical: AppSpacing.normal,
     ),
-    backgroundColor: local.AppColors.white,
+    backgroundColor: local.AppColors.surface,
     radius: BorderRadius.circular(AppEstilo.raioCampo),
     child: Column(
       children: [
@@ -429,7 +429,7 @@ Widget _destaqueProfissional(String nome) {
   return appContainer(
     width: double.infinity,
     padding: EdgeInsets.fromLTRB(AppSpacing.normal, 8, AppSpacing.normal, 8),
-    backgroundColor: local.AppColors.white,
+    backgroundColor: local.AppColors.surface,
     radius: BorderRadius.circular(AppEstilo.raioCampo),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -723,7 +723,7 @@ Widget _fotoFallback(AgendamentoModel agendamento) {
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [local.AppColors.primary, local.AppColors.primaryLight],
+        colors: [local.AppColors.primaryBrand, local.AppColors.primaryLight],
       ),
     ),
     child: Center(

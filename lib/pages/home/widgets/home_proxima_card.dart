@@ -20,7 +20,13 @@ Widget homeProximaCard({
       padding: EdgeInsets.symmetric(vertical: AppSpacing.normal + 2),
       decoration: BoxDecoration(
         border: divisor
-            ? const Border(bottom: BorderSide(color: Color(0xFFEDEFF3)))
+            ? Border(
+                bottom: BorderSide(
+                  color: local.AppColors.escuro
+                      ? local.AppColors.divisor
+                      : const Color(0xFFEDEFF3),
+                ),
+              )
             : null,
       ),
       child: Row(
@@ -33,7 +39,7 @@ Widget homeProximaCard({
           appSizedBox(width: AppSpacing.normal + 4),
           Expanded(child: _metadadosProxima(barbearia)),
           appSizedBox(width: AppSpacing.small),
-          const Icon(
+          Icon(
             Phosphor.caretRight,
             size: 18,
             color: AppEstilo.campoIcone,

@@ -71,7 +71,7 @@ Widget servicoAgendamentoCard({
                 Row(
                   children: [
                     if (duracao != null) ...[
-                      const Icon(
+                      Icon(
                         Phosphor.clock,
                         size: 13,
                         color: local.AppColors.textSecondary,
@@ -111,9 +111,9 @@ Widget _marcador(bool selecionado, {int? ordem}) {
     height: 24,
     decoration: BoxDecoration(
       shape: BoxShape.circle,
-      color: selecionado ? local.AppColors.primary : local.AppColors.white,
+      color: selecionado ? local.AppColors.primary : local.AppColors.surface,
       border: Border.all(
-        color: selecionado ? local.AppColors.primary : const Color(0xFFD5DAE1),
+        color: selecionado ? local.AppColors.primary : local.AppColors.contorno,
         width: 1.5,
       ),
     ),

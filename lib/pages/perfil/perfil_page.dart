@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
+import 'package:app_razor/app_config/tema_controller.dart';
 import 'package:app_razor/functions/api_error.dart';
 import 'package:app_razor/functions/media_url.dart';
 import 'package:app_razor/models/usuario_model.dart';
@@ -76,7 +77,7 @@ class _PerfilPageState extends State<PerfilPage> {
 
     final String? acao = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: local.AppColors.white,
+      backgroundColor: local.AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           top: Radius.circular(AppRadii.externo),
@@ -188,13 +189,86 @@ class _PerfilPageState extends State<PerfilPage> {
     }
   }
 
+  static const Map<TemaModo, String> _nomesTema = <TemaModo, String>{
+    TemaModo.claro: 'Claro',
+    TemaModo.escuro: 'Escuro',
+    TemaModo.sistema: 'Usar o do dispositivo',
+  };
+
+  static const Map<TemaModo, IconData> _iconesTema = <TemaModo, IconData>{
+    TemaModo.claro: Phosphor.sun,
+    TemaModo.escuro: Phosphor.moon,
+    TemaModo.sistema: Phosphor.deviceMobile,
+  };
+
+  Future<void> _escolherTema() async {
+    final TemaModo? modo = await showModalBottomSheet<TemaModo>(
+      context: context,
+      backgroundColor: local.AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadii.externo),
+        ),
+      ),
+      builder: (BuildContext ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.medium,
+                  AppSpacing.medium,
+                  AppSpacing.medium,
+                  AppSpacing.small,
+                ),
+                child: appText(
+                  'Tema',
+                  bold: true,
+                  color: local.AppColors.text,
+                  fontSize: AppFontSizes.medium,
+                ),
+              ),
+              for (final TemaModo opcao in TemaModo.values)
+                ListTile(
+                  key: ValueKey<String>('tema_${opcao.name}'),
+                  leading: Icon(
+                    _iconesTema[opcao],
+                    color: local.AppColors.primary,
+                  ),
+                  title: appText(
+                    _nomesTema[opcao]!,
+                    color: local.AppColors.text,
+                    bold: true,
+                  ),
+                  trailing: temaController.value == opcao
+                      ? Icon(
+                          PhosphorFill.checkCircle,
+                          color: local.AppColors.primary,
+                        )
+                      : null,
+                  onTap: () => Navigator.pop(ctx, opcao),
+                ),
+              appSizedBox(height: AppSpacing.small),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (modo == null) {
+      return;
+    }
+    await temaController.escolher(modo);
+  }
+
   void _confirmarSaida() {
     showModalEmpty(
       context,
       initialHeight: 0.38,
       minHeight: 0.32,
       maxHeight: 0.5,
-      backgroundColor: local.AppColors.white,
+      backgroundColor: local.AppColors.surface,
       child: Builder(
         builder: (BuildContext modalContext) {
           return Padding(
@@ -297,7 +371,7 @@ class _PerfilPageState extends State<PerfilPage> {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: local.AppColors.white,
+              color: local.AppColors.surface,
               shape: BoxShape.circle,
               border: Border.all(color: AppEstilo.campoFundo, width: 2),
             ),
@@ -529,6 +603,23 @@ class _PerfilPageState extends State<PerfilPage> {
       ),
       appSizedBox(height: AppSpacing.medium),
       _secao(
+        titulo: 'Aparência',
+        itens: [
+          ValueListenableBuilder<TemaModo>(
+            valueListenable: temaController,
+            builder: (BuildContext context, TemaModo modo, Widget? child) {
+              return _linha(
+                icon: Phosphor.circleHalf,
+                title: 'Tema',
+                subtitle: _nomesTema[modo],
+                onTap: _escolherTema,
+              );
+            },
+          ),
+        ],
+      ),
+      appSizedBox(height: AppSpacing.medium),
+      _secao(
         titulo: 'Legal',
         itens: [
           _linha(
@@ -594,13 +685,13 @@ class _PerfilPageState extends State<PerfilPage> {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
+      value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: local.AppColors.iconesBarraStatus,
+        statusBarBrightness: local.AppColors.brilhoBarraStatus,
       ),
       child: Scaffold(
-        backgroundColor: local.AppColors.white,
+        backgroundColor: local.AppColors.surface,
         body: SafeArea(
           bottom: false,
           child: BlocBuilder<PerfilBloc, PerfilState>(

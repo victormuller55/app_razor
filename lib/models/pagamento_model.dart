@@ -38,6 +38,9 @@ class PagamentoModel {
   String? pixCopiaCola;
   DateTime? expiraEm;
 
+  /// Quando a API confirmou o pagamento.
+  DateTime? dataConfirmacao;
+
   PagamentoModel({
     this.id,
     this.idAgendamento,
@@ -47,6 +50,7 @@ class PagamentoModel {
     this.metodoPagamento,
     this.pixCopiaCola,
     this.expiraEm,
+    this.dataConfirmacao,
   });
 
   factory PagamentoModel.fromJson(Map<String, dynamic> json) {
@@ -63,6 +67,7 @@ class PagamentoModel {
       metodoPagamento: json['metodo_pagamento']?.toString(),
       pixCopiaCola: pix == null || pix.isEmpty ? null : pix,
       expiraEm: DateTime.tryParse(json['expira_em']?.toString() ?? ''),
+      dataConfirmacao: DateTime.tryParse(json['data_confirmacao']?.toString() ?? ''),
     );
   }
 

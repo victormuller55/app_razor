@@ -57,7 +57,7 @@ Widget profissionalSelectCard({
                       color: local.AppColors.primary,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: local.AppColors.white,
+                        color: local.AppColors.surface,
                         width: 2,
                       ),
                     ),

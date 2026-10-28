@@ -16,9 +16,9 @@ Widget imagemRedeBarbearia(String url, {BoxFit fit = BoxFit.cover}) {
       if (progresso == null) {
         return child;
       }
-      return const ColoredBox(color: AppEstilo.campoFundo);
+      return ColoredBox(color: AppEstilo.campoFundo);
     },
-    errorBuilder: (_, _, _) => const ColoredBox(
+    errorBuilder: (_, _, _) => ColoredBox(
       color: AppEstilo.campoFundo,
       child: Center(
         child: Icon(Phosphor.image, size: 28, color: AppEstilo.campoIcone),

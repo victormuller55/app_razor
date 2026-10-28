@@ -146,7 +146,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [local.AppColors.primary, local.AppColors.primaryDark],
+          colors: [local.AppColors.primaryBrand, local.AppColors.primaryDark],
         ),
       ),
       child: Align(
@@ -235,7 +235,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: local.AppColors.white,
+                color: local.AppColors.surface,
                 borderRadius: BorderRadius.circular(AppEstilo.raioCampo + 10),
                 boxShadow: [
                   BoxShadow(
@@ -286,7 +286,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
           appSizedBox(height: 4),
           Row(
             children: [
-              const Icon(
+              Icon(
                 Phosphor.mapPin,
                 size: 13,
                 color: AppEstilo.campoIcone,
@@ -356,7 +356,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
   }
 
   Widget _divisorResumo() {
-    return Container(width: 1, height: 28, color: const Color(0xFFE3E6EB));
+    return Container(width: 1, height: 28, color: local.AppColors.divisor);
   }
 
   /// Faixa com nota, horário de hoje e distância (ou nº de serviços).
@@ -574,7 +574,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     return appContainer(
       width: 38,
       height: 38,
-      backgroundColor: local.AppColors.white,
+      backgroundColor: local.AppColors.surface,
       radius: BorderRadius.circular(AppRadii.interno),
       child: Center(
         child: Icon(icone, size: 18, color: local.AppColors.primary),
@@ -641,7 +641,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
                         ),
                       ),
                       appSizedBox(width: AppSpacing.small),
-                      const Icon(
+                      Icon(
                         Phosphor.caretRight,
                         size: 16,
                         color: AppEstilo.campoIcone,
@@ -664,7 +664,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
       builder: (BuildContext modalContext) {
         return appContainer(
           width: double.infinity,
-          backgroundColor: local.AppColors.white,
+          backgroundColor: local.AppColors.surface,
           radius: const BorderRadius.vertical(
             top: Radius.circular(AppEstilo.raioFolha),
           ),
@@ -820,7 +820,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
                   Row(
                     children: [
                       if (duracao != null) ...[
-                        const Icon(
+                        Icon(
                           Phosphor.clock,
                           size: 13,
                           color: local.AppColors.textSecondary,
@@ -908,7 +908,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
                 vertical: 9,
               ),
               backgroundColor: ehHoje
-                  ? local.AppColors.white
+                  ? local.AppColors.surface
                   : Colors.transparent,
               radius: BorderRadius.circular(AppRadii.externo - 6),
               child: Row(
@@ -1096,7 +1096,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
               child: LinearProgressIndicator(
                 value: fracao,
                 minHeight: 6,
-                backgroundColor: local.AppColors.white,
+                backgroundColor: local.AppColors.surface,
                 valueColor: const AlwaysStoppedAnimation<Color>(_corEstrela),
               ),
             ),
@@ -1177,7 +1177,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
           ),
           child: appContainer(
             width: double.infinity,
-            backgroundColor: local.AppColors.white,
+            backgroundColor: local.AppColors.surface,
             radius: const BorderRadius.vertical(
               top: Radius.circular(AppEstilo.raioFolha),
             ),
@@ -1365,7 +1365,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
   Widget _barraAgendar() {
     return Container(
       decoration: BoxDecoration(
-        color: local.AppColors.white,
+        color: local.AppColors.surface,
         boxShadow: [
           BoxShadow(
             color: local.AppColors.primaryDark.withValues(alpha: 0.08),
@@ -1404,8 +1404,8 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
     return scaffold(
       title: 'Detalhes',
       centerTitle: true,
-      background: local.AppColors.white,
-      appBarColor: local.AppColors.primary,
+      background: local.AppColors.surface,
+      appBarColor: local.AppColors.primaryBrand,
       safeBottom: false,
       actions: [_botaoFavorito(perfil)],
       bottomNavigationBar: _barraAgendar(),
@@ -1451,8 +1451,8 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
         return scaffold(
           title: 'Detalhes',
           centerTitle: true,
-          background: local.AppColors.white,
-          appBarColor: local.AppColors.primary,
+          background: local.AppColors.surface,
+          appBarColor: local.AppColors.primaryBrand,
           safeBottom: false,
           body: _bodyTela(state),
         );

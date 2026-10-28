@@ -1,3 +1,4 @@
+import 'package:app_razor/app_config/tema_controller.dart';
 import 'package:app_razor/functions/token_storage.dart';
 import 'package:app_razor/models/usuario_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,6 +32,7 @@ Future<UsuarioModel> getLocalUserModel() async {
 Future<void> clearLocalData() async {
   final SharedPreferences localData = await SharedPreferences.getInstance();
   await localData.clear();
+  await temaController.redefinir();
   await clearToken();
 }
 

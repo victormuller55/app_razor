@@ -66,8 +66,8 @@ class _ExcluirContaPageState extends State<ExcluirContaPage> {
   Widget build(BuildContext context) {
     return scaffold(
       title: 'Excluir conta',
-      background: local.AppColors.white,
-      appBarColor: local.AppColors.primary,
+      background: local.AppColors.surface,
+      appBarColor: local.AppColors.primaryBrand,
       body: _carregando
           ? appLoadingRazor()
           : Form(

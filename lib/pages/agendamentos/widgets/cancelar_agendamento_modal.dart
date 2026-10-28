@@ -18,7 +18,7 @@ void showCancelarAgendamentoModal({
         ),
         child: appContainer(
           width: double.infinity,
-          backgroundColor: local.AppColors.white,
+          backgroundColor: local.AppColors.surface,
           radius: const BorderRadius.only(
             topLeft: Radius.circular(20),
             topRight: Radius.circular(20),

@@ -16,7 +16,7 @@ void showBarbeariasFiltrosModal({
     initialHeight: 0.7,
     minHeight: 0.5,
     maxHeight: 0.95,
-    backgroundColor: local.AppColors.white,
+    backgroundColor: local.AppColors.surface,
     child: BarbeariasFiltrosModal(
       filtros: filtros,
       onApply: onApply,
@@ -128,7 +128,9 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
   SliderThemeData get _sliderTheme {
     return SliderTheme.of(context).copyWith(
       activeTrackColor: local.AppColors.primary,
-      inactiveTrackColor: const Color(0xFFDCE1E8),
+      inactiveTrackColor: local.AppColors.escuro
+          ? local.AppColors.contorno
+          : const Color(0xFFDCE1E8),
       thumbColor: local.AppColors.primary,
       overlayColor: local.AppColors.primary.withValues(alpha: 0.12),
       trackHeight: 4,
@@ -255,7 +257,7 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
           duration: const Duration(milliseconds: 180),
           height: 44,
           decoration: BoxDecoration(
-            color: selected ? local.AppColors.primary : local.AppColors.white,
+            color: selected ? local.AppColors.primary : local.AppColors.surface,
             borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
           ),
           child: Center(
