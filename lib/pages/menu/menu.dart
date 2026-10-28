@@ -1,5 +1,6 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
+import 'package:app_razor/functions/aviso_avaliacao.dart';
 import 'package:app_razor/functions/lembrete_agendamento.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_page.dart';
 import 'package:app_razor/pages/barbearias/barbearias_page.dart';
@@ -23,6 +24,7 @@ class MenuScreen extends StatefulWidget {
 
 class _MenuScreenState extends State<MenuScreen> {
   late final List<Widget> _screens;
+  final AvisosAtendimento _avisos = AvisosAtendimento();
 
   bool get _iosNativo => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
@@ -41,6 +43,8 @@ class _MenuScreenState extends State<MenuScreen> {
     super.initState();
     MenuConst.currentIndex = 0;
     LembreteAgendamento.instance.iniciar();
+    // Depois do primeiro quadro: o aviso abre por cima do menu já montado.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _avisos.iniciar());
     _screens = <Widget>[
       HomePage(onOpenPerfil: _openAbaPerfil),
       const BarbeariasPage(),
@@ -52,6 +56,7 @@ class _MenuScreenState extends State<MenuScreen> {
   @override
   void dispose() {
     LembreteAgendamento.instance.parar();
+    _avisos.parar();
     super.dispose();
   }
 

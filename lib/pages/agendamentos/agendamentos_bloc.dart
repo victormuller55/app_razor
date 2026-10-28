@@ -173,6 +173,31 @@ class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
     );
   }
 
+  /// O que aconteceu com o dinheiro, conforme a API respondeu: só fala em
+  /// devolução quando o Mercado Pago confirmou. Null quando não havia pagamento.
+  static String? mensagemReembolso(List<AgendamentoModel> itens) {
+    final AgendamentoModel? comReembolso = itens
+        .where((AgendamentoModel item) => item.statusReembolso != null)
+        .firstOrNull;
+    if (comReembolso == null) {
+      return null;
+    }
+    final double? pendente = comReembolso.valorReembolsoPendente;
+    final double? confirmado = comReembolso.valorReembolsado;
+    return switch (comReembolso.statusReembolso) {
+      'PROCESSANDO' || 'SOLICITADO' =>
+        pendente == null
+            ? 'Reembolso em processamento pelo Mercado Pago'
+            : 'Reembolso de ${formataDinheiro(pendente)} em processamento pelo Mercado Pago',
+      'CONFIRMADO' =>
+        confirmado == null
+            ? 'Reembolso confirmado pelo Mercado Pago'
+            : 'Reembolso de ${formataDinheiro(confirmado)} confirmado pelo Mercado Pago',
+      'FALHOU' => 'O reembolso não foi concluído; nossa equipe vai verificar',
+      _ => null,
+    };
+  }
+
   /// Cancela um por um; o que já foi cancelado fica, mesmo se um falhar.
   /// Cancela pela [chamada] e troca na lista os agendamentos que ela devolver.
   Future<void> _cancelar(
@@ -199,8 +224,9 @@ class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
     );
 
     try {
+      final List<AgendamentoModel> devolvidos = await chamada();
       final Map<int?, AgendamentoModel> atualizados = <int?, AgendamentoModel>{
-        for (final AgendamentoModel item in await chamada()) item.id: item,
+        for (final AgendamentoModel item in devolvidos) item.id: item,
       };
       itens = itens
           .map((AgendamentoModel item) => atualizados[item.id] ?? item)
@@ -213,7 +239,15 @@ class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
         ),
       );
       try {
-        showSnackbarSuccess(message: mensagem);
+        final String? reembolso = mensagemReembolso(devolvidos);
+        if (reembolso != null &&
+            devolvidos.any((item) => item.statusReembolso == 'FALHOU')) {
+          showSnackbarWarning(message: '$mensagem. $reembolso');
+        } else {
+          showSnackbarSuccess(
+            message: reembolso == null ? mensagem : '$mensagem. $reembolso',
+          );
+        }
       } catch (_) {}
     } catch (e) {
       final ErrorModel errorModel = errorModelFromApi(e);

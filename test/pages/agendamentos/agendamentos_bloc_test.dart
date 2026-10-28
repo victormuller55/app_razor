@@ -139,8 +139,9 @@ void main() {
       final AgendamentosState state = await mais;
 
       expect(state.itens, hasLength(2));
-      expect(state.itens.first.nomeServico, 'Corte');
-      expect(state.itens.last.nomeServico, 'Barba');
+      // Mais recente primeiro: a Barba (03/09) vem antes do Corte (02/09).
+      expect(state.itens.first.nomeServico, 'Barba');
+      expect(state.itens.last.nomeServico, 'Corte');
       expect(state.paginacao.hasMore, isFalse);
       expect(chamadas, 2);
 

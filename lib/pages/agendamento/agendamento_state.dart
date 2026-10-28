@@ -60,6 +60,7 @@ class AgendamentoSuccessState extends AgendamentoState {
     this.editado = false,
     this.valorAPagar,
     this.valorEstornado,
+    this.valorEstornoEmProcessamento,
   }) : super(errorModel: ErrorModel.empty());
 
   /// Um por serviço, na ordem em que serão feitos.
@@ -74,8 +75,11 @@ class AgendamentoSuccessState extends AgendamentoState {
   /// Reserva paga que ficou mais cara: a diferença a pagar.
   final double? valorAPagar;
 
-  /// Reserva paga que ficou mais barata: o que volta para o cliente.
+  /// Reserva paga que ficou mais barata: o reembolso pedido ao Mercado Pago.
   final double? valorEstornado;
+
+  /// Parte de [valorEstornado] que o Mercado Pago ainda não confirmou.
+  final double? valorEstornoEmProcessamento;
 
   AgendamentoModel get agendamento => agendamentos.first;
 }

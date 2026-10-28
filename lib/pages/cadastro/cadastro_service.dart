@@ -1,4 +1,5 @@
 import 'package:app_razor/app_config/const/app_endpoints.dart';
+import 'package:app_razor/functions/http_cache.dart';
 import 'package:muller_package/muller_package.dart';
 
 Future<AppResponse> saveCadastro({
@@ -13,5 +14,5 @@ Future<AppResponse> saveCadastro({
       'email': email,
       'senha': senha,
     },
-  );
+  ).timeout(HttpCache.tempoLimite);
 }

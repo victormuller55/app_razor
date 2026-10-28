@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:app_razor/models/agendamento_model.dart';
@@ -62,6 +63,10 @@ void main() {
   late List<List<Map<String, dynamic>>> ordens;
   late bool falharOrdem;
   late List<List<int>> ignorados;
+  // Horários que a API já considera ocupados (a grade só muda na próxima consulta).
+  late Set<String> ocupadoAgora;
+  // Quantas confirmações seguidas ficam sem resposta (tempo esgotado) antes de a API responder.
+  late int semResposta;
   late List<
     ({int? idOrdem, int idAgendamento, List<Map<String, dynamic>> itens})
   >
@@ -116,7 +121,16 @@ void main() {
             bool forceRefresh = false,
           }) async {
             ignorados.add(ignorar);
-            return ok(horarios(duracao(idsBarbeariaServico)));
+            final Map<String, dynamic> grade = horarios(
+              duracao(idsBarbeariaServico),
+            );
+            for (final dynamic horario in grade['horarios'] as List<dynamic>) {
+              final String inicio = horario['hora_inicio'] as String;
+              if (ocupadoAgora.contains(inicio.substring(0, 5))) {
+                horario['disponivel'] = false;
+              }
+            }
+            return ok(grade);
           },
       postAgendamento:
           ({
@@ -127,6 +141,24 @@ void main() {
             required String horaInicio,
             String? observacao,
           }) async {
+            if (semResposta > 0) {
+              semResposta--;
+              throw TimeoutException('sem resposta');
+            }
+            if (ocupadoAgora.contains(horaInicio)) {
+              // Outra pessoa marcou entre a consulta e a confirmação.
+              throw ApiException(
+                AppResponse(
+                  statusCode: 409,
+                  body: jsonEncode(<String, dynamic>{
+                    'status': 409,
+                    'error': 'Conflict',
+                    'message':
+                        'Esse horário acabou de ficar indisponível. Escolha outro horário para continuar',
+                  }),
+                ),
+              );
+            }
             final Map<String, dynamic> item = <String, dynamic>{
               'id': proximoId++,
               'id_funcionario_barbearia': idFuncionarioBarbearia,
@@ -182,8 +214,62 @@ void main() {
     ordens = <List<Map<String, dynamic>>>[];
     falharOrdem = false;
     ignorados = <List<int>>[];
+    ocupadoAgora = <String>{};
+    semResposta = 0;
     edicoes = [];
   });
+
+  test(
+    'horário ocupado na confirmação recarrega a grade e pede outro horário',
+    () async {
+      final AgendamentoBloc bloc = criarBloc(servicoId: 1);
+      bloc.add(AgendamentoLoadEvent());
+      await esperar(bloc, horariosProntos);
+      bloc.add(
+        AgendamentoSelectHorarioEvent(idFuncionario: 10, horaInicio: '09:00'),
+      );
+      await esperar(bloc, (AgendamentoState s) => s.completo);
+      final int consultasAntes = ignorados.length;
+
+      // Entre a consulta e o toque em confirmar, alguém marcou 09:00.
+      ocupadoAgora.add('09:00');
+      bloc.add(AgendamentoSalvarEvent());
+      await esperar(bloc, (AgendamentoState s) => s.salvando);
+      final AgendamentoState depois = await esperar(
+        bloc,
+        (AgendamentoState s) =>
+            s is AgendamentoReadyState &&
+            !s.salvando &&
+            horariosProntos(s) &&
+            s.blocos.single.horarios.any(
+              (h) => h.horaInicio == '09:00' && !h.disponivel,
+            ),
+      );
+
+      expect(ignorados.length, greaterThan(consultasAntes));
+      expect(criados, isEmpty);
+      expect(depois, isA<AgendamentoReadyState>());
+      // A seleção de serviço e profissional fica; o horário sai e 09:00 aparece ocupado.
+      expect(depois.blocos.single.idFuncionario, 10);
+      expect(depois.blocos.single.idsServicos, <int>[1]);
+      expect(depois.blocos.single.horaInicio, isNull);
+      expect(depois.completo, isFalse);
+      final bool nove = depois.blocos.single.horarios
+          .firstWhere((h) => h.horaInicio == '09:00')
+          .disponivel;
+      expect(nove, isFalse);
+
+      // Escolhe outro e marca.
+      bloc.add(
+        AgendamentoSelectHorarioEvent(idFuncionario: 10, horaInicio: '09:30'),
+      );
+      await esperar(bloc, (AgendamentoState s) => s.completo);
+      bloc.add(AgendamentoSalvarEvent());
+      await esperar(bloc, (AgendamentoState s) => s is AgendamentoSuccessState);
+      expect(criados.single['hora_inicio'], '09:30');
+      await bloc.close();
+    },
+  );
 
   test('mesmo profissional faz os dois serviços seguidos numa ordem', () async {
     final AgendamentoBloc bloc = criarBloc(servicoId: 1);
@@ -243,6 +329,36 @@ void main() {
     expect((fim as AgendamentoSuccessState).idOrdem, isNull);
     await bloc.close();
   });
+
+  test(
+    'tempo esgotado ao confirmar encerra o carregamento, mantém a seleção e deixa tentar de novo',
+    () async {
+      semResposta = 1;
+      final AgendamentoBloc bloc = criarBloc(servicoId: 1);
+      bloc.add(AgendamentoLoadEvent());
+      await esperar(bloc, horariosProntos);
+      bloc.add(
+        AgendamentoSelectHorarioEvent(idFuncionario: 10, horaInicio: '09:00'),
+      );
+      await esperar(bloc, (AgendamentoState s) => s.completo);
+
+      bloc.add(AgendamentoSalvarEvent());
+      await esperar(bloc, (AgendamentoState s) => s.salvando);
+      final AgendamentoState depois = await esperar(
+        bloc,
+        (AgendamentoState s) => s is AgendamentoReadyState && !s.salvando,
+      );
+      expect(criados, isEmpty);
+      expect(depois.completo, isTrue);
+      expect(depois.blocos.single.horaInicio, '09:00');
+
+      // A API devolve a mesma reserva se a primeira tivesse sido gravada; repetir é seguro.
+      bloc.add(AgendamentoSalvarEvent());
+      await esperar(bloc, (AgendamentoState s) => s is AgendamentoSuccessState);
+      expect(criados.single['hora_inicio'], '09:00');
+      await bloc.close();
+    },
+  );
 
   test('profissionais diferentes pedem um horário para cada', () async {
     final AgendamentoBloc bloc = criarBloc(servicoId: 1);

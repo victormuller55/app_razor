@@ -425,12 +425,15 @@ class AgendamentoBloc extends Bloc<AgendamentoEvent, AgendamentoState> {
             editado: true,
             valorAPagar: _valor(ordem['valor_a_pagar']),
             valorEstornado: _valor(ordem['valor_estornado']),
+            valorEstornoEmProcessamento: _valor(
+              ordem['valor_estorno_em_processamento'],
+            ),
           ),
         );
       } catch (e) {
         final ErrorModel errorModel = errorModelFromApi(e);
         _emitirPronto(emit, contexto: contexto, blocos: current.blocos);
-        _notifyErro(errorModel);
+        await _falhaAoSalvar(emit, errorModel);
       }
       return;
     }
@@ -466,7 +469,7 @@ class AgendamentoBloc extends Bloc<AgendamentoEvent, AgendamentoState> {
     } catch (e) {
       final ErrorModel errorModel = errorModelFromApi(e);
       _emitirPronto(emit, contexto: contexto, blocos: current.blocos);
-      _notifyErro(errorModel);
+      await _falhaAoSalvar(emit, errorModel);
       return;
     }
 
@@ -814,6 +817,38 @@ class AgendamentoBloc extends Bloc<AgendamentoEvent, AgendamentoState> {
     final String dia = data.day.toString().padLeft(2, '0');
     final String mes = data.month.toString().padLeft(2, '0');
     return '${data.year}-$mes-$dia';
+  }
+
+  /// Resposta 409 da API ao marcar ou editar.
+  static const String conflito = '409';
+
+  /// Com 409 o horário foi ocupado por outra pessoa entre a consulta e a
+  /// confirmação: avisa e recarrega os horários de todos os blocos, sem o
+  /// horário escolhido, para o cliente escolher outro. Os serviços e
+  /// profissionais escolhidos continuam.
+  Future<void> _falhaAoSalvar(
+    Emitter<AgendamentoState> emit,
+    ErrorModel errorModel,
+  ) async {
+    if (errorModel.tipo != conflito) {
+      _notifyErro(errorModel);
+      return;
+    }
+    try {
+      if (AppContext.navigatorKey.currentContext != null) {
+        showSnackbarWarning(
+          message:
+              errorModel.mensagem ??
+              'Esse horário acabou de ficar indisponível. Escolha outro horário para continuar',
+        );
+      }
+    } catch (_) {}
+    await Future.wait(
+      state.blocos.map(
+        (AgendamentoBloco bloco) =>
+            _carregarHorarios(emit, bloco.idFuncionario),
+      ),
+    );
   }
 
   void _notifyErro(ErrorModel errorModel) {

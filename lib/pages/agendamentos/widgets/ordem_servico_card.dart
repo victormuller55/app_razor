@@ -2,6 +2,8 @@ import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:app_razor/models/ordem_servico_model.dart';
+import 'package:app_razor/pages/agendamentos/widgets/agendamento_lista_card.dart'
+    show corReembolso;
 import 'package:app_razor/pages/agendamentos/widgets/avaliar_servico_modal.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:flutter/material.dart';
@@ -162,6 +164,15 @@ class _OrdemServicoCardState extends State<_OrdemServicoCard> {
                   _selo(status.texto, status.cor),
                 ],
               ),
+              // O reembolso é da ordem (um Pix só): cada serviço traz a mesma situação.
+              if (ordem.primeiro.reembolsoLabel != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: _selo(
+                    ordem.primeiro.reembolsoLabel!,
+                    corReembolso(ordem.primeiro.statusReembolso),
+                  ),
+                ),
               if (ordem.primeiro.nomeBarbearia != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
