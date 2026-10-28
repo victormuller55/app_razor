@@ -6,6 +6,9 @@ class AppEndpoints {
 
   static String get endpointAuthCadastro => '$server/api/v1/auth/cadastro';
   static String get endpointAuthLogin => '$server/api/v1/auth/login';
+  static String get endpointAuthRecuperarSenha => '$server/api/v1/auth/recuperar-senha';
+  static String get endpointAuthVerificarCodigo => '$server/api/v1/auth/recuperar-senha/verificar';
+  static String get endpointAuthRedefinirSenha => '$server/api/v1/auth/recuperar-senha/redefinir';
   static String get endpointUsuariosEu => '$server/api/v1/usuarios/eu';
   static String get endpointUsuariosEuSenha => '$server/api/v1/usuarios/eu/senha';
   static String get endpointUsuariosEuEmail => '$server/api/v1/usuarios/eu/email';
