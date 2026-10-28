@@ -1,9 +1,6 @@
-/// Base local da API Razor.
-///
-/// Emulador Android: use `http://10.0.2.2:5000` no lugar de `localhost`
-/// (10.0.2.2 é o loopback do PC no emulador).
-/// Dispositivo físico na mesma rede: use o IP Wi-Fi do notebook.
-const String server = 'https://razor.api.codexin.com.br';
+import 'app_ambiente.dart';
+
+export 'app_ambiente.dart';
 
 class AppEndpoints {
 
@@ -22,6 +19,14 @@ class AppEndpoints {
   static String endpointBarbeariaFavorito(int id) => '$server/api/v1/barbearias/$id/favorito';
   static String endpointAgendamentosCancelar(int id) => '$server/api/v1/agendamentos/$id/cancelar';
   static String endpointAgendamentoPagamento(int id) => '$server/api/v1/agendamentos/$id/pagamento';
+  /// Só com a API no provedor simulado (rodando local).
+  static String endpointDevPagamentoAprovar(int id) => '$server/api/v1/dev/pagamentos/$id/aprovar';
+  static String endpointAgendamentoAvaliacao(int id) => '$server/api/v1/agendamentos/$id/avaliacao';
+  static String endpointOrdemServicoPagamento(int id) => '$server/api/v1/agendamentos/ordem/$id/pagamento';
+  static String endpointOrdemServicoCancelar(int id) => '$server/api/v1/agendamentos/ordem/$id/cancelar';
+  static String endpointAgendamentoEditar(int id) => '$server/api/v1/agendamentos/$id';
+  static String endpointOrdemServicoEditar(int id) => '$server/api/v1/agendamentos/ordem/$id';
+  static String get endpointOrdemServico => '$server/api/v1/agendamentos/ordem';
   static String get endpointAgendamentos => '$server/api/v1/agendamentos';
   static String get endpointAgendamentosContexto => '$server/api/v1/agendamentos/contexto';
   static String get endpointAgendamentosHorarios => '$server/api/v1/agendamentos/horarios-disponiveis';

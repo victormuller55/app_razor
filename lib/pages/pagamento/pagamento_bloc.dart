@@ -11,6 +11,7 @@ import 'package:muller_package/muller_package.dart';
 
 typedef ChamadaPagamento =
     Future<AppResponse> Function({required int idAgendamento});
+typedef ChamadaSimulacao = Future<AppResponse> Function({required int idPagamento});
 
 /// Pix de um agendamento: gera o QR Code pela API e só mostra "pago" quando a API confirmar com o
 /// Mercado Pago. Enquanto o Pix está na tela, confere o status de tempos em tempos.
@@ -20,18 +21,22 @@ class PagamentoBloc extends Bloc<PagamentoEvent, PagamentoState> {
     required this.idAgendamento,
     ChamadaPagamento? iniciar,
     ChamadaPagamento? consultar,
+    ChamadaSimulacao? simular,
     this.intervaloConsulta = const Duration(seconds: 5),
   }) : _iniciar = iniciar ?? iniciarPagamento,
        _consultar = consultar ?? consultarPagamento,
+       _simular = simular ?? simularPagamento,
        super(PagamentoState.inicio()) {
     on<PagamentoIniciarEvent>(_iniciarPagamento);
     on<PagamentoRetornouEvent>(_consultarAgora);
     on<PagamentoConsultarEvent>(_consultarAgora);
+    on<PagamentoSimularEvent>(_simularPagamento);
   }
 
   final int idAgendamento;
   final ChamadaPagamento _iniciar;
   final ChamadaPagamento _consultar;
+  final ChamadaSimulacao _simular;
 
   /// De quanto em quanto tempo confere o Pix aberto (a API limita as consultas ao provedor).
   final Duration intervaloConsulta;
@@ -84,6 +89,29 @@ class PagamentoBloc extends Bloc<PagamentoEvent, PagamentoState> {
       if (!pixNaTela) {
         emit(_estadoDeErro(e));
       }
+    } finally {
+      _ocupado = false;
+      _acompanhar();
+    }
+  }
+
+  /// Pix de teste: a API aprova como se o cliente tivesse pago e o estado vem da consulta de sempre.
+  Future<void> _simularPagamento(
+    PagamentoSimularEvent event,
+    Emitter<PagamentoState> emit,
+  ) async {
+    final int? idPagamento = state.pagamento?.id;
+    if (_ocupado || idPagamento == null || state.etapa != EtapaPagamento.aguardandoPix) {
+      return;
+    }
+    _ocupado = true;
+    emit(state.copiar(etapa: EtapaPagamento.verificando));
+
+    try {
+      await _simular(idPagamento: idPagamento);
+      emit(_estadoDe(_ler(await _consultar(idAgendamento: idAgendamento))));
+    } catch (e) {
+      emit(_estadoDeErro(e));
     } finally {
       _ocupado = false;
       _acompanhar();

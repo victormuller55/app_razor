@@ -5,14 +5,20 @@ import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/functions/abrir_rota.dart';
 import 'package:app_razor/functions/lembrete_agendamento.dart';
 import 'package:app_razor/models/agendamento_model.dart';
+import 'package:app_razor/models/ordem_servico_model.dart';
+import 'package:app_razor/pages/agendamento/agendamento_bloc.dart';
+import 'package:app_razor/pages/agendamento/agendamento_page.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_bloc.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_event.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_state.dart';
 import 'package:app_razor/pages/agendamentos/widgets/agendamento_lista_card.dart';
+import 'package:app_razor/pages/agendamentos/widgets/avaliar_servico_modal.dart';
 import 'package:app_razor/pages/agendamentos/widgets/cancelar_agendamento_modal.dart';
+import 'package:app_razor/pages/agendamentos/widgets/ordem_servico_card.dart';
 import 'package:app_razor/pages/agendamentos/widgets/qr_confirmacao_modal.dart';
 import 'package:app_razor/pages/home/widgets/home_empty_state.dart';
 import 'package:app_razor/pages/pagamento/pagamento_modal.dart';
+import 'package:app_razor/pages/pagamento/pagar_ordem_servico.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -79,6 +85,68 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
     }
   }
 
+  void _confirmarCancelamentoOrdem(OrdemServicoGrupo ordem) {
+    final int? idOrdem = ordem.idApi;
+    final List<int> ids = ordem.cancelaveis
+        .map((AgendamentoModel item) => item.id)
+        .whereType<int>()
+        .toList();
+
+    if (idOrdem == null || ids.isEmpty) {
+      return;
+    }
+
+    showCancelarAgendamentoModal(
+      context: context,
+      onConfirmar: () => bloc.add(
+        AgendamentosCancelOrdemEvent(idOrdem: idOrdem, idPrimeiro: ids.first),
+      ),
+    );
+  }
+
+  Future<void> _pagarOrdem(OrdemServicoGrupo ordem) async {
+    await pagarOrdemServico(context: context, ordem: ordem);
+    if (mounted) {
+      await _loadAgendamentos(forceRefresh: true);
+    }
+  }
+
+  /// Troca serviços, profissionais e horários; na volta, a agenda recarrega
+  /// (a API pode ter cobrado a diferença ou estornado).
+  Future<void> _editar({
+    required List<AgendamentoModel> editaveis,
+    int? idOrdem,
+  }) async {
+    final AgendamentoModel? primeiro = editaveis.isEmpty
+        ? null
+        : editaveis.first;
+    final int? idBarbearia = primeiro?.idBarbearia;
+    if (primeiro == null || primeiro.id == null || idBarbearia == null) {
+      return;
+    }
+
+    final bool alterada = await openEditarReserva(
+      context,
+      barbeariaId: idBarbearia,
+      nomeBarbearia: primeiro.nomeBarbearia,
+      edicao: AgendamentoEdicao(itens: editaveis, idOrdem: idOrdem),
+    );
+    if (alterada && mounted) {
+      await _loadAgendamentos(forceRefresh: true);
+    }
+  }
+
+  /// Nota e comentário de um serviço concluído; a nota vem da API ao recarregar.
+  Future<void> _avaliar(AgendamentoModel agendamento) async {
+    final int? nota = await showAvaliarServicoModal(
+      context: context,
+      agendamento: agendamento,
+    );
+    if (nota != null && mounted) {
+      await _loadAgendamentos(forceRefresh: true);
+    }
+  }
+
   void _handleScroll() {
     if (!_scrollController.hasClients) {
       return;
@@ -133,12 +201,13 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
       );
     }
 
-    // Cabeçalho de cada grupo (Próximos, Hoje, Ontem, ...) seguido dos cards dele.
+    // Cabeçalho de cada grupo (Próximos, Hoje, Ontem, ...) seguido dos cards
+    // dele; serviços marcados juntos viram um card de ordem de serviço.
     final List<Object> linhas = <Object>[
       for (final ({GrupoAgendamento grupo, List<AgendamentoModel> itens}) bloco
           in agrupaAgendamentos(state.itens, DateTime.now())) ...[
         bloco.grupo,
-        ...bloco.itens,
+        ...juntaOrdensServico(bloco.itens),
       ],
     ];
 
@@ -161,6 +230,27 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
             return _tituloGrupo(linha, primeiro: index == 0);
           }
 
+          if (linha is OrdemServicoGrupo) {
+            return ordemServicoCard(
+              ordem: linha,
+              onPagar: () => _pagarOrdem(linha),
+              onComoChegar: () => _abrirRota(linha.primeiro),
+              onCancelar: () => _confirmarCancelamentoOrdem(linha),
+              onMostrarQr: (AgendamentoModel item) =>
+                  showQrConfirmacaoModal(context: context, agendamento: item),
+              onAvaliar: _avaliar,
+              onEditar: linha.editaveisEm(DateTime.now()).isEmpty
+                  ? null
+                  : () => _editar(
+                      editaveis: linha.editaveisEm(DateTime.now()),
+                      idOrdem: linha.idApi,
+                    ),
+              cancelando: linha.itens.any(
+                (AgendamentoModel item) => item.id == state.cancelandoId,
+              ),
+            );
+          }
+
           final AgendamentoModel agendamento = linha as AgendamentoModel;
 
           return agendamentoListaCard(
@@ -174,6 +264,13 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
                     agendamento: agendamento,
                   ),
             onPagar: () => _pagar(agendamento),
+            onAvaliar: () => _avaliar(agendamento),
+            onEditar: agendamento.podeEditarEm(DateTime.now())
+                ? () => _editar(
+                    editaveis: <AgendamentoModel>[agendamento],
+                    idOrdem: int.tryParse(agendamento.idOrdemServico ?? ''),
+                  )
+                : null,
             cancelando: state.cancelandoId == agendamento.id,
           );
         }, childCount: linhas.length + (state.loadingMore ? 1 : 0)),

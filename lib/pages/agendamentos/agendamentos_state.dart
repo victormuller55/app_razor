@@ -20,22 +20,22 @@ abstract class AgendamentosState {
 
 class AgendamentosInitialState extends AgendamentosState {
   AgendamentosInitialState()
-      : super(
-          errorModel: ErrorModel.empty(),
-          itens: const <AgendamentoModel>[],
-          paginacao: PaginacaoModel.empty(),
-          loadingMore: false,
-        );
+    : super(
+        errorModel: ErrorModel.empty(),
+        itens: const <AgendamentoModel>[],
+        paginacao: PaginacaoModel.empty(),
+        loadingMore: false,
+      );
 }
 
 class AgendamentosLoadingState extends AgendamentosState {
   AgendamentosLoadingState()
-      : super(
-          errorModel: ErrorModel.empty(),
-          itens: const <AgendamentoModel>[],
-          paginacao: PaginacaoModel.empty(),
-          loadingMore: false,
-        );
+    : super(
+        errorModel: ErrorModel.empty(),
+        itens: const <AgendamentoModel>[],
+        paginacao: PaginacaoModel.empty(),
+        loadingMore: false,
+      );
 }
 
 class AgendamentosSuccessState extends AgendamentosState {
@@ -49,9 +49,9 @@ class AgendamentosSuccessState extends AgendamentosState {
 
 class AgendamentosErrorState extends AgendamentosState {
   AgendamentosErrorState({required super.errorModel})
-      : super(
-          itens: const <AgendamentoModel>[],
-          paginacao: PaginacaoModel.empty(),
-          loadingMore: false,
-        );
+    : super(
+        itens: const <AgendamentoModel>[],
+        paginacao: PaginacaoModel.empty(),
+        loadingMore: false,
+      );
 }

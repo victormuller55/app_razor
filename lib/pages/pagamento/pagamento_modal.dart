@@ -1,8 +1,10 @@
+import 'package:app_razor/app_config/const/app_ambiente.dart';
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:app_razor/pages/pagamento/pagamento_bloc.dart';
 import 'package:app_razor/pages/pagamento/pagamento_event.dart';
+import 'package:app_razor/pages/pagamento/pagamento_service.dart';
 import 'package:app_razor/pages/pagamento/pagamento_state.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_loading.dart';
@@ -24,29 +26,75 @@ Future<bool> showPagamentoModal({
     return false;
   }
 
+  return _abrir(
+    context: context,
+    descricao: agendamento.nomeServico ?? 'Serviço',
+    valorPrevisto: agendamento.valorAPagar ?? agendamento.preco,
+    bloc: PagamentoBloc(idAgendamento: id),
+  );
+}
+
+/// Um Pix só para todos os serviços da ordem de serviço [idOrdem].
+Future<bool> showPagamentoOrdemModal({
+  required BuildContext context,
+  required int idOrdem,
+  required int servicos,
+  double? valorPrevisto,
+}) {
+  return _abrir(
+    context: context,
+    descricao: servicos == 1 ? '1 serviço' : '$servicos serviços',
+    valorPrevisto: valorPrevisto,
+    // O bloc só repassa o id: aqui ele é o da ordem.
+    bloc: PagamentoBloc(
+      idAgendamento: idOrdem,
+      iniciar: ({required int idAgendamento}) =>
+          iniciarPagamentoOrdem(idOrdem: idAgendamento),
+      consultar: ({required int idAgendamento}) =>
+          consultarPagamentoOrdem(idOrdem: idAgendamento),
+    ),
+  );
+}
+
+Future<bool> _abrir({
+  required BuildContext context,
+  required String descricao,
+  required double? valorPrevisto,
+  required PagamentoBloc bloc,
+}) async {
   final bool? pago = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (BuildContext modalContext) => _PagamentoSheet(
-      agendamento: agendamento,
-      bloc: PagamentoBloc(idAgendamento: id),
+      descricao: descricao,
+      valorPrevisto: valorPrevisto,
+      bloc: bloc,
     ),
   );
   return pago ?? false;
 }
 
 class _PagamentoSheet extends StatefulWidget {
-  const _PagamentoSheet({required this.agendamento, required this.bloc});
+  const _PagamentoSheet({
+    required this.descricao,
+    required this.valorPrevisto,
+    required this.bloc,
+  });
 
-  final AgendamentoModel agendamento;
+  /// O que está sendo pago (nome do serviço ou "N serviços").
+  final String descricao;
+
+  /// Valor mostrado antes de a API devolver o da cobrança.
+  final double? valorPrevisto;
   final PagamentoBloc bloc;
 
   @override
   State<_PagamentoSheet> createState() => _PagamentoSheetState();
 }
 
-class _PagamentoSheetState extends State<_PagamentoSheet> with WidgetsBindingObserver {
+class _PagamentoSheetState extends State<_PagamentoSheet>
+    with WidgetsBindingObserver {
   PagamentoBloc get bloc => widget.bloc;
 
   @override
@@ -71,7 +119,8 @@ class _PagamentoSheetState extends State<_PagamentoSheet> with WidgetsBindingObs
   }
 
   String get _valor {
-    final double? valor = bloc.state.pagamento?.valorTotal ?? widget.agendamento.preco;
+    final double? valor =
+        bloc.state.pagamento?.valorTotal ?? widget.valorPrevisto;
     if (valor == null) {
       return '';
     }
@@ -83,9 +132,9 @@ class _PagamentoSheetState extends State<_PagamentoSheet> with WidgetsBindingObs
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      const SnackBar(content: Text('Código Pix copiado')),
-    );
+    ScaffoldMessenger.maybeOf(
+      context,
+    )?.showSnackBar(const SnackBar(content: Text('Código Pix copiado')));
   }
 
   @override
@@ -103,7 +152,9 @@ class _PagamentoSheetState extends State<_PagamentoSheet> with WidgetsBindingObs
               topRight: Radius.circular(20),
             ),
             child: Padding(
-              padding: EdgeInsets.only(bottom: MediaQuery.viewPaddingOf(context).bottom),
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.viewPaddingOf(context).bottom,
+              ),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -144,7 +195,7 @@ class _PagamentoSheetState extends State<_PagamentoSheet> with WidgetsBindingObs
         icone: Phosphor.pixLogo,
         titulo: 'Pagar com Pix',
         texto:
-            '${widget.agendamento.nomeServico ?? 'Serviço'} · $_valor\n'
+            '${widget.descricao} · $_valor\n'
             'Vamos gerar um QR Code Pix. Pague pelo app do seu banco, lendo o QR Code ou '
             'usando o código copia e cola.',
         acoes: [
@@ -207,7 +258,8 @@ class _PagamentoSheetState extends State<_PagamentoSheet> with WidgetsBindingObs
       EtapaPagamento.expirado => _tela(
         icone: Phosphor.clock,
         titulo: 'Pix expirado',
-        texto: 'O prazo para pagar este Pix acabou. Gere um novo para pagar pelo app.',
+        texto:
+            'O prazo para pagar este Pix acabou. Gere um novo para pagar pelo app.',
         acoes: [
           appElevatedButtonRazor(
             title: 'Gerar novo Pix',
@@ -237,7 +289,9 @@ class _PagamentoSheetState extends State<_PagamentoSheet> with WidgetsBindingObs
             padding: 0,
             height: 46,
             onTap: () => bloc.add(
-              state.pagamento == null ? PagamentoIniciarEvent() : PagamentoConsultarEvent(),
+              state.pagamento == null
+                  ? PagamentoIniciarEvent()
+                  : PagamentoConsultarEvent(),
             ),
           ),
           _botaoFechar('Fechar'),
@@ -325,6 +379,13 @@ class _PagamentoSheetState extends State<_PagamentoSheet> with WidgetsBindingObs
           height: 46,
           onTap: () => bloc.add(PagamentoConsultarEvent()),
         ),
+        if (pixDeTeste)
+          appElevatedButtonRazorTransparent(
+            title: 'Simular pagamento (teste)',
+            padding: AppSpacing.small,
+            height: 46,
+            onTap: () => bloc.add(PagamentoSimularEvent()),
+          ),
         _botaoFechar('Pagar depois'),
       ],
     );
@@ -338,7 +399,11 @@ class _PagamentoSheetState extends State<_PagamentoSheet> with WidgetsBindingObs
         children: [
           appLoadingRazor(size: 32),
           appSizedBox(height: AppSpacing.normal),
-          appText(texto, color: local.AppColors.textSecondary, fontSize: AppFontSizes.verySmall),
+          appText(
+            texto,
+            color: local.AppColors.textSecondary,
+            fontSize: AppFontSizes.verySmall,
+          ),
         ],
       ),
     );
@@ -374,17 +439,32 @@ class _PagamentoSheetState extends State<_PagamentoSheet> with WidgetsBindingObs
       children: [
         _cabecalho(icone, titulo, cor: cor),
         appSizedBox(height: AppSpacing.small),
-        appText(texto, color: local.AppColors.textSecondary, fontSize: AppFontSizes.verySmall),
+        appText(
+          texto,
+          color: local.AppColors.textSecondary,
+          fontSize: AppFontSizes.verySmall,
+        ),
         appSizedBox(height: AppSpacing.medium),
         ...acoes,
       ],
     );
   }
 
-  Widget _botaoFechar(String titulo, {bool resultado = false, bool principal = false}) {
-    void fechar() => Navigator.of(context).pop(resultado || bloc.state.etapa == EtapaPagamento.aprovado);
+  Widget _botaoFechar(
+    String titulo, {
+    bool resultado = false,
+    bool principal = false,
+  }) {
+    void fechar() => Navigator.of(
+      context,
+    ).pop(resultado || bloc.state.etapa == EtapaPagamento.aprovado);
     if (principal) {
-      return appElevatedButtonRazor(title: titulo, padding: 0, height: 46, onTap: fechar);
+      return appElevatedButtonRazor(
+        title: titulo,
+        padding: 0,
+        height: 46,
+        onTap: fechar,
+      );
     }
     return appElevatedButtonRazorTransparent(
       title: titulo,

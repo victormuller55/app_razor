@@ -2,6 +2,7 @@ import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_fonts.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/models/agendamento_model.dart';
+import 'package:app_razor/pages/agendamentos/widgets/avaliar_servico_modal.dart';
 import 'package:app_razor/pages/barbearia_perfil/widgets/servico_grid_card.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,8 @@ Widget agendamentoListaCard({
   VoidCallback? onCancelar,
   VoidCallback? onMostrarQr,
   VoidCallback? onPagar,
+  VoidCallback? onAvaliar,
+  VoidCallback? onEditar,
   bool cancelando = false,
 }) {
   return _AgendamentoListaCard(
@@ -22,6 +25,8 @@ Widget agendamentoListaCard({
     onCancelar: onCancelar,
     onMostrarQr: onMostrarQr,
     onPagar: onPagar,
+    onAvaliar: onAvaliar,
+    onEditar: onEditar,
     cancelando: cancelando,
   );
 }
@@ -34,6 +39,8 @@ class _AgendamentoListaCard extends StatefulWidget {
     this.onCancelar,
     this.onMostrarQr,
     this.onPagar,
+    this.onAvaliar,
+    this.onEditar,
     required this.cancelando,
   });
 
@@ -42,6 +49,8 @@ class _AgendamentoListaCard extends StatefulWidget {
   final VoidCallback? onCancelar;
   final VoidCallback? onMostrarQr;
   final VoidCallback? onPagar;
+  final VoidCallback? onAvaliar;
+  final VoidCallback? onEditar;
   final bool cancelando;
 
   @override
@@ -57,8 +66,9 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
   @override
   void initState() {
     super.initState();
-    // Confirmado ou encerrado começa fechado: não há mais o que fazer nele.
-    _aberto = widget.agendamento.aguardando;
+    // Confirmado ou encerrado começa fechado: não há mais o que fazer nele,
+    // a não ser avaliar o serviço concluído.
+    _aberto = widget.agendamento.aguardando || _avaliavel;
     _fade = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 280),
@@ -83,6 +93,10 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
     } else {
       _fade.reverse();
     }
+  }
+
+  bool get _avaliavel {
+    return widget.onAvaliar != null && widget.agendamento.podeAvaliar;
   }
 
   bool get _temAcoes {
@@ -120,6 +134,15 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
             appSizedBox(height: AppSpacing.small),
             _cardInterno(child: _observacao(agendamento.observacao!)),
           ],
+          if (_avaliavel)
+            Padding(
+              padding: EdgeInsets.only(top: AppSpacing.normal),
+              child: botaoAvaliarServico(onTap: widget.onAvaliar!),
+            )
+          else if (agendamento.notaAvaliacao != null) ...[
+            appSizedBox(height: AppSpacing.small),
+            _cardInterno(child: notaDadaAvaliacao(agendamento.notaAvaliacao!)),
+          ],
           if (_temAcoes)
             Padding(
               padding: EdgeInsets.only(top: AppSpacing.normal),
@@ -129,6 +152,7 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
                 onCancelar: widget.onCancelar,
                 onMostrarQr: widget.onMostrarQr,
                 onPagar: widget.onPagar,
+                onEditar: widget.onEditar,
                 cancelando: widget.cancelando,
               ),
             ),
@@ -144,7 +168,9 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
     // Encerrado (cancelado, concluído ou sem comparecimento) fica com cara de desativado,
     // mas continua abrindo para consultar os detalhes.
     return Opacity(
-      opacity: widget.agendamento.encerrado ? _opacidadeEncerrado : 1,
+      opacity: widget.agendamento.encerrado && !_avaliavel
+          ? _opacidadeEncerrado
+          : 1,
       child: Container(
         width: double.infinity,
         margin: EdgeInsets.only(bottom: AppSpacing.normal + 2),
@@ -516,12 +542,15 @@ Widget _acoes({
   VoidCallback? onCancelar,
   VoidCallback? onMostrarQr,
   VoidCallback? onPagar,
+  VoidCallback? onEditar,
   required bool cancelando,
 }) {
   final bool mostrarPagar = onPagar != null && agendamento.podePagarPeloApp;
   final bool mostrarQr = onMostrarQr != null && agendamento.codigoQr != null;
   final bool mostrarChegar = agendamento.aguardando && onComoChegar != null;
   final bool mostrarCancelar = onCancelar != null && agendamento.podeCancelar;
+  final bool mostrarEditar = onEditar != null;
+  final double? diferenca = agendamento.valorAPagar;
 
   return Column(
     children: [
@@ -530,13 +559,15 @@ Widget _acoes({
           width: double.infinity,
           child: _botaoAcao(
             icone: Phosphor.pixLogo,
-            texto: 'Pagar com Pix',
+            texto: diferenca != null
+                ? 'Pagar diferença de ${formataDinheiro(diferenca)}'
+                : 'Pagar com Pix',
             cor: local.AppColors.statusAberto,
             solido: true,
             onTap: onPagar,
           ),
         ),
-        if (mostrarQr || mostrarChegar || mostrarCancelar)
+        if (mostrarQr || mostrarChegar || mostrarEditar || mostrarCancelar)
           appSizedBox(height: AppSpacing.small),
       ],
       if (mostrarQr)
@@ -550,9 +581,9 @@ Widget _acoes({
             onTap: onMostrarQr,
           ),
         ),
-      if (mostrarQr && (mostrarChegar || mostrarCancelar))
+      if (mostrarQr && (mostrarChegar || mostrarEditar || mostrarCancelar))
         appSizedBox(height: AppSpacing.small),
-      if (mostrarChegar || mostrarCancelar)
+      if (mostrarChegar || mostrarEditar)
         Row(
           children: [
             if (mostrarChegar)
@@ -565,18 +596,30 @@ Widget _acoes({
                   onTap: onComoChegar,
                 ),
               ),
-            if (mostrarChegar && mostrarCancelar)
+            if (mostrarChegar && mostrarEditar)
               appSizedBox(width: AppSpacing.small),
-            if (mostrarCancelar)
+            if (mostrarEditar)
               Expanded(
                 child: _botaoAcao(
-                  icone: Phosphor.xCircle,
-                  texto: cancelando ? 'Cancelando...' : 'Cancelar',
-                  cor: const Color(0xFFB3261E),
-                  onTap: cancelando ? () {} : onCancelar,
+                  icone: Phosphor.pencilSimple,
+                  texto: 'Editar',
+                  cor: local.AppColors.primary,
+                  onTap: onEditar,
                 ),
               ),
           ],
+        ),
+      if ((mostrarChegar || mostrarEditar) && mostrarCancelar)
+        appSizedBox(height: AppSpacing.small),
+      if (mostrarCancelar)
+        SizedBox(
+          width: double.infinity,
+          child: _botaoAcao(
+            icone: Phosphor.xCircle,
+            texto: cancelando ? 'Cancelando...' : 'Cancelar',
+            cor: const Color(0xFFB3261E),
+            onTap: cancelando ? () {} : onCancelar,
+          ),
         ),
     ],
   );

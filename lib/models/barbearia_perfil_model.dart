@@ -239,6 +239,9 @@ class BarbeariaPerfilModel {
   String? nome;
   String? descricao;
   String? logo;
+
+  /// Foto larga do topo do perfil (enviada pelo gestor).
+  String? capa;
   String? telefone;
   String? endereco;
   String? numero;
@@ -263,11 +266,15 @@ class BarbeariaPerfilModel {
   List<PromocaoModel> promocoes;
   List<BarbeariaAvaliacaoModel> avaliacoes;
 
+  /// Galeria do perfil, na ordem escolhida pelo gestor.
+  List<String> fotos;
+
   BarbeariaPerfilModel({
     this.id,
     this.nome,
     this.descricao,
     this.logo,
+    this.capa,
     this.telefone,
     this.endereco,
     this.numero,
@@ -291,6 +298,7 @@ class BarbeariaPerfilModel {
     this.funcionarios = const <BarbeariaFuncionarioModel>[],
     this.promocoes = const <PromocaoModel>[],
     this.avaliacoes = const <BarbeariaAvaliacaoModel>[],
+    this.fotos = const <String>[],
   });
 
   factory BarbeariaPerfilModel.fromJson(Map<String, dynamic> json) {
@@ -301,6 +309,7 @@ class BarbeariaPerfilModel {
       logo: resolveMediaUrl(
         _asNonEmptyString(json['logo']) ?? _asNonEmptyString(json['imagem']),
       ),
+      capa: resolveMediaUrl(_asNonEmptyString(json['capa'])),
       telefone: _asNonEmptyString(json['telefone']),
       endereco: json['endereco'] as String?,
       numero: json['numero'] as String?,
@@ -319,15 +328,15 @@ class BarbeariaPerfilModel {
       horaAbertura: _asNonEmptyString(json['hora_abertura']),
       horaFechamento: _asNonEmptyString(json['hora_fechamento']),
       favorito: json['favorito'] as bool?,
-      horarios: _asMapList(json['horarios'])
-          .map(BarbeariaHorarioModel.fromJson)
-          .toList(),
-      servicos: _asMapList(json['servicos'])
-          .map(BarbeariaServicoModel.fromJson)
-          .toList(),
-      funcionarios: _asMapList(json['funcionarios'])
-          .map(BarbeariaFuncionarioModel.fromJson)
-          .toList(),
+      horarios: _asMapList(
+        json['horarios'],
+      ).map(BarbeariaHorarioModel.fromJson).toList(),
+      servicos: _asMapList(
+        json['servicos'],
+      ).map(BarbeariaServicoModel.fromJson).toList(),
+      funcionarios: _asMapList(
+        json['funcionarios'],
+      ).map(BarbeariaFuncionarioModel.fromJson).toList(),
       promocoes: _asMapList(json['promocoes']).map((Map<String, dynamic> item) {
         final PromocaoModel promocao = PromocaoModel.fromJson(item);
         promocao.barbearia ??= BarbeariaModel(
@@ -336,9 +345,16 @@ class BarbeariaPerfilModel {
         );
         return promocao;
       }).toList(),
-      avaliacoes: _asMapList(json['avaliacoes'])
-          .map(BarbeariaAvaliacaoModel.fromJson)
-          .toList(),
+      avaliacoes: _asMapList(
+        json['avaliacoes'],
+      ).map(BarbeariaAvaliacaoModel.fromJson).toList(),
+      fotos:
+          (json['fotos'] is List
+                  ? json['fotos'] as List<dynamic>
+                  : const <dynamic>[])
+              .map((dynamic url) => resolveMediaUrl(url?.toString()))
+              .whereType<String>()
+              .toList(),
     );
   }
 

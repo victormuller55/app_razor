@@ -1,5 +1,6 @@
 import 'package:app_razor/functions/gps.dart';
 import 'package:app_razor/functions/media_url.dart';
+import 'package:app_razor/app_config/const/app_ambiente.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -7,7 +8,7 @@ void main() {
     test('prefixa caminho relativo com o server', () {
       expect(
         resolveMediaUrl('/uploads/barbearias/abc.jpg'),
-        'http://192.168.0.105:5000/uploads/barbearias/abc.jpg',
+        '$server/uploads/barbearias/abc.jpg',
       );
     });
 

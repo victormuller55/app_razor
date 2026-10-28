@@ -1,0 +1,3 @@
+# Config de cada branch (main: produção, dev: local). Fica fora dos merges; cada clone precisa de
+#   git config merge.ours.driver true
+lib/app_config/const/app_ambiente.dart merge=ours
