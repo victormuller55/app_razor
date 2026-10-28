@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:app_razor/app_config/const/app_endpoints.dart';
 import 'package:app_razor/functions/http_cache.dart';
+import 'package:app_razor/models/politica_agendamento_model.dart';
 import 'package:muller_package/muller_package.dart';
 
 const int agendamentosItensPag = 30;
@@ -16,10 +19,35 @@ Future<AppResponse> getAgendamentos({
   );
 }
 
-Future<AppResponse> cancelarAgendamento({required int id}) async {
+Map<String, dynamic> _corpoCancelamento(String? motivo) {
+  final String? texto = motivo?.trim();
+  return <String, dynamic>{
+    if (texto != null && texto.isNotEmpty) 'motivo': texto,
+  };
+}
+
+/// Regras de cancelamento e atraso da API; se ela não responder, as padrão.
+Future<PoliticaAgendamentoModel> getPoliticaAgendamento() async {
+  try {
+    final AppResponse response = await HttpCache.getHTTPCached(
+      endpoint: AppEndpoints.endpointAgendamentosPolitica,
+    );
+    return PoliticaAgendamentoModel.fromJson(
+      Map<String, dynamic>.from(jsonDecode(response.body) as Map),
+    );
+  } catch (_) {
+    return PoliticaAgendamentoModel.padrao;
+  }
+}
+
+/// Cancela mesmo depois do prazo (fica registrado como fora do prazo, sem multa).
+Future<AppResponse> cancelarAgendamento({
+  required int id,
+  String? motivo,
+}) async {
   final AppResponse response = await HttpCache.postHTTPCached(
     endpoint: AppEndpoints.endpointAgendamentosCancelar(id),
-    body: const <String, dynamic>{},
+    body: _corpoCancelamento(motivo),
   );
 
   await HttpCache.invalidateContaining('agendamentos');
@@ -27,10 +55,13 @@ Future<AppResponse> cancelarAgendamento({required int id}) async {
 }
 
 /// Cancela os serviços da ordem que ainda não começaram; a API estorna o Pix da ordem antes.
-Future<AppResponse> cancelarOrdemServico({required int idOrdem}) async {
+Future<AppResponse> cancelarOrdemServico({
+  required int idOrdem,
+  String? motivo,
+}) async {
   final AppResponse response = await HttpCache.postHTTPCached(
     endpoint: AppEndpoints.endpointOrdemServicoCancelar(idOrdem),
-    body: const <String, dynamic>{},
+    body: _corpoCancelamento(motivo),
   );
 
   await HttpCache.invalidateContaining('agendamentos');

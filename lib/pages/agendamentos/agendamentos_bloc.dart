@@ -12,9 +12,11 @@ import 'package:muller_package/muller_package.dart';
 typedef GetAgendamentos =
     Future<AppResponse> Function({int numPag, int itensPag, bool forceRefresh});
 
-typedef CancelAgendamento = Future<AppResponse> Function({required int id});
+typedef CancelAgendamento =
+    Future<AppResponse> Function({required int id, String? motivo});
 
-typedef CancelOrdem = Future<AppResponse> Function({required int idOrdem});
+typedef CancelOrdem =
+    Future<AppResponse> Function({required int idOrdem, String? motivo});
 
 class _AgendamentosEnvelope {
   final List<AgendamentoModel> itens;
@@ -137,7 +139,10 @@ class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
       cancelandoId: event.id,
       mensagem: 'Agendamento cancelado',
       chamada: () async {
-        final AppResponse response = await _cancelAgendamento(id: event.id);
+        final AppResponse response = await _cancelAgendamento(
+          id: event.id,
+          motivo: event.motivo,
+        );
         return <AgendamentoModel>[
           AgendamentoModel.fromJson(
             Map<String, dynamic>.from(jsonDecode(response.body) as Map),
@@ -157,7 +162,10 @@ class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
       mensagem: 'Ordem de serviço cancelada',
       chamada: () async {
         // A API cancela tudo o que está em aberto e estorna o Pix da ordem.
-        final AppResponse response = await _cancelOrdem(idOrdem: event.idOrdem);
+        final AppResponse response = await _cancelOrdem(
+          idOrdem: event.idOrdem,
+          motivo: event.motivo,
+        );
         final Map<String, dynamic> ordem = Map<String, dynamic>.from(
           jsonDecode(response.body) as Map,
         );
@@ -193,7 +201,8 @@ class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
         confirmado == null
             ? 'Reembolso confirmado pelo Mercado Pago'
             : 'Reembolso de ${formataDinheiro(confirmado)} confirmado pelo Mercado Pago',
-      'FALHOU' => 'O reembolso não foi concluído; nossa equipe vai verificar',
+      'FALHOU' =>
+        'O Mercado Pago ainda não concluiu o reembolso. O valor não se perde: vamos tentar de novo',
       _ => null,
     };
   }

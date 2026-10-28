@@ -6,10 +6,12 @@ import 'package:app_razor/functions/abrir_rota.dart';
 import 'package:app_razor/functions/lembrete_agendamento.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:app_razor/models/ordem_servico_model.dart';
+import 'package:app_razor/models/politica_agendamento_model.dart';
 import 'package:app_razor/pages/agendamento/agendamento_bloc.dart';
 import 'package:app_razor/pages/agendamento/agendamento_page.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_bloc.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_event.dart';
+import 'package:app_razor/pages/agendamentos/agendamentos_service.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_state.dart';
 import 'package:app_razor/pages/agendamentos/widgets/agendamento_lista_card.dart';
 import 'package:app_razor/pages/agendamentos/widgets/avaliar_servico_modal.dart';
@@ -36,6 +38,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
   AgendamentosBloc bloc = AgendamentosBloc();
   final ScrollController _scrollController = ScrollController();
   late final StreamSubscription<AgendamentosState> _lembrete;
+  PoliticaAgendamentoModel _politica = PoliticaAgendamentoModel.padrao;
 
   Future<void> _loadAgendamentos({bool forceRefresh = false}) async {
     final Future<AgendamentosState> done = bloc.stream.firstWhere(
@@ -73,7 +76,11 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
 
     showCancelarAgendamentoModal(
       context: context,
-      onConfirmar: () => bloc.add(AgendamentosCancelEvent(id)),
+      inicio: agendamento.dataHora,
+      pagoPeloApp: agendamento.statusPagamento == 'APROVADO',
+      politica: _politica,
+      onConfirmar: (String? motivo) =>
+          bloc.add(AgendamentosCancelEvent(id, motivo: motivo)),
     );
   }
 
@@ -96,10 +103,25 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
       return;
     }
 
+    final List<DateTime> inicios = ordem.cancelaveis
+        .map((AgendamentoModel item) => item.dataHora)
+        .whereType<DateTime>()
+        .toList()
+      ..sort();
+
     showCancelarAgendamentoModal(
       context: context,
-      onConfirmar: () => bloc.add(
-        AgendamentosCancelOrdemEvent(idOrdem: idOrdem, idPrimeiro: ids.first),
+      inicio: inicios.firstOrNull,
+      pagoPeloApp: ordem.itens.any(
+        (AgendamentoModel item) => item.statusPagamento == 'APROVADO',
+      ),
+      politica: _politica,
+      onConfirmar: (String? motivo) => bloc.add(
+        AgendamentosCancelOrdemEvent(
+          idOrdem: idOrdem,
+          idPrimeiro: ids.first,
+          motivo: motivo,
+        ),
       ),
     );
   }
@@ -174,6 +196,11 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
       }
     });
     _loadAgendamentos();
+    getPoliticaAgendamento().then((PoliticaAgendamentoModel politica) {
+      if (mounted) {
+        _politica = politica;
+      }
+    });
   }
 
   Widget _footerLoading() {

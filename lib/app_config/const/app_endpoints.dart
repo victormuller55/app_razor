@@ -27,6 +27,7 @@ class AppEndpoints {
   static String get endpointNotificacoes => '$server/api/v1/notificacoes';
   static String endpointNotificacaoLida(int id) => '$server/api/v1/notificacoes/$id/lida';
   static String endpointOrdemServicoPagamento(int id) => '$server/api/v1/agendamentos/ordem/$id/pagamento';
+  static String get endpointAgendamentosPolitica => '$server/api/v1/agendamentos/politica';
   static String endpointOrdemServicoCancelar(int id) => '$server/api/v1/agendamentos/ordem/$id/cancelar';
   static String endpointAgendamentoEditar(int id) => '$server/api/v1/agendamentos/$id';
   static String endpointOrdemServicoEditar(int id) => '$server/api/v1/agendamentos/ordem/$id';

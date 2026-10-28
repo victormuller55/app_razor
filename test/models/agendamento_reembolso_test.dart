@@ -47,7 +47,7 @@ void main() {
         cancelado(<String, dynamic>{
           'status_reembolso': 'FALHOU',
         }).reembolsoLabel,
-        'Reembolso com falha',
+        'Reembolso em nova tentativa',
       );
       expect(cancelado(<String, dynamic>{}).reembolsoLabel, isNull);
     });
@@ -87,7 +87,7 @@ void main() {
         AgendamentosBloc.mensagemReembolso(<AgendamentoModel>[
           cancelado(<String, dynamic>{'status_reembolso': 'FALHOU'}),
         ]),
-        contains('não foi concluído'),
+        contains('não se perde'),
       );
       expect(
         AgendamentosBloc.mensagemReembolso(<AgendamentoModel>[
