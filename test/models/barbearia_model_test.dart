@@ -1,4 +1,5 @@
 import 'package:app_razor/models/barbearia_model.dart';
+import 'package:app_razor/app_config/const/app_ambiente.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -53,7 +54,7 @@ void main() {
 
       expect(barbearia.id, 1);
       expect(barbearia.nome, 'Razor Centro');
-      expect(barbearia.logo, 'http://192.168.0.105:5000/uploads/barbearias/abc.jpg');
+      expect(barbearia.logo, '$server/uploads/barbearias/abc.jpg');
       expect(barbearia.nota, 4.5);
       expect(barbearia.distanciaKm, 1.23);
       expect(barbearia.bairro, 'Centro');

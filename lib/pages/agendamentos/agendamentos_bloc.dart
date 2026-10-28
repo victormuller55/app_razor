@@ -9,38 +9,38 @@ import 'package:app_razor/pages/agendamentos/agendamentos_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
 
-typedef GetAgendamentos = Future<AppResponse> Function({
-  int numPag,
-  int itensPag,
-  bool forceRefresh,
-});
+typedef GetAgendamentos =
+    Future<AppResponse> Function({int numPag, int itensPag, bool forceRefresh});
 
 typedef CancelAgendamento = Future<AppResponse> Function({required int id});
+
+typedef CancelOrdem = Future<AppResponse> Function({required int idOrdem});
 
 class _AgendamentosEnvelope {
   final List<AgendamentoModel> itens;
   final PaginacaoModel paginacao;
 
-  const _AgendamentosEnvelope({
-    required this.itens,
-    required this.paginacao,
-  });
+  const _AgendamentosEnvelope({required this.itens, required this.paginacao});
 }
 
 class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
   AgendamentosBloc({
     GetAgendamentos? getLista,
     CancelAgendamento? cancelar,
-  })  : _getAgendamentos = getLista ?? getAgendamentos,
-        _cancelAgendamento = cancelar ?? cancelarAgendamento,
-        super(AgendamentosInitialState()) {
+    CancelOrdem? cancelarOrdem,
+  }) : _getAgendamentos = getLista ?? getAgendamentos,
+       _cancelAgendamento = cancelar ?? cancelarAgendamento,
+       _cancelOrdem = cancelarOrdem ?? cancelarOrdemServico,
+       super(AgendamentosInitialState()) {
     on<AgendamentosLoadEvent>(_loadAgendamentos);
     on<AgendamentosLoadMoreEvent>(_loadMoreAgendamentos);
     on<AgendamentosCancelEvent>(_cancelarAgendamento);
+    on<AgendamentosCancelOrdemEvent>(_cancelarOrdem);
   }
 
   final GetAgendamentos _getAgendamentos;
   final CancelAgendamento _cancelAgendamento;
+  final CancelOrdem _cancelOrdem;
 
   Future<void> _loadAgendamentos(
     AgendamentosLoadEvent event,
@@ -109,9 +109,10 @@ class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
 
       emit(
         AgendamentosSuccessState(
-          itens: ordenaAgendamentosMaisAtual(
-          <AgendamentoModel>[...itensAtuais, ...envelope.itens],
-        ),
+          itens: ordenaAgendamentosMaisAtual(<AgendamentoModel>[
+            ...itensAtuais,
+            ...envelope.itens,
+          ]),
           paginacao: envelope.paginacao,
         ),
       );
@@ -130,33 +131,79 @@ class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
   Future<void> _cancelarAgendamento(
     AgendamentosCancelEvent event,
     Emitter<AgendamentosState> emit,
-  ) async {
+  ) {
+    return _cancelar(
+      emit,
+      cancelandoId: event.id,
+      mensagem: 'Agendamento cancelado',
+      chamada: () async {
+        final AppResponse response = await _cancelAgendamento(id: event.id);
+        return <AgendamentoModel>[
+          AgendamentoModel.fromJson(
+            Map<String, dynamic>.from(jsonDecode(response.body) as Map),
+          ),
+        ];
+      },
+    );
+  }
+
+  Future<void> _cancelarOrdem(
+    AgendamentosCancelOrdemEvent event,
+    Emitter<AgendamentosState> emit,
+  ) {
+    return _cancelar(
+      emit,
+      cancelandoId: event.idPrimeiro,
+      mensagem: 'Ordem de serviço cancelada',
+      chamada: () async {
+        // A API cancela tudo o que está em aberto e estorna o Pix da ordem.
+        final AppResponse response = await _cancelOrdem(idOrdem: event.idOrdem);
+        final Map<String, dynamic> ordem = Map<String, dynamic>.from(
+          jsonDecode(response.body) as Map,
+        );
+        final dynamic itens = ordem['agendamentos'];
+        return (itens is List ? itens : const <dynamic>[])
+            .whereType<Map>()
+            .map(
+              (Map<dynamic, dynamic> item) =>
+                  AgendamentoModel.fromJson(Map<String, dynamic>.from(item)),
+            )
+            .toList();
+      },
+    );
+  }
+
+  /// Cancela um por um; o que já foi cancelado fica, mesmo se um falhar.
+  /// Cancela pela [chamada] e troca na lista os agendamentos que ela devolver.
+  Future<void> _cancelar(
+    Emitter<AgendamentosState> emit, {
+    required int cancelandoId,
+    required String mensagem,
+    required Future<List<AgendamentoModel>> Function() chamada,
+  }) async {
     final AgendamentosState current = state;
 
     if (current is! AgendamentosSuccessState) {
       return;
     }
 
+    List<AgendamentoModel> itens = current.itens;
+
     emit(
       AgendamentosSuccessState(
-        itens: current.itens,
+        itens: itens,
         paginacao: current.paginacao,
         loadingMore: current.loadingMore,
-        cancelandoId: event.id,
+        cancelandoId: cancelandoId,
       ),
     );
 
     try {
-      final AppResponse response = await _cancelAgendamento(id: event.id);
-      final Map<String, dynamic> json = Map<String, dynamic>.from(
-        jsonDecode(response.body) as Map,
-      );
-      final AgendamentoModel atualizado = AgendamentoModel.fromJson(json);
-      final List<AgendamentoModel> itens = current.itens
-          .map(
-            (AgendamentoModel item) =>
-                item.id == atualizado.id ? atualizado : item,
-          )
+      final Map<int?, AgendamentoModel> atualizados = <int?, AgendamentoModel>{
+        for (final AgendamentoModel item in await chamada()) item.id: item,
+      };
+      itens = itens
+          .map((AgendamentoModel item) => atualizados[item.id] ?? item)
           .toList();
 
       emit(
@@ -166,13 +213,13 @@ class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
         ),
       );
       try {
-        showSnackbarSuccess(message: 'Agendamento cancelado');
+        showSnackbarSuccess(message: mensagem);
       } catch (_) {}
     } catch (e) {
       final ErrorModel errorModel = errorModelFromApi(e);
       emit(
         AgendamentosSuccessState(
-          itens: current.itens,
+          itens: ordenaAgendamentosMaisAtual(itens),
           paginacao: current.paginacao,
         ),
       );
@@ -207,9 +254,8 @@ class AgendamentosBloc extends Bloc<AgendamentosEvent, AgendamentosState> {
     final List<AgendamentoModel> itens = itensJson
         .whereType<Map>()
         .map(
-          (Map<dynamic, dynamic> item) => AgendamentoModel.fromJson(
-            Map<String, dynamic>.from(item),
-          ),
+          (Map<dynamic, dynamic> item) =>
+              AgendamentoModel.fromJson(Map<String, dynamic>.from(item)),
         )
         .toList();
 

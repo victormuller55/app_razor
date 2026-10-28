@@ -121,7 +121,7 @@ class _PermissoesPageState extends State<PermissoesPage>
     final PermissaoStatus? status = _status[permissao];
 
     if (status == PermissaoStatus.concedida) {
-      return const Icon(
+      return Icon(
         PhosphorFill.checkCircle,
         color: local.AppColors.statusAberto,
         size: 26,
@@ -163,7 +163,7 @@ class _PermissoesPageState extends State<PermissoesPage>
             width: 42,
             height: 42,
             decoration: BoxDecoration(
-              color: local.AppColors.white,
+              color: local.AppColors.surface,
               borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
             ),
             child: Icon(
@@ -267,7 +267,7 @@ class _PermissoesPageState extends State<PermissoesPage>
               fontSize: AppFontSizes.verySmall + 1,
               color: local.AppColors.textSecondary,
             ),
-            children: const [
+            children: [
               TextSpan(text: 'Quer usar outra conta? '),
               TextSpan(
                 text: 'Sair',
@@ -286,13 +286,13 @@ class _PermissoesPageState extends State<PermissoesPage>
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
+      value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: local.AppColors.iconesBarraStatus,
+        statusBarBrightness: local.AppColors.brilhoBarraStatus,
       ),
       child: Scaffold(
-        backgroundColor: local.AppColors.white,
+        backgroundColor: local.AppColors.surface,
         body: SafeArea(
           child: Column(
             children: [

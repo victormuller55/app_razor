@@ -43,7 +43,7 @@ class AppAuthLayout extends StatelessWidget {
         color: local.AppColors.white,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Icon(
+      child: Icon(
         Phosphor.scissors,
         color: local.AppColors.primary,
         size: 26,
@@ -113,7 +113,7 @@ class AppAuthLayout extends StatelessWidget {
                   TextSpan(text: '$rodapePergunta '),
                   TextSpan(
                     text: rodapeAcao,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w700,
                       color: local.AppColors.primary,
                     ),
@@ -309,7 +309,7 @@ AppFormField appAuthFormField({
   String? Function(String? value)? validator,
   bool senha = false,
 }) {
-  const Color iconeCor = AppEstilo.campoIcone;
+  final Color iconeCor = AppEstilo.campoIcone;
 
   return AppFormField(
     context: context,

@@ -320,13 +320,13 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
+      value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: local.AppColors.iconesBarraStatus,
+        statusBarBrightness: local.AppColors.brilhoBarraStatus,
       ),
       child: Scaffold(
-        backgroundColor: local.AppColors.white,
+        backgroundColor: local.AppColors.surface,
         body: BlocBuilder<BarbeariasBloc, BarbeariasState>(
           bloc: bloc,
           builder: (BuildContext context, BarbeariasState state) {

@@ -8,3 +8,6 @@ class PagamentoRetornouEvent extends PagamentoEvent {}
 
 /// Confere o estado de novo (automático enquanto o Pix está aberto, ou pelo botão).
 class PagamentoConsultarEvent extends PagamentoEvent {}
+
+/// Paga o Pix de teste pela API local (botão que só aparece com `pixDeTeste`).
+class PagamentoSimularEvent extends PagamentoEvent {}

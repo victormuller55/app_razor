@@ -80,6 +80,15 @@ class AgendamentoModel {
   /// A barbearia recebe pagamento pelo app.
   bool pagamentoOnline;
 
+  /// Ordem de serviço quando foi marcado junto com outros serviços.
+  String? idOrdemServico;
+
+  /// Nota (1 a 5) que o cliente deu ao serviço concluído; null enquanto não avaliou.
+  int? notaAvaliacao;
+
+  /// Diferença a pagar da reserva paga que ficou mais cara numa edição.
+  double? valorAPagar;
+
   AgendamentoModel({
     this.id,
     this.idBarbearia,
@@ -103,6 +112,9 @@ class AgendamentoModel {
     this.longitude,
     this.statusPagamento,
     this.pagamentoOnline = false,
+    this.idOrdemServico,
+    this.notaAvaliacao,
+    this.valorAPagar,
   });
 
   factory AgendamentoModel.fromJson(Map<String, dynamic> json) {
@@ -131,6 +143,11 @@ class AgendamentoModel {
       longitude: _asDouble(json['longitude']),
       statusPagamento: _asNonEmptyString(json['status_pagamento']),
       pagamentoOnline: json['pagamento_online'] == true,
+      idOrdemServico: json['id_ordem_servico'] == null
+          ? null
+          : '${json['id_ordem_servico']}',
+      notaAvaliacao: _asInt(json['nota_avaliacao']),
+      valorAPagar: _asDouble(json['valor_a_pagar']),
     );
   }
 
@@ -319,6 +336,17 @@ class AgendamentoModel {
 
   bool get podeCancelar {
     return aguardando;
+  }
+
+  /// Ainda agendado e por vir: dá para trocar serviços, profissional e horário.
+  bool podeEditarEm(DateTime agora) {
+    final DateTime? inicio = dataHora;
+    return aguardando && inicio != null && inicio.isAfter(agora);
+  }
+
+  /// Serviço concluído e ainda sem nota: mostra "Avaliar" na agenda.
+  bool get podeAvaliar {
+    return concluido && notaAvaliacao == null;
   }
 
   /// Pago pelo app, confirmado pela API.

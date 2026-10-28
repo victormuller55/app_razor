@@ -18,7 +18,7 @@ class MenuPlaceholderPage extends StatelessWidget {
       title: title,
       hideBackIcon: true,
       background: local.AppColors.background,
-      appBarColor: local.AppColors.primary,
+      appBarColor: local.AppColors.primaryBrand,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

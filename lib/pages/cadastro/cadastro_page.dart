@@ -410,7 +410,7 @@ class _CadastroPageState extends State<CadastroPage> {
             ),
             children: [
               TextSpan(text: '${AppStrings.jaTenhoConta}? '),
-              const TextSpan(
+              TextSpan(
                 text: 'Entrar',
                 style: TextStyle(
                   fontWeight: FontWeight.w700,

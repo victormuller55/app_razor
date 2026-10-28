@@ -1,4 +1,5 @@
 import 'package:app_razor/models/barbearia_perfil_model.dart';
+import 'package:app_razor/app_config/const/app_ambiente.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -76,7 +77,7 @@ void main() {
       expect(perfil.id, 1);
       expect(perfil.nome, 'Navalha Prime Centro');
       expect(perfil.descricao, 'Barbearia clássica');
-      expect(perfil.logo, 'http://192.168.0.105:5000/uploads/barbearias/abc.jpg');
+      expect(perfil.logo, '$server/uploads/barbearias/abc.jpg');
       expect(perfil.telefone, '41998010001');
       expect(perfil.favorito, isTrue);
       expect(perfil.localDescricao, 'Centro, Araucária');
@@ -88,13 +89,13 @@ void main() {
       expect(perfil.servicos.single.nome, 'Corte');
       expect(
         perfil.servicos.single.imagem,
-        'http://192.168.0.105:5000/uploads/servicos/corte.jpg',
+        '$server/uploads/servicos/corte.jpg',
       );
       expect(perfil.servicos.single.duracaoLabel, '40 min');
       expect(perfil.funcionarios.single.servicos, <String>['Corte', 'Barba']);
       expect(
         perfil.funcionarios.single.foto,
-        'http://192.168.0.105:5000/uploads/funcionarios/joao.jpg',
+        '$server/uploads/funcionarios/joao.jpg',
       );
       expect(perfil.promocoes.single.nome, 'Corte em dobro');
       expect(perfil.promocoes.single.barbearia?.nome, 'Navalha Prime Centro');

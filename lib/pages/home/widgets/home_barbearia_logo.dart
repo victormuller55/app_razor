@@ -53,7 +53,7 @@ Widget homeBarbeariaFotoStatus({
             backgroundColor: aberto
                 ? local.AppColors.statusAberto
                 : local.AppColors.statusFechado,
-            border: Border.all(color: local.AppColors.white, width: 2),
+            border: Border.all(color: local.AppColors.surface, width: 2),
           ),
         ),
       ],
@@ -73,7 +73,7 @@ Widget _logoFallback(BarbeariaModel barbearia, double size) {
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [local.AppColors.primary, local.AppColors.primaryLight],
+        colors: [local.AppColors.primaryBrand, local.AppColors.primaryLight],
       ),
     ),
     child: Center(

@@ -29,6 +29,7 @@ void main() {
     Object? erroConsulta,
     void Function()? aoIniciar,
     void Function()? aoConsultar,
+    void Function(int idPagamento)? aoSimular,
     Duration intervalo = const Duration(hours: 1),
   }) {
     int indice = 0;
@@ -51,6 +52,10 @@ void main() {
         final AppResponse atual = consultas[indice < consultas.length ? indice : consultas.length - 1];
         indice++;
         return atual;
+      },
+      simular: ({required int idPagamento}) async {
+        aoSimular?.call(idPagamento);
+        return AppResponse(statusCode: 204, body: '');
       },
     );
   }
@@ -84,6 +89,23 @@ void main() {
 
       bloc.add(PagamentoIniciarEvent());
       final PagamentoState fim = await ate(bloc, {EtapaPagamento.aprovado, EtapaPagamento.erro});
+      expect(fim.etapa, EtapaPagamento.aprovado);
+      await bloc.close();
+    });
+
+    test('Pix de teste: paga pela API local e o aprovado vem da consulta', () async {
+      final List<int> simulados = <int>[];
+      final PagamentoBloc bloc = criar(
+        consultas: <AppResponse>[resposta('APROVADO')],
+        aoSimular: simulados.add,
+      );
+
+      bloc.add(PagamentoIniciarEvent());
+      await ate(bloc, {EtapaPagamento.aguardandoPix});
+      bloc.add(PagamentoSimularEvent());
+      final PagamentoState fim = await ate(bloc, {EtapaPagamento.aprovado, EtapaPagamento.erro});
+
+      expect(simulados, <int>[1]);
       expect(fim.etapa, EtapaPagamento.aprovado);
       await bloc.close();
     });

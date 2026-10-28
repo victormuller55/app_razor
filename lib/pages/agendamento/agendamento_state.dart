@@ -1,73 +1,85 @@
 import 'package:app_razor/models/agendamento_model.dart';
+import 'package:app_razor/pages/agendamento/agendamento_blocos.dart';
 import 'package:muller_package/muller_package.dart';
 
 abstract class AgendamentoState {
   ErrorModel errorModel;
   AgendamentoContextoModel? contexto;
-  int? idServico;
-  int? idFuncionario;
-  DateTime? data;
-  String? horaInicio;
-  List<AgendamentoHorarioModel> horarios;
 
-  /// Por que não há horário livre na data (barbearia fechada, folga...).
-  String? motivoHorarios;
-  bool loadingHorarios;
+  /// Serviços escolhidos, na ordem em que serão feitos.
+  List<int> idsServicos;
+
+  /// Profissional escolhido para cada serviço.
+  Map<int, int> funcionarioPorServico;
+
+  /// Um horário por profissional, com os serviços dele seguidos.
+  List<AgendamentoBloco> blocos;
   bool salvando;
 
   AgendamentoState({
     required this.errorModel,
     this.contexto,
-    this.idServico,
-    this.idFuncionario,
-    this.data,
-    this.horaInicio,
-    this.horarios = const <AgendamentoHorarioModel>[],
-    this.motivoHorarios,
-    this.loadingHorarios = false,
+    this.idsServicos = const <int>[],
+    this.funcionarioPorServico = const <int, int>{},
+    this.blocos = const <AgendamentoBloco>[],
     this.salvando = false,
   });
+
+  /// Todo serviço tem profissional e todo bloco tem dia e horário.
+  bool get completo =>
+      idsServicos.isNotEmpty &&
+      idsServicos.every(funcionarioPorServico.containsKey) &&
+      blocos.isNotEmpty &&
+      blocos.every((AgendamentoBloco bloco) => bloco.completo);
 }
 
 class AgendamentoInitialState extends AgendamentoState {
-  AgendamentoInitialState({
-    super.idServico,
-    super.idFuncionario,
-  }) : super(errorModel: ErrorModel.empty());
+  AgendamentoInitialState({super.idsServicos})
+    : super(errorModel: ErrorModel.empty());
 }
 
 class AgendamentoLoadingState extends AgendamentoState {
-  AgendamentoLoadingState({
-    super.idServico,
-    super.idFuncionario,
-  }) : super(errorModel: ErrorModel.empty());
+  AgendamentoLoadingState({super.idsServicos})
+    : super(errorModel: ErrorModel.empty());
 }
 
 class AgendamentoReadyState extends AgendamentoState {
   AgendamentoReadyState({
     required AgendamentoContextoModel contexto,
-    super.idServico,
-    super.idFuncionario,
-    super.data,
-    super.horaInicio,
-    super.horarios,
-    super.motivoHorarios,
-    super.loadingHorarios,
+    super.idsServicos,
+    super.funcionarioPorServico,
+    super.blocos,
     super.salvando,
   }) : super(errorModel: ErrorModel.empty(), contexto: contexto);
 }
 
 class AgendamentoSuccessState extends AgendamentoState {
-  AgendamentoSuccessState({required this.agendamento})
-      : super(errorModel: ErrorModel.empty());
+  AgendamentoSuccessState({
+    required this.agendamentos,
+    this.idOrdem,
+    this.editado = false,
+    this.valorAPagar,
+    this.valorEstornado,
+  }) : super(errorModel: ErrorModel.empty());
 
-  final AgendamentoModel agendamento;
+  /// Um por serviço, na ordem em que serão feitos.
+  final List<AgendamentoModel> agendamentos;
+
+  /// Ordem de serviço criada quando foi mais de um serviço.
+  final String? idOrdem;
+
+  /// Foi a edição de uma reserva (não uma reserva nova).
+  final bool editado;
+
+  /// Reserva paga que ficou mais cara: a diferença a pagar.
+  final double? valorAPagar;
+
+  /// Reserva paga que ficou mais barata: o que volta para o cliente.
+  final double? valorEstornado;
+
+  AgendamentoModel get agendamento => agendamentos.first;
 }
 
 class AgendamentoErrorState extends AgendamentoState {
-  AgendamentoErrorState({
-    required super.errorModel,
-    super.idServico,
-    super.idFuncionario,
-  });
+  AgendamentoErrorState({required super.errorModel, super.idsServicos});
 }

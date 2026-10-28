@@ -171,7 +171,7 @@ class _PesquisaBarbeariasPageState extends State<PesquisaBarbeariasPage> {
             fontSize: 15,
             color: AppEstilo.campoIcone,
           ),
-          prefixIcon: const Icon(
+          prefixIcon: Icon(
             Phosphor.magnifyingGlass,
             size: 20,
             color: AppEstilo.campoIcone,
@@ -180,7 +180,7 @@ class _PesquisaBarbeariasPageState extends State<PesquisaBarbeariasPage> {
               ? null
               : IconButton(
                   onPressed: _limpar,
-                  icon: const Icon(
+                  icon: Icon(
                     Phosphor.x,
                     size: 18,
                     color: AppEstilo.campoIcone,
@@ -203,7 +203,7 @@ class _PesquisaBarbeariasPageState extends State<PesquisaBarbeariasPage> {
         children: [
           IconButton(
             onPressed: () => Navigator.of(context).maybePop(),
-            icon: const Icon(
+            icon: Icon(
               Phosphor.arrowLeft,
               color: local.AppColors.text,
               size: 24,
@@ -268,13 +268,13 @@ class _PesquisaBarbeariasPageState extends State<PesquisaBarbeariasPage> {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
+      value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: local.AppColors.iconesBarraStatus,
+        statusBarBrightness: local.AppColors.brilhoBarraStatus,
       ),
       child: Scaffold(
-        backgroundColor: local.AppColors.white,
+        backgroundColor: local.AppColors.surface,
         body: SafeArea(
           bottom: false,
           child: Column(

@@ -130,7 +130,7 @@ class _MapaBarbeariasPageState extends State<MapaBarbeariasPage> {
     return scaffold(
       title: 'Mapa',
       background: local.AppColors.background,
-      appBarColor: local.AppColors.primary,
+      appBarColor: local.AppColors.primaryBrand,
       body: BlocConsumer<MapaBarbeariasBloc, MapaBarbeariasState>(
         bloc: bloc,
         listener: (BuildContext context, MapaBarbeariasState state) {

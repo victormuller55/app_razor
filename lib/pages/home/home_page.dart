@@ -288,7 +288,7 @@ class _HomePageState extends State<HomePage> {
           appSizedBox(width: AppSpacing.normal),
           Container(
             padding: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppEstilo.campoFundo,
             ),
@@ -562,7 +562,7 @@ class _HomePageState extends State<HomePage> {
 
         return DecoratedBox(
           decoration: BoxDecoration(
-            color: local.AppColors.white,
+            color: local.AppColors.surface,
             borderRadius: geometria,
             boxShadow: radius < 0.5
                 ? null
@@ -659,7 +659,7 @@ class _HomePageState extends State<HomePage> {
         systemNavigationBarContrastEnforced: false,
       ),
       child: Scaffold(
-        backgroundColor: local.AppColors.white,
+        backgroundColor: local.AppColors.surface,
         body: BlocBuilder<HomeBloc, HomeState>(
           bloc: bloc,
           buildWhen: (HomeState previous, HomeState current) {

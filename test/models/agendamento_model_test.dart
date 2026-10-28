@@ -1,4 +1,5 @@
 import 'package:app_razor/models/agendamento_model.dart';
+import 'package:app_razor/app_config/const/app_ambiente.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -44,11 +45,11 @@ void main() {
       expect(agendamento.podeCancelar, isTrue);
       expect(
         agendamento.imagemBarbearia,
-        'http://192.168.0.105:5000/uploads/barbearias/abc.jpg',
+        '$server/uploads/barbearias/abc.jpg',
       );
       expect(
         agendamento.foto,
-        'http://192.168.0.105:5000/uploads/servicos/corte.jpg',
+        '$server/uploads/servicos/corte.jpg',
       );
     });
 
@@ -273,7 +274,7 @@ void main() {
 
       expect(
         funcionario.foto,
-        'http://192.168.0.105:5000/uploads/funcionarios/joao.jpg',
+        '$server/uploads/funcionarios/joao.jpg',
       );
     });
   });

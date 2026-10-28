@@ -25,7 +25,7 @@ Widget funcionarioGridCard({required BarbeariaFuncionarioModel funcionario}) {
       AppSpacing.small,
       AppSpacing.small,
     ),
-    backgroundColor: local.AppColors.white,
+    backgroundColor: local.AppColors.surface,
     radius: BorderRadius.circular(AppRadii.externo),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

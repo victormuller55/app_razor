@@ -19,13 +19,19 @@ class AppEstilo {
   static const Color destaque = Color(0xFF7FB3E6);
 
   /// Fundo dos campos e superfícies neutras sobre a folha branca.
-  static const Color campoFundo = Color(0xFFF2F4F7);
+  static Color get campoFundo => local.AppColors.escuro
+      ? const Color(0xFF21252C)
+      : const Color(0xFFF2F4F7);
 
   /// Cor de ícones e textos de dica sobre [campoFundo].
-  static const Color campoIcone = Color(0xFF98A0AC);
+  static Color get campoIcone => local.AppColors.escuro
+      ? const Color(0xFF808894)
+      : const Color(0xFF98A0AC);
 
   /// Cor do tracinho de "puxar" no topo da folha.
-  static const Color alca = Color(0xFFE3E6EB);
+  static Color get alca => local.AppColors.escuro
+      ? const Color(0xFF3A3F48)
+      : const Color(0xFFE3E6EB);
 }
 
 Widget _formaDecorativa({required double size, required double alpha}) {
@@ -50,7 +56,7 @@ Widget appHeaderFundo({required double altura}) {
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [local.AppColors.primaryDark, local.AppColors.primary],
+        colors: [local.AppColors.primaryDark, local.AppColors.primaryBrand],
       ),
     ),
     child: Stack(

@@ -20,3 +20,26 @@ Future<AppResponse> consultarPagamento({required int idAgendamento}) async {
   await HttpCache.invalidateContaining('agendamentos');
   return response;
 }
+
+/// Gera (ou retoma) o Pix único da ordem de serviço (todos os serviços dela).
+Future<AppResponse> iniciarPagamentoOrdem({required int idOrdem}) async {
+  return HttpCache.postHTTPCached(
+    endpoint: AppEndpoints.endpointOrdemServicoPagamento(idOrdem),
+    body: const <String, dynamic>{},
+  );
+}
+
+/// Estado do Pix da ordem, confirmado pela API com o Mercado Pago. Nunca vem do cache.
+Future<AppResponse> consultarPagamentoOrdem({required int idOrdem}) async {
+  final AppResponse response = await HttpCache.getHTTPCached(
+    endpoint: AppEndpoints.endpointOrdemServicoPagamento(idOrdem),
+    forceRefresh: true,
+  );
+  await HttpCache.invalidateContaining('agendamentos');
+  return response;
+}
+
+/// Paga o Pix de teste (só funciona com a API local no provedor simulado; veja app_ambiente.dart).
+Future<AppResponse> simularPagamento({required int idPagamento}) async {
+  return HttpCache.postHTTPCached(endpoint: AppEndpoints.endpointDevPagamentoAprovar(idPagamento));
+}

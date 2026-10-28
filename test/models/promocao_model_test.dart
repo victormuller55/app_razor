@@ -1,4 +1,5 @@
 import 'package:app_razor/models/promocao_model.dart';
+import 'package:app_razor/app_config/const/app_ambiente.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -54,13 +55,13 @@ void main() {
       expect(promocao.valorOriginal, 80);
       expect(promocao.valorPromocional, 40);
       expect(promocao.validade, '2026-08-31');
-      expect(promocao.imagem, 'http://192.168.0.105:5000/uploads/promocoes/promo.jpg');
+      expect(promocao.imagem, '$server/uploads/promocoes/promo.jpg');
       expect(promocao.percentualDesconto, closeTo(50, 0.01));
       expect(promocao.badgeTexto, '50%');
       expect(promocao.barbearia?.nome, 'Razor Centro');
       expect(
         promocao.barbearia?.logo,
-        'http://192.168.0.105:5000/uploads/barbearias/abc.jpg',
+        '$server/uploads/barbearias/abc.jpg',
       );
     });
 
