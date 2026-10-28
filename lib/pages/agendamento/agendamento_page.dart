@@ -1367,9 +1367,11 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
     final int? idOrdem = int.tryParse(state.idOrdem ?? '');
     try {
       if (state.valorEstornado != null) {
+        // Só fala em devolução confirmada quando o Mercado Pago confirmou.
         showSnackbarSuccess(
-          message:
-              'Reserva atualizada. ${formataDinheiro(state.valorEstornado!)} voltam para você pelo Pix',
+          message: state.valorEstornoEmProcessamento != null
+              ? 'Reserva atualizada. Reembolso de ${formataDinheiro(state.valorEstornado!)} em processamento pelo Mercado Pago'
+              : 'Reserva atualizada. Reembolso de ${formataDinheiro(state.valorEstornado!)} confirmado pelo Mercado Pago',
         );
       } else if (aPagar != null) {
         showSnackbarWarning(

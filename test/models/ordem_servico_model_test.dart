@@ -52,7 +52,8 @@ void main() {
 
     expect(model.idOrdemServico, '9');
     expect(model.notaAvaliacao, 4);
-    expect(model.podeAvaliar, isFalse);
+    // Falta a nota do serviço e do profissional: ainda dá para avaliar.
+    expect(model.podeAvaliar, isTrue);
   });
 
   test('só serviço concluído e ainda sem nota pode ser avaliado', () {

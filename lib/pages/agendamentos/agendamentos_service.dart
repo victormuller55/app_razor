@@ -37,7 +37,8 @@ Future<AppResponse> cancelarOrdemServico({required int idOrdem}) async {
   return response;
 }
 
-/// Nota de 1 a 5 e comentário opcional para um serviço concluído (uma vez por agendamento).
+/// Nota de 1 a 5 e comentário opcional para a barbearia (uma vez por agendamento).
+/// Aparece no perfil da barbearia e entra na nota média.
 Future<AppResponse> avaliarAgendamento({
   required int id,
   required int nota,
@@ -56,4 +57,39 @@ Future<AppResponse> avaliarAgendamento({
   await HttpCache.invalidateContaining('agendamentos');
   await HttpCache.invalidateContaining('barbearias');
   return response;
+}
+
+/// Nota de 1 a 5 e comentário opcional para o serviço e o profissional (uma vez por agendamento).
+/// Só a barbearia vê; não entra na nota média.
+Future<AppResponse> avaliarAtendimento({
+  required int id,
+  required int nota,
+  String? comentario,
+}) async {
+  final AppResponse response = await HttpCache.postHTTPCached(
+    endpoint: AppEndpoints.endpointAgendamentoAvaliacaoAtendimento(id),
+    body: <String, dynamic>{
+      'nota': nota,
+      if (comentario != null && comentario.trim().isNotEmpty)
+        'comentario': comentario.trim(),
+    },
+  );
+
+  await HttpCache.invalidateContaining('agendamentos');
+  return response;
+}
+
+/// Avisos ainda não lidos (ex.: "Como foi seu atendimento?"). Sempre da API, sem cache.
+Future<AppResponse> getNotificacoesNaoLidas() async {
+  return HttpCache.getHTTPCached(
+    endpoint: AppEndpoints.endpointNotificacoes,
+    forceRefresh: true,
+  );
+}
+
+Future<AppResponse> marcarNotificacaoLida({required int id}) async {
+  return HttpCache.postHTTPCached(
+    endpoint: AppEndpoints.endpointNotificacaoLida(id),
+    body: const <String, dynamic>{},
+  );
 }

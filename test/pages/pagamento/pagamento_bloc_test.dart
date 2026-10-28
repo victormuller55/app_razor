@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'dart:io';
+
+import 'package:app_razor/functions/api_error.dart';
 
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:app_razor/models/pagamento_model.dart';
@@ -194,6 +197,31 @@ void main() {
       final PagamentoState erro = await ate(recusadoPelaApi, {EtapaPagamento.erro});
       expect(erro.mensagem, contains('ainda não recebe'));
       await recusadoPelaApi.close();
+    });
+
+    test('tempo esgotado ao gerar o Pix encerra o carregamento e deixa tentar de novo', () async {
+      int chamadas = 0;
+      final PagamentoBloc bloc = criar(
+        consultas: <AppResponse>[],
+        erroInicio: TimeoutException('demorou'),
+        aoIniciar: () => chamadas++,
+      );
+      bloc.add(PagamentoIniciarEvent());
+      final PagamentoState erro = await ate(bloc, {EtapaPagamento.erro});
+
+      expect(erro.etapa, isNot(EtapaPagamento.preparando));
+      expect(erro.mensagem, mensagemTempoEsgotado);
+      expect(erro.mensagem, isNot(contains('TimeoutException')));
+
+      // A nova tentativa é segura: a API confere a cobrança antes de criar outra.
+      bloc.add(PagamentoIniciarEvent());
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(chamadas, 1); // intervalo mínimo de 1s entre inícios
+      await Future<void>.delayed(const Duration(milliseconds: 1100));
+      bloc.add(PagamentoIniciarEvent());
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+      expect(chamadas, 2);
+      await bloc.close();
     });
 
     test('queda de rede na conferência mantém o QR Code na tela', () async {

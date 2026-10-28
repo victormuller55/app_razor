@@ -159,17 +159,13 @@ class PagamentoBloc extends Bloc<PagamentoEvent, PagamentoState> {
     return PagamentoState(etapa: etapa, pagamento: pagamento);
   }
 
-  /// Sem resposta da API é erro de conexão; com resposta, mostra a mensagem dela.
+  /// Sem rede é falta de conexão. Tempo esgotado e erro da API mostram a mensagem segura
+  /// (no timeout, ela manda conferir antes de gerar outro Pix). O carregamento já foi encerrado.
   PagamentoState _estadoDeErro(Object e) {
-    if (e is ApiException) {
-      return state.copiar(
-        etapa: EtapaPagamento.erro,
-        mensagem: errorModelFromApi(e).mensagem,
-      );
-    }
+    final ErrorModel erro = errorModelFromApi(e);
     return state.copiar(
-      etapa: EtapaPagamento.erroConexao,
-      mensagem: 'Sem conexão com o servidor. Verifique sua internet.',
+      etapa: erro.tipo == tipoSemConexao ? EtapaPagamento.erroConexao : EtapaPagamento.erro,
+      mensagem: erro.mensagem,
     );
   }
 }

@@ -83,11 +83,25 @@ class AgendamentoModel {
   /// Ordem de serviço quando foi marcado junto com outros serviços.
   String? idOrdemServico;
 
-  /// Nota (1 a 5) que o cliente deu ao serviço concluído; null enquanto não avaliou.
+  /// Nota (1 a 5) que o cliente deu à barbearia neste serviço; null enquanto não avaliou.
   int? notaAvaliacao;
+
+  /// Nota (1 a 5) do serviço e do profissional; null enquanto não avaliou.
+  int? notaAvaliacaoAtendimento;
 
   /// Diferença a pagar da reserva paga que ficou mais cara numa edição.
   double? valorAPagar;
+
+  /// Situação do reembolso do que foi pago (`PROCESSANDO`, `CONFIRMADO`,
+  /// `FALHOU`), ou null quando nada foi pedido. Só `CONFIRMADO` é dinheiro
+  /// devolvido.
+  String? statusReembolso;
+
+  /// Reembolsado com confirmação do Mercado Pago.
+  double? valorReembolsado;
+
+  /// Reembolso pedido e ainda não confirmado pelo Mercado Pago.
+  double? valorReembolsoPendente;
 
   AgendamentoModel({
     this.id,
@@ -114,7 +128,11 @@ class AgendamentoModel {
     this.pagamentoOnline = false,
     this.idOrdemServico,
     this.notaAvaliacao,
+    this.notaAvaliacaoAtendimento,
     this.valorAPagar,
+    this.statusReembolso,
+    this.valorReembolsado,
+    this.valorReembolsoPendente,
   });
 
   factory AgendamentoModel.fromJson(Map<String, dynamic> json) {
@@ -147,7 +165,11 @@ class AgendamentoModel {
           ? null
           : '${json['id_ordem_servico']}',
       notaAvaliacao: _asInt(json['nota_avaliacao']),
+      notaAvaliacaoAtendimento: _asInt(json['nota_avaliacao_atendimento']),
       valorAPagar: _asDouble(json['valor_a_pagar']),
+      statusReembolso: _asNonEmptyString(json['status_reembolso']),
+      valorReembolsado: _asDouble(json['valor_reembolsado']),
+      valorReembolsoPendente: _asDouble(json['valor_reembolso_pendente']),
     );
   }
 
@@ -344,14 +366,36 @@ class AgendamentoModel {
     return aguardando && inicio != null && inicio.isAfter(agora);
   }
 
-  /// Serviço concluído e ainda sem nota: mostra "Avaliar" na agenda.
-  bool get podeAvaliar {
-    return concluido && notaAvaliacao == null;
+  /// O barbeiro iniciou o atendimento: o cliente está na cadeira.
+  bool get emAtendimento {
+    return status == 'EM_ATENDIMENTO';
   }
 
-  /// Pago pelo app, confirmado pela API.
+  /// Serviço concluído com alguma das duas notas (atendimento ou barbearia) por dar: mostra "Avaliar".
+  bool get podeAvaliar {
+    return concluido &&
+        (notaAvaliacao == null || notaAvaliacaoAtendimento == null);
+  }
+
+  /// Pago pelo app, confirmado pela API. Cancelado não aparece como pago: o
+  /// que vale para ele é a situação do reembolso.
   bool get pago {
-    return statusPagamento == 'APROVADO';
+    return statusPagamento == 'APROVADO' && !cancelado;
+  }
+
+  /// Reembolso pedido e ainda não confirmado: o dinheiro não voltou ainda.
+  bool get reembolsoEmProcessamento {
+    return statusReembolso == 'PROCESSANDO' || statusReembolso == 'SOLICITADO';
+  }
+
+  /// Selo do reembolso; null quando nada foi pedido.
+  String? get reembolsoLabel {
+    return switch (statusReembolso) {
+      'PROCESSANDO' || 'SOLICITADO' => 'Reembolso em processamento',
+      'CONFIRMADO' => 'Reembolsado',
+      'FALHOU' => 'Reembolso com falha',
+      _ => null,
+    };
   }
 
   /// Mostra "Pagar com Pix": aguardando, barbearia recebe e não há pagamento feito ou em análise.

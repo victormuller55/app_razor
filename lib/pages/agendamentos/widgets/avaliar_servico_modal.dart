@@ -29,60 +29,108 @@ const List<String> _rotulosNota = <String>[
   'Excelente!',
 ];
 
-/// Nota de 1 a 5 e comentário para um serviço concluído. Devolve a nota dada,
-/// ou null se o cliente fechou sem enviar.
-Future<int?> showAvaliarServicoModal({
+/// As duas avaliações de um atendimento concluído, cada uma opcional e independente:
+/// o serviço e o profissional (só a barbearia vê) e a barbearia (vai para o perfil e a média).
+/// Devolve true se alguma nota foi enviada, ou null se o cliente fechou sem enviar.
+Future<bool?> showAvaliarServicoModal({
   required BuildContext context,
   required AgendamentoModel agendamento,
-  EnviarAvaliacao enviar = avaliarAgendamento,
+  EnviarAvaliacao enviarAtendimento = avaliarAtendimento,
+  EnviarAvaliacao enviarBarbearia = avaliarAgendamento,
 }) {
-  return showModalBottomSheet<int>(
+  return showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (BuildContext modalContext) =>
-        AvaliarServicoSheet(agendamento: agendamento, enviar: enviar),
+    builder: (BuildContext modalContext) => AvaliarServicoSheet(
+      agendamento: agendamento,
+      enviarAtendimento: enviarAtendimento,
+      enviarBarbearia: enviarBarbearia,
+    ),
   );
+}
+
+/// Uma das duas notas da folha: a que o cliente já deu, ou a que está dando agora.
+class _Secao {
+  _Secao({required this.chave, required this.notaDada});
+
+  final String chave;
+  final TextEditingController comentario = TextEditingController();
+  int nota = 0;
+
+  /// Nota já registrada na API (antes ou neste envio): a seção só mostra as estrelas.
+  int? notaDada;
+
+  bool get pendente => notaDada == null && nota > 0;
 }
 
 class AvaliarServicoSheet extends StatefulWidget {
   const AvaliarServicoSheet({
     super.key,
     required this.agendamento,
-    required this.enviar,
+    required this.enviarAtendimento,
+    required this.enviarBarbearia,
   });
 
   final AgendamentoModel agendamento;
-  final EnviarAvaliacao enviar;
+  final EnviarAvaliacao enviarAtendimento;
+  final EnviarAvaliacao enviarBarbearia;
 
   @override
   State<AvaliarServicoSheet> createState() => _AvaliarServicoSheetState();
 }
 
 class _AvaliarServicoSheetState extends State<AvaliarServicoSheet> {
-  final TextEditingController _comentario = TextEditingController();
-  int _nota = 0;
+  late final _Secao _atendimento = _Secao(
+    chave: 'atendimento',
+    notaDada: widget.agendamento.notaAvaliacaoAtendimento,
+  );
+  late final _Secao _barbearia = _Secao(
+    chave: 'barbearia',
+    notaDada: widget.agendamento.notaAvaliacao,
+  );
   bool _enviando = false;
+  bool _enviouAlguma = false;
+
+  bool get _temPendente => _atendimento.pendente || _barbearia.pendente;
 
   @override
   void dispose() {
-    _comentario.dispose();
+    _atendimento.comentario.dispose();
+    _barbearia.comentario.dispose();
     super.dispose();
   }
 
+  /// Envia só as notas preenchidas. Se uma falhar, a que já foi fica registrada e
+  /// a folha continua aberta para tentar de novo a outra.
   Future<void> _enviar() async {
     final int? id = widget.agendamento.id;
-    if (_nota == 0 || _enviando || id == null) {
+    if (!_temPendente || _enviando || id == null) {
       return;
     }
 
     setState(() => _enviando = true);
     try {
-      await widget.enviar(id: id, nota: _nota, comentario: _comentario.text);
+      for (final (_Secao secao, EnviarAvaliacao enviar)
+          in <(_Secao, EnviarAvaliacao)>[
+            (_atendimento, widget.enviarAtendimento),
+            (_barbearia, widget.enviarBarbearia),
+          ]) {
+        if (!secao.pendente) {
+          continue;
+        }
+        await enviar(
+          id: id,
+          nota: secao.nota,
+          comentario: secao.comentario.text,
+        );
+        secao.notaDada = secao.nota;
+        _enviouAlguma = true;
+      }
       if (!mounted) {
         return;
       }
-      Navigator.of(context).pop(_nota);
+      Navigator.of(context).pop(true);
       try {
         showSnackbarSuccess(message: 'Obrigado pela avaliação!');
       } catch (_) {}
@@ -97,19 +145,20 @@ class _AvaliarServicoSheetState extends State<AvaliarServicoSheet> {
     }
   }
 
-  Widget _estrelas() {
+  Widget _estrelas(_Secao secao) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List<Widget>.generate(5, (int index) {
         final int valor = index + 1;
-        final bool cheia = valor <= _nota;
+        final bool cheia = valor <= secao.nota;
         return Semantics(
           button: true,
           selected: cheia,
           label: '$valor de 5 estrelas',
           child: InkResponse(
+            key: Key('estrela_${secao.chave}_$valor'),
             radius: 28,
-            onTap: _enviando ? null : () => setState(() => _nota = valor),
+            onTap: _enviando ? null : () => setState(() => secao.nota = valor),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
               child: AnimatedScale(
@@ -117,7 +166,7 @@ class _AvaliarServicoSheetState extends State<AvaliarServicoSheet> {
                 duration: const Duration(milliseconds: 150),
                 child: Icon(
                   cheia ? PhosphorFill.star : Phosphor.star,
-                  size: 40,
+                  size: 36,
                   color: cheia ? corEstrelaAvaliacao : AppEstilo.campoIcone,
                 ),
               ),
@@ -128,11 +177,12 @@ class _AvaliarServicoSheetState extends State<AvaliarServicoSheet> {
     );
   }
 
-  Widget _campoComentario() {
+  Widget _campoComentario(_Secao secao) {
     return TextField(
-      controller: _comentario,
+      key: Key('comentario_${secao.chave}'),
+      controller: secao.comentario,
       enabled: !_enviando,
-      minLines: 3,
+      minLines: 2,
       maxLines: 5,
       maxLength: 1000,
       textInputAction: TextInputAction.newline,
@@ -164,6 +214,54 @@ class _AvaliarServicoSheetState extends State<AvaliarServicoSheet> {
           borderSide: BorderSide(color: local.AppColors.primary),
         ),
         contentPadding: const EdgeInsets.all(14),
+      ),
+    );
+  }
+
+  Widget _secao({
+    required _Secao secao,
+    required String titulo,
+    required String aviso,
+  }) {
+    final int? notaDada = secao.notaDada;
+    return appContainer(
+      width: double.infinity,
+      backgroundColor: AppEstilo.campoFundo,
+      radius: BorderRadius.circular(AppRadii.externo - 4),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            appText(
+              titulo,
+              bold: true,
+              color: local.AppColors.text,
+              fontSize: AppFontSizes.small,
+            ),
+            appSizedBox(height: 2),
+            appText(aviso, color: local.AppColors.textSecondary, fontSize: 11),
+            appSizedBox(height: AppSpacing.small),
+            if (notaDada != null)
+              notaDadaAvaliacao(notaDada)
+            else ...[
+              _estrelas(secao),
+              appText(
+                _rotulosNota[secao.nota],
+                bold: secao.nota > 0,
+                color: secao.nota > 0
+                    ? local.AppColors.text
+                    : AppEstilo.campoIcone,
+                fontSize: AppFontSizes.verySmall,
+                textAlign: TextAlign.center,
+              ),
+              if (secao.nota > 0) ...[
+                appSizedBox(height: AppSpacing.small),
+                _campoComentario(secao),
+              ],
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -216,7 +314,7 @@ class _AvaliarServicoSheetState extends State<AvaliarServicoSheet> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       appText(
-                        'Como foi o serviço?',
+                        'Como foi seu atendimento?',
                         bold: true,
                         fontSize: AppFontSizes.medium,
                         color: local.AppColors.text,
@@ -237,26 +335,25 @@ class _AvaliarServicoSheetState extends State<AvaliarServicoSheet> {
                         maxLines: 2,
                         overflow: true,
                       ),
-                      appSizedBox(height: AppSpacing.normal),
-                      _estrelas(),
-                      appSizedBox(height: 2),
+                      appSizedBox(height: 4),
                       appText(
-                        _rotulosNota[_nota],
-                        bold: _nota > 0,
-                        color: _nota > 0
-                            ? local.AppColors.text
-                            : AppEstilo.campoIcone,
-                        fontSize: AppFontSizes.verySmall,
-                        textAlign: TextAlign.center,
-                      ),
-                      appSizedBox(height: AppSpacing.normal),
-                      _campoComentario(),
-                      appSizedBox(height: AppSpacing.small),
-                      appText(
-                        'Sua nota e seu comentário aparecem no perfil da barbearia.',
+                        'As duas avaliações são opcionais: dê só a que quiser.',
                         color: local.AppColors.textSecondary,
                         fontSize: 11,
                         textAlign: TextAlign.center,
+                      ),
+                      appSizedBox(height: AppSpacing.normal),
+                      _secao(
+                        secao: _atendimento,
+                        titulo: 'O serviço e o profissional',
+                        aviso: 'Só a barbearia vê esta nota.',
+                      ),
+                      appSizedBox(height: AppSpacing.small),
+                      _secao(
+                        secao: _barbearia,
+                        titulo: 'A barbearia',
+                        aviso:
+                            'Sua nota e seu comentário aparecem no perfil da barbearia.',
                       ),
                       if (_enviando)
                         Padding(
@@ -265,7 +362,7 @@ class _AvaliarServicoSheetState extends State<AvaliarServicoSheet> {
                         )
                       else
                         Opacity(
-                          opacity: _nota == 0 ? 0.5 : 1,
+                          opacity: _temPendente ? 1 : 0.5,
                           child: appElevatedButtonRazor(
                             title: 'Enviar avaliação',
                             padding: AppSpacing.normal,
@@ -277,7 +374,9 @@ class _AvaliarServicoSheetState extends State<AvaliarServicoSheet> {
                         title: 'Agora não',
                         padding: AppSpacing.small,
                         height: 46,
-                        onTap: () => Navigator.of(context).pop(),
+                        onTap: () => Navigator.of(
+                          context,
+                        ).pop(_enviouAlguma ? true : null),
                       ),
                     ],
                   ),

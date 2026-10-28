@@ -290,6 +290,17 @@ Widget _cabecalho(AgendamentoModel agendamento, {required bool aberto}) {
                 _status(agendamento),
               ],
             ),
+            if (agendamento.reembolsoLabel != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: _selo(
+                    agendamento.reembolsoLabel!,
+                    corReembolso(agendamento.statusReembolso),
+                  ),
+                ),
+              ),
             if (agendamento.nomeBarbearia != null)
               Padding(
                 padding: const EdgeInsets.only(top: 2),
@@ -667,6 +678,15 @@ Widget _selo(String texto, Color cor) {
     backgroundColor: cor.withValues(alpha: 0.12),
     child: appText(texto, bold: true, color: cor, fontSize: 11),
   );
+}
+
+/// Confirmado em verde, em processamento em amarelo/neutro, falha em vermelho.
+Color corReembolso(String? status) {
+  return switch (status) {
+    'CONFIRMADO' => local.AppColors.statusAberto,
+    'FALHOU' => const Color(0xFFB3261E),
+    _ => local.AppColors.primaryLight,
+  };
 }
 
 Widget _status(AgendamentoModel agendamento) {

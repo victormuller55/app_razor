@@ -22,6 +22,10 @@ class AppEndpoints {
   /// Só com a API no provedor simulado (rodando local).
   static String endpointDevPagamentoAprovar(int id) => '$server/api/v1/dev/pagamentos/$id/aprovar';
   static String endpointAgendamentoAvaliacao(int id) => '$server/api/v1/agendamentos/$id/avaliacao';
+  static String endpointAgendamentoAvaliacaoAtendimento(int id) =>
+      '$server/api/v1/agendamentos/$id/avaliacao-atendimento';
+  static String get endpointNotificacoes => '$server/api/v1/notificacoes';
+  static String endpointNotificacaoLida(int id) => '$server/api/v1/notificacoes/$id/lida';
   static String endpointOrdemServicoPagamento(int id) => '$server/api/v1/agendamentos/ordem/$id/pagamento';
   static String endpointOrdemServicoCancelar(int id) => '$server/api/v1/agendamentos/ordem/$id/cancelar';
   static String endpointAgendamentoEditar(int id) => '$server/api/v1/agendamentos/$id';

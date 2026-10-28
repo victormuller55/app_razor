@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_razor/app_config/app_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +15,26 @@ void _initGoogleMaps() {
   }
 }
 
+/// O muller_package imprime o corpo de cada resposta (o login traz o JWT, o Pix traz o código). Na versão
+/// de loja esses prints iriam para o log do aparelho; ali eles são descartados.
+void silenciarPrintsEmProducao(void Function() corpo, {bool producao = kReleaseMode}) {
+  runZoned(
+    corpo,
+    zoneSpecification: ZoneSpecification(
+      print: (Zone self, ZoneDelegate parent, Zone zone, String linha) {
+        if (!producao) {
+          parent.print(zone, linha);
+        }
+      },
+    ),
+  );
+}
+
 void main() {
-  final WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  _initGoogleMaps();
-  runApp(const AppWidget());
+  silenciarPrintsEmProducao(() {
+    final WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+    _initGoogleMaps();
+    runApp(const AppWidget());
+  });
 }

@@ -138,11 +138,11 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
 
   /// Nota e comentário de um serviço concluído; a nota vem da API ao recarregar.
   Future<void> _avaliar(AgendamentoModel agendamento) async {
-    final int? nota = await showAvaliarServicoModal(
+    final bool? enviou = await showAvaliarServicoModal(
       context: context,
       agendamento: agendamento,
     );
-    if (nota != null && mounted) {
+    if (enviou == true && mounted) {
       await _loadAgendamentos(forceRefresh: true);
     }
   }

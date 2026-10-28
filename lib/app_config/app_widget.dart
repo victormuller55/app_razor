@@ -97,7 +97,7 @@ class _AppWidgetState extends State<AppWidget> with WidgetsBindingObserver {
 
   ThemeData _buildTheme() {
     final Brightness brilho =
-        local.AppColors.escuro ? Brightness.dark : Brightness.light;
+    local.AppColors.escuro ? Brightness.dark : Brightness.light;
 
     return ThemeData(
       useMaterial3: true,

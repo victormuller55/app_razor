@@ -25,6 +25,11 @@ class HttpCache {
   static const String _timestampPrefix = 'http_timestamp_';
   static const int _cacheDurationMinutes = 5;
 
+  /// Ninguém fica com o carregamento aberto para sempre: passado o prazo, a chamada falha com
+  /// TimeoutException (a mensagem manda conferir o resultado antes de repetir).
+  static const Duration tempoLimite = Duration(seconds: 30);
+  static const Duration tempoLimiteArquivo = Duration(seconds: 120);
+
   static final Map<String, _CachedResponse> _memoryCache = {};
 
   static String _generateCacheKey(
@@ -143,7 +148,7 @@ class HttpCache {
         endpoint: endpoint,
         parameters: stringParams,
         headers: headers,
-      );
+      ).timeout(tempoLimite);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         await _saveToCache(cacheKey, response.body, response.statusCode);
@@ -174,7 +179,7 @@ class HttpCache {
         parameters: stringParams,
         file: file,
         headers: headers,
-      );
+      ).timeout(file == null ? tempoLimite : tempoLimiteArquivo);
     } on ApiException catch (e) {
       if (e.response.statusCode == 401) {
         await _handle401();
@@ -197,7 +202,7 @@ class HttpCache {
         body: body,
         parameters: stringParams,
         headers: headers,
-      );
+      ).timeout(tempoLimite);
     } on ApiException catch (e) {
       if (e.response.statusCode == 401) {
         await _handle401();
@@ -218,7 +223,7 @@ class HttpCache {
         endpoint: endpoint,
         parameters: stringParams,
         headers: headers,
-      );
+      ).timeout(tempoLimite);
     } on ApiException catch (e) {
       if (e.response.statusCode == 401) {
         await _handle401();
