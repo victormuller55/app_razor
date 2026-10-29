@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
+import 'package:app_razor/functions/agendamentos_atualizados.dart';
 import 'package:app_razor/functions/http_cache.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:app_razor/models/notificacao_model.dart';
@@ -42,26 +43,32 @@ Future<void> _abrirRemarcacaoPadrao(
 /// - "Como foi seu atendimento?" quando o barbeiro conclui o serviço (ou o
 ///   servidor conclui sozinho no prazo); "Avaliar" abre a avaliação dele;
 /// - "A barbearia cancelou seu horário", com o motivo; "Marcar outro horário"
-///   abre a reserva na mesma barbearia.
+///   abre a reserva na mesma barbearia;
+/// - os demais (confirmação, lembrete, pagamento, devolução...) viram uma faixa
+///   com o mais recente e são marcados como lidos (RAZ-11).
 ///
-/// Não é push: com o app fechado o cliente só vê o aviso quando abrir o app.
+/// Com o push ligado (RAZ-11) o aviso também chega com o app fechado; sem ele,
+/// o cliente vê o aviso quando abrir o app.
 class AvisosAtendimento with WidgetsBindingObserver {
   AvisosAtendimento({
     BuscarAvisos? buscar,
     MarcarAvisoLido? marcarLida,
     AbrirAvaliacao? abrirAvaliacao,
     AbrirRemarcacao? abrirRemarcacao,
+    void Function(String texto)? informar,
     BuildContext? Function()? contexto,
   }) : _buscar = buscar ?? getNotificacoesNaoLidas,
        _marcarLida = marcarLida ?? marcarNotificacaoLida,
        _abrirAvaliacao = abrirAvaliacao ?? _abrirAvaliacaoPadrao,
        _abrirRemarcacao = abrirRemarcacao ?? _abrirRemarcacaoPadrao,
+       _informar = informar ?? ((String texto) => showSnackbarSuccess(message: texto)),
        _contexto = contexto ?? (() => AppContext.navigatorKey.currentContext);
 
   final BuscarAvisos _buscar;
   final MarcarAvisoLido _marcarLida;
   final AbrirAvaliacao _abrirAvaliacao;
   final AbrirRemarcacao _abrirRemarcacao;
+  final void Function(String texto) _informar;
   final BuildContext? Function() _contexto;
 
   /// Já mostrados nesta sessão: se marcar como lido falhar, não pergunta de novo.
@@ -108,6 +115,10 @@ class AvisosAtendimento with WidgetsBindingObserver {
         jsonDecode(response.body),
       );
 
+      await _avisarInformativos(
+        avisos.where((NotificacaoModel a) => a.informativo && !_mostrados.contains(a.id)).toList(),
+      );
+
       for (final NotificacaoModel aviso in avisos) {
         if (_mostrados.contains(aviso.id)) {
           continue;
@@ -152,6 +163,29 @@ class AvisosAtendimento with WidgetsBindingObserver {
       // Sem rede ou sessão: tenta de novo quando o app voltar para a tela.
     } finally {
       _verificando = false;
+    }
+  }
+
+  /// Avisos sem tela própria: uma faixa com o mais recente (a lista vem do mais novo para o mais antigo) e
+  /// todos marcados como lidos, para não ocuparem o lugar dos avisos que pedem uma ação.
+  Future<void> _avisarInformativos(List<NotificacaoModel> informativos) async {
+    if (informativos.isEmpty) {
+      return;
+    }
+    _mostrados.addAll(informativos.map((NotificacaoModel a) => a.id));
+    try {
+      // Pagamento, devolução ou mudança no horário: a lista de agendamentos guardada está velha.
+      await HttpCache.invalidateContaining('agendamentos');
+    } catch (_) {}
+    avisarAgendamentosAtualizados();
+    final NotificacaoModel recente = informativos.first;
+    _informar(
+      recente.mensagem == null || recente.mensagem!.isEmpty
+          ? recente.titulo
+          : '${recente.titulo}: ${recente.mensagem}',
+    );
+    for (final NotificacaoModel aviso in informativos) {
+      await _lido(aviso.id);
     }
   }
 

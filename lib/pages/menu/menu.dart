@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
+import 'package:app_razor/functions/agendamentos_atualizados.dart';
 import 'package:app_razor/functions/aviso_avaliacao.dart';
 import 'package:app_razor/functions/lembrete_agendamento.dart';
+import 'package:app_razor/functions/push_notificacoes.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_page.dart';
+import 'package:app_razor/pages/agendamentos/agendamentos_service.dart';
 import 'package:app_razor/pages/barbearias/barbearias_page.dart';
 import 'package:app_razor/pages/home/home_page.dart';
 import 'package:app_razor/pages/perfil/perfil_page.dart';
@@ -44,7 +49,15 @@ class _MenuScreenState extends State<MenuScreen> {
     MenuConst.currentIndex = 0;
     LembreteAgendamento.instance.iniciar();
     // Depois do primeiro quadro: o aviso abre por cima do menu já montado.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _avisos.iniciar());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _avisos.iniciar();
+      unawaited(
+        PushNotificacoes.instance.iniciarSessao(
+          aoReceber: _aoReceberPush,
+          aoTocar: _aoTocarPush,
+        ),
+      );
+    });
     _screens = <Widget>[
       HomePage(onOpenPerfil: _openAbaPerfil),
       const BarbeariasPage(),
@@ -57,7 +70,39 @@ class _MenuScreenState extends State<MenuScreen> {
   void dispose() {
     LembreteAgendamento.instance.parar();
     _avisos.parar();
+    unawaited(PushNotificacoes.instance.encerrarSessao());
     super.dispose();
+  }
+
+  /// Push com o app aberto: o banner do sistema não aparece; o aviso vem da API como os demais.
+  void _aoReceberPush(Map<String, dynamic> dados) {
+    unawaited(_avisos.verificar());
+  }
+
+  /// Toque no push (app em segundo plano ou fechado).
+  void _aoTocarPush(Map<String, dynamic> dados) {
+    if (!mounted) {
+      return;
+    }
+    switch (destinoDoAviso(dados)) {
+      case DestinoAviso.avisoNaTela:
+        unawaited(_avisos.verificar());
+      case DestinoAviso.agendamentos:
+        _selectAba(2);
+        avisarAgendamentosAtualizados();
+        final int? id = idNotificacaoDoAviso(dados);
+        if (id != null) {
+          unawaited(_marcarLida(id));
+        }
+      case DestinoAviso.inicio:
+        unawaited(_avisos.verificar());
+    }
+  }
+
+  Future<void> _marcarLida(int id) async {
+    try {
+      await marcarNotificacaoLida(id: id);
+    } catch (_) {}
   }
 
   BottomNavigationBarItem _itemNavegacao({

@@ -138,5 +138,16 @@ void main() {
       );
       expect(NotificacaoModel.listaFromJson(<String, dynamic>{}), isEmpty);
     });
+
+    test('avisos sem tela própria são informativos (RAZ-11)', () {
+      NotificacaoModel doTipo(String tipo) => NotificacaoModel.fromJson(
+        <String, dynamic>{'id': 1, 'tipo': tipo, 'titulo': 'x'},
+      )!;
+
+      expect(doTipo('LEMBRETE_AGENDAMENTO').informativo, isTrue);
+      expect(doTipo('PAGAMENTO_CONFIRMADO').informativo, isTrue);
+      expect(doTipo('ATENDIMENTO_CONCLUIDO').informativo, isFalse);
+      expect(doTipo('AGENDAMENTO_CANCELADO_BARBEARIA').informativo, isFalse);
+    });
   });
 }

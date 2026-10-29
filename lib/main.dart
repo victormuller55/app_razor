@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_razor/app_config/app_widget.dart';
+import 'package:app_razor/functions/push_notificacoes.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -31,10 +32,12 @@ void silenciarPrintsEmProducao(void Function() corpo, {bool producao = kReleaseM
 }
 
 void main() {
-  silenciarPrintsEmProducao(() {
+  silenciarPrintsEmProducao(() async {
     final WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     _initGoogleMaps();
+    // Push (RAZ-11): sem a configuração do Firebase no build, fica desligado e o app segue igual.
+    await PushNotificacoes.instance.inicializar();
     runApp(const AppWidget());
   });
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/functions/abrir_rota.dart';
+import 'package:app_razor/functions/agendamentos_atualizados.dart';
 import 'package:app_razor/functions/lembrete_agendamento.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:app_razor/models/ordem_servico_model.dart';
@@ -48,6 +49,13 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
 
     bloc.add(AgendamentosLoadEvent(forceRefresh: forceRefresh));
     await done;
+  }
+
+  /// Push ou aviso informou uma mudança (pagamento, devolução, lembrete): a aba fica montada no menu.
+  void _recarregarDoServidor() {
+    if (mounted) {
+      unawaited(_loadAgendamentos(forceRefresh: true));
+    }
   }
 
   void _loadMoreAgendamentos() {
@@ -196,6 +204,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
       }
     });
     _loadAgendamentos();
+    agendamentosAtualizados.addListener(_recarregarDoServidor);
     getPoliticaAgendamento().then((PoliticaAgendamentoModel politica) {
       if (mounted) {
         _politica = politica;
@@ -408,6 +417,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
 
   @override
   void dispose() {
+    agendamentosAtualizados.removeListener(_recarregarDoServidor);
     _lembrete.cancel();
     _scrollController.dispose();
     bloc.close();
