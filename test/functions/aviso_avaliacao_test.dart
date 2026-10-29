@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:app_razor/functions/agendamentos_atualizados.dart';
 import 'package:app_razor/functions/aviso_avaliacao.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:flutter/material.dart';
@@ -224,4 +225,50 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Como foi seu atendimento?'), findsNothing);
   });
+
+  testWidgets(
+    'avisos informativos (RAZ-11): faixa com o mais recente, todos lidos e agenda recarregada',
+    (WidgetTester tester) async {
+      await montar(tester);
+      final List<String> faixas = <String>[];
+      final int antes = agendamentosAtualizados.value;
+      final AvisosAtendimento checador = AvisosAtendimento(
+        buscar: () async => AppResponse(
+          statusCode: 200,
+          body: jsonEncode(<Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': 21,
+              'tipo': 'PAGAMENTO_CONFIRMADO',
+              'titulo': 'Pagamento confirmado',
+              'mensagem': 'O Pix do seu horário foi confirmado.',
+            },
+            <String, dynamic>{
+              'id': 20,
+              'tipo': 'AGENDAMENTO_CONFIRMADO',
+              'titulo': 'Horário confirmado',
+            },
+          ]),
+        ),
+        marcarLida: ({required int id}) async {
+          lidos.add(id);
+          return AppResponse(statusCode: 200, body: '{}');
+        },
+        informar: faixas.add,
+        contexto: () => navegador.currentContext,
+      );
+
+      await checador.verificar();
+      await tester.pumpAndSettle();
+
+      expect(faixas, <String>[
+        'Pagamento confirmado: O Pix do seu horário foi confirmado.',
+      ]);
+      expect(lidos, <int>[21, 20]);
+      expect(agendamentosAtualizados.value, antes + 1);
+
+      // Já mostrados nesta sessão: não repete a faixa.
+      await checador.verificar();
+      expect(faixas, hasLength(1));
+    },
+  );
 }

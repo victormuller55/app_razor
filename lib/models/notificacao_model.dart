@@ -61,6 +61,9 @@ class NotificacaoModel {
 
   bool get canceladoPelaBarbearia => tipo == tipoCanceladoPelaBarbearia;
 
+  /// Aviso só para informar (confirmação, lembrete, pagamento, devolução...): sem tela própria no app.
+  bool get informativo => !atendimentoConcluido && !canceladoPelaBarbearia;
+
   /// O agendamento cancelado, quando dá para marcar outro horário na mesma barbearia.
   AgendamentoModel? get agendamentoParaRemarcar {
     final AgendamentoModel? item = agendamento;

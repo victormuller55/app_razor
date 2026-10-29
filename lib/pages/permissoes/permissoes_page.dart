@@ -92,6 +92,8 @@ class _PermissoesPageState extends State<PermissoesPage>
         return 'Câmera';
       case PermissaoApp.galeria:
         return 'Fotos';
+      case PermissaoApp.notificacoes:
+        return 'Avisos';
     }
   }
 
@@ -103,6 +105,8 @@ class _PermissoesPageState extends State<PermissoesPage>
         return 'Tire uma foto para o seu perfil.';
       case PermissaoApp.galeria:
         return 'Escolha uma foto do perfil na galeria.';
+      case PermissaoApp.notificacoes:
+        return 'Lembrete 1 hora antes, confirmações e mudanças no seu horário.';
     }
   }
 
@@ -114,6 +118,8 @@ class _PermissoesPageState extends State<PermissoesPage>
         return Phosphor.camera;
       case PermissaoApp.galeria:
         return Phosphor.images;
+      case PermissaoApp.notificacoes:
+        return Phosphor.bell;
     }
   }
 
