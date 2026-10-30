@@ -3,13 +3,16 @@ import 'dart:async';
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/functions/abrir_rota.dart';
+import 'package:app_razor/functions/agendamentos_atualizados.dart';
 import 'package:app_razor/functions/lembrete_agendamento.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:app_razor/models/ordem_servico_model.dart';
+import 'package:app_razor/models/politica_agendamento_model.dart';
 import 'package:app_razor/pages/agendamento/agendamento_bloc.dart';
 import 'package:app_razor/pages/agendamento/agendamento_page.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_bloc.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_event.dart';
+import 'package:app_razor/pages/agendamentos/agendamentos_service.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_state.dart';
 import 'package:app_razor/pages/agendamentos/widgets/agendamento_lista_card.dart';
 import 'package:app_razor/pages/agendamentos/widgets/avaliar_servico_modal.dart';
@@ -19,6 +22,7 @@ import 'package:app_razor/pages/agendamentos/widgets/qr_confirmacao_modal.dart';
 import 'package:app_razor/pages/home/widgets/home_empty_state.dart';
 import 'package:app_razor/pages/pagamento/pagamento_modal.dart';
 import 'package:app_razor/pages/pagamento/pagar_ordem_servico.dart';
+import 'package:app_razor/widgets/app_error_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,6 +40,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
   AgendamentosBloc bloc = AgendamentosBloc();
   final ScrollController _scrollController = ScrollController();
   late final StreamSubscription<AgendamentosState> _lembrete;
+  PoliticaAgendamentoModel _politica = PoliticaAgendamentoModel.padrao;
 
   Future<void> _loadAgendamentos({bool forceRefresh = false}) async {
     final Future<AgendamentosState> done = bloc.stream.firstWhere(
@@ -45,6 +50,13 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
 
     bloc.add(AgendamentosLoadEvent(forceRefresh: forceRefresh));
     await done;
+  }
+
+  /// Push ou aviso informou uma mudança (pagamento, devolução, lembrete): a aba fica montada no menu.
+  void _recarregarDoServidor() {
+    if (mounted) {
+      unawaited(_loadAgendamentos(forceRefresh: true));
+    }
   }
 
   void _loadMoreAgendamentos() {
@@ -73,7 +85,11 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
 
     showCancelarAgendamentoModal(
       context: context,
-      onConfirmar: () => bloc.add(AgendamentosCancelEvent(id)),
+      inicio: agendamento.dataHora,
+      pagoPeloApp: agendamento.statusPagamento == 'APROVADO',
+      politica: _politica,
+      onConfirmar: (String? motivo) =>
+          bloc.add(AgendamentosCancelEvent(id, motivo: motivo)),
     );
   }
 
@@ -96,10 +112,25 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
       return;
     }
 
+    final List<DateTime> inicios = ordem.cancelaveis
+        .map((AgendamentoModel item) => item.dataHora)
+        .whereType<DateTime>()
+        .toList()
+      ..sort();
+
     showCancelarAgendamentoModal(
       context: context,
-      onConfirmar: () => bloc.add(
-        AgendamentosCancelOrdemEvent(idOrdem: idOrdem, idPrimeiro: ids.first),
+      inicio: inicios.firstOrNull,
+      pagoPeloApp: ordem.itens.any(
+        (AgendamentoModel item) => item.statusPagamento == 'APROVADO',
+      ),
+      politica: _politica,
+      onConfirmar: (String? motivo) => bloc.add(
+        AgendamentosCancelOrdemEvent(
+          idOrdem: idOrdem,
+          idPrimeiro: ids.first,
+          motivo: motivo,
+        ),
       ),
     );
   }
@@ -174,6 +205,12 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
       }
     });
     _loadAgendamentos();
+    agendamentosAtualizados.addListener(_recarregarDoServidor);
+    getPoliticaAgendamento().then((PoliticaAgendamentoModel politica) {
+      if (mounted) {
+        _politica = politica;
+      }
+    });
   }
 
   Widget _footerLoading() {
@@ -318,7 +355,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
         _cabecalho(),
         Expanded(
           child: state is AgendamentosErrorState
-              ? appError(
+              ? appErrorRazor(
                   state.errorModel,
                   function: () => _loadAgendamentos(forceRefresh: true),
                 )
@@ -381,6 +418,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
 
   @override
   void dispose() {
+    agendamentosAtualizados.removeListener(_recarregarDoServidor);
     _lembrete.cancel();
     _scrollController.dispose();
     bloc.close();

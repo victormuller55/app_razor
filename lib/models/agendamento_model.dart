@@ -103,6 +103,20 @@ class AgendamentoModel {
   /// Reembolso pedido e ainda não confirmado pelo Mercado Pago.
   double? valorReembolsoPendente;
 
+  /// Quem cancelou (`CLIENTE` ou `BARBEARIA`); null se não foi cancelado ou é antigo.
+  String? canceladoPor;
+
+  /// Data e hora do cancelamento (`2026-10-28T13:40:00`).
+  String? dataCancelamento;
+
+  String? motivoCancelamento;
+
+  /// O cliente cancelou depois do prazo (1 hora antes, por padrão). Sem multa.
+  bool cancelamentoTardio;
+
+  /// Quando o horário foi registrado como não comparecimento.
+  String? dataNoShow;
+
   AgendamentoModel({
     this.id,
     this.idBarbearia,
@@ -133,6 +147,11 @@ class AgendamentoModel {
     this.statusReembolso,
     this.valorReembolsado,
     this.valorReembolsoPendente,
+    this.canceladoPor,
+    this.dataCancelamento,
+    this.motivoCancelamento,
+    this.cancelamentoTardio = false,
+    this.dataNoShow,
   });
 
   factory AgendamentoModel.fromJson(Map<String, dynamic> json) {
@@ -170,6 +189,11 @@ class AgendamentoModel {
       statusReembolso: _asNonEmptyString(json['status_reembolso']),
       valorReembolsado: _asDouble(json['valor_reembolsado']),
       valorReembolsoPendente: _asDouble(json['valor_reembolso_pendente']),
+      canceladoPor: _asNonEmptyString(json['cancelado_por']),
+      dataCancelamento: _asNonEmptyString(json['data_cancelamento']),
+      motivoCancelamento: _asNonEmptyString(json['motivo_cancelamento']),
+      cancelamentoTardio: json['cancelamento_tardio'] == true,
+      dataNoShow: _asNonEmptyString(json['data_no_show']),
     );
   }
 
@@ -360,6 +384,24 @@ class AgendamentoModel {
     return aguardando;
   }
 
+  bool get canceladoPelaBarbearia {
+    return cancelado && canceladoPor == 'BARBEARIA';
+  }
+
+  /// Quem cancelou, para o cliente; null quando não foi cancelado.
+  String? get cancelamentoLabel {
+    if (!cancelado) {
+      return null;
+    }
+
+    return switch (canceladoPor) {
+      'BARBEARIA' => 'Cancelado pela barbearia',
+      'CLIENTE' when cancelamentoTardio => 'Você cancelou fora do prazo',
+      'CLIENTE' => 'Você cancelou',
+      _ => null,
+    };
+  }
+
   /// Ainda agendado e por vir: dá para trocar serviços, profissional e horário.
   bool podeEditarEm(DateTime agora) {
     final DateTime? inicio = dataHora;
@@ -393,7 +435,8 @@ class AgendamentoModel {
     return switch (statusReembolso) {
       'PROCESSANDO' || 'SOLICITADO' => 'Reembolso em processamento',
       'CONFIRMADO' => 'Reembolsado',
-      'FALHOU' => 'Reembolso com falha',
+      // Recusado pelo Mercado Pago: o valor continua a ser devolvido, a plataforma tenta de novo.
+      'FALHOU' => 'Reembolso em nova tentativa',
       _ => null,
     };
   }

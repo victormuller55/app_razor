@@ -4,6 +4,7 @@ import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/functions/lembrete_agendamento.dart';
 import 'package:app_razor/models/agendamento_model.dart';
+import 'package:app_razor/models/politica_agendamento_model.dart';
 import 'package:app_razor/pages/agendamento/agendamento_bloc.dart';
 import 'package:app_razor/pages/agendamento/agendamento_blocos.dart';
 import 'package:app_razor/pages/agendamento/agendamento_event.dart';
@@ -11,7 +12,9 @@ import 'package:app_razor/pages/agendamento/agendamento_state.dart';
 import 'package:app_razor/pages/agendamento/widgets/ordem_criada_modal.dart';
 import 'package:app_razor/pages/agendamento/widgets/profissional_select_card.dart';
 import 'package:app_razor/pages/agendamento/widgets/servico_agendamento_card.dart';
+import 'package:app_razor/pages/agendamentos/agendamentos_service.dart';
 import 'package:app_razor/pages/pagamento/pagamento_modal.dart';
+import 'package:app_razor/widgets/app_error_razor.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
@@ -98,6 +101,8 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
   /// Cliente pediu um profissional diferente para cada serviço.
   bool _separarProfissionais = false;
   bool _mostrarObservacao = false;
+  PoliticaAgendamentoModel _politica = PoliticaAgendamentoModel.padrao;
+  bool _mostrarRegras = false;
 
   static const List<String> _diasSemana = <String>[
     'seg',
@@ -148,6 +153,11 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
       edicao: widget.edicao,
     );
     bloc.add(AgendamentoLoadEvent());
+    getPoliticaAgendamento().then((PoliticaAgendamentoModel politica) {
+      if (mounted) {
+        setState(() => _politica = politica);
+      }
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -1274,7 +1284,7 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
     }
 
     if (state is AgendamentoErrorState) {
-      return appError(
+      return appErrorRazor(
         state.errorModel,
         function: () => bloc.add(AgendamentoLoadEvent(forceRefresh: true)),
       );
@@ -1307,7 +1317,65 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
         _quando(state),
         // Na edição a observação continua a de quando marcou.
         if (!_editando) _observacoes(),
+        _regras(),
       ],
+    );
+  }
+
+  /// Regras de cancelamento e atraso, visíveis antes de confirmar.
+  Widget _regras() {
+    final PoliticaAgendamentoModel politica = _politica;
+    return Padding(
+      key: const Key('regras_agendamento'),
+      padding: EdgeInsets.fromLTRB(_margem, AppSpacing.big - 4, _margem, 0),
+      child: appContainer(
+        width: double.infinity,
+        padding: EdgeInsets.all(AppSpacing.normal + 4),
+        backgroundColor: AppEstilo.campoFundo,
+        radius: BorderRadius.circular(AppRadii.externo),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Phosphor.info, size: 18, color: AppEstilo.campoIcone),
+                appSizedBox(width: 8),
+                Expanded(
+                  child: appText(
+                    'Cancelamento e atraso',
+                    bold: true,
+                    fontSize: AppFontSizes.verySmall + 1,
+                    color: local.AppColors.text,
+                  ),
+                ),
+              ],
+            ),
+            appSizedBox(height: 6),
+            appText(
+              'Cancele pelo app até ${politica.prazoLabel} antes do horário. '
+              'Depois disso ainda dá para cancelar, sem multa. '
+              'Tolerância de atraso: ${politica.toleranciaLabel}.',
+              color: local.AppColors.textSecondary,
+              fontSize: AppFontSizes.verySmall,
+            ),
+            if (_mostrarRegras)
+              for (final String regra in politica.regrasParaExibir)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: appText(
+                    '• $regra',
+                    color: local.AppColors.textSecondary,
+                    fontSize: AppFontSizes.verySmall,
+                  ),
+                ),
+            appSizedBox(height: 6),
+            _linkAcao(
+              _mostrarRegras ? 'Ocultar regras' : 'Ver todas as regras',
+              () => setState(() => _mostrarRegras = !_mostrarRegras),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

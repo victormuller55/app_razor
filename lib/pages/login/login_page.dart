@@ -4,9 +4,10 @@ import 'package:app_razor/pages/cadastro/cadastro_page.dart';
 import 'package:app_razor/pages/login/login_bloc.dart';
 import 'package:app_razor/pages/login/login_event.dart';
 import 'package:app_razor/pages/login/login_state.dart';
+import 'package:app_razor/pages/recuperar_senha/recuperar_senha_page.dart';
 import 'package:app_razor/widgets/app_auth_layout.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -46,6 +47,17 @@ class _LoginPageState extends State<LoginPage> {
         senha: senha.controller.text,
       ),
     );
+  }
+
+  Future<void> _openRecuperarSenha() async {
+    final String? emailUsado = await Navigator.of(context).push<String>(
+      CupertinoPageRoute(
+        builder: (_) => RecuperarSenhaPage(emailInicial: email.controller.text.trim()),
+      ),
+    );
+    if (!mounted || emailUsado == null || emailUsado.isEmpty) return;
+    email.controller.text = emailUsado;
+    senha.controller.clear();
   }
 
   void _openCadastro() {
@@ -103,7 +115,11 @@ class _LoginPageState extends State<LoginPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _formCampos(),
-        appSizedBox(height: 20),
+        Align(
+          alignment: Alignment.centerRight,
+          child: appAuthLink(texto: 'Esqueci minha senha', onTap: _openRecuperarSenha),
+        ),
+        appSizedBox(height: 8),
         Padding(
           padding: const EdgeInsets.only(left: 5, right: 5),
           child: AppAuthTermos(

@@ -8,6 +8,7 @@ import 'package:app_razor/functions/media_url.dart';
 import 'package:app_razor/models/barbearia_model.dart';
 import 'package:app_razor/models/promocao_model.dart';
 import 'package:app_razor/models/usuario_model.dart';
+import 'package:app_razor/pages/barbearia_perfil/barbearia_perfil_page.dart';
 import 'package:app_razor/pages/home/home_bloc.dart';
 import 'package:app_razor/pages/home/home_event.dart';
 import 'package:app_razor/pages/home/home_state.dart';
@@ -15,7 +16,6 @@ import 'package:app_razor/pages/home/widgets/home_empty_state.dart';
 import 'package:app_razor/pages/home/widgets/home_favorita_card.dart';
 import 'package:app_razor/pages/home/widgets/home_promocao_card.dart';
 import 'package:app_razor/pages/home/widgets/home_proxima_card.dart';
-import 'package:app_razor/pages/barbearia_perfil/barbearia_perfil_page.dart';
 import 'package:app_razor/pages/mapa_barbearias/mapa_barbearias_page.dart';
 import 'package:app_razor/pages/pesquisa_barbearias/pesquisa_barbearias_page.dart';
 import 'package:app_razor/widgets/app_campo_busca.dart';
@@ -28,10 +28,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({
-    super.key,
-    this.onOpenPerfil,
-  });
+  const HomePage({super.key, this.onOpenPerfil});
 
   final VoidCallback? onOpenPerfil;
 
@@ -53,7 +50,6 @@ class _HomePageState extends State<HomePage> {
   final ValueNotifier<bool> _showTitle = ValueNotifier(false);
   final ValueNotifier<double> _folhaRadiusAtual = ValueNotifier(_folhaRadius);
 
-
   Future<void> _loadUsuario() async {
     final UsuarioModel local = await getLocalUserModel();
 
@@ -71,10 +67,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   double _alturaHeaderColapsado(double topInset) {
-    return topInset +
-        _headerPaddingTop +
-        _headerAvatarDiameter +
-        _headerPaddingBottom;
+    return topInset + _headerPaddingTop + _headerAvatarDiameter + _headerPaddingBottom;
   }
 
   void _atualizarRaioFolha() {
@@ -97,8 +90,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     final double topoAtual = topoInicial - _scrollController.offset;
-    final double progresso =
-        (1 - (topoAtual - headerBottom) / gapInicial).clamp(0.0, 1.0);
+    final double progresso = (1 - (topoAtual - headerBottom) / gapInicial).clamp(0.0, 1.0);
     final double radius = _folhaRadius * (1 - progresso);
 
     if ((_folhaRadiusAtual.value - radius).abs() >= 0.4) {
@@ -158,10 +150,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     open(
-      screen: MapaBarbeariasPage(
-        latitude: latitude,
-        longitude: longitude,
-      ),
+      screen: MapaBarbeariasPage(latitude: latitude, longitude: longitude),
     );
   }
 
@@ -207,13 +196,7 @@ class _HomePageState extends State<HomePage> {
       radius: radius,
       backgroundColor: local.AppColors.primary.withValues(alpha: 0.12),
       backgroundImage: url == null ? null : NetworkImage(url),
-      child: url == null
-          ? Icon(
-              Phosphor.user,
-              size: radius,
-              color: local.AppColors.primary,
-            )
-          : null,
+      child: url == null ? Icon(Phosphor.user, size: radius, color: local.AppColors.primary) : null,
     );
   }
 
@@ -288,10 +271,7 @@ class _HomePageState extends State<HomePage> {
           appSizedBox(width: AppSpacing.normal),
           Container(
             padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppEstilo.campoFundo,
-            ),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: AppEstilo.campoFundo),
             child: _avatarUsuario(),
           ),
         ],
@@ -309,12 +289,7 @@ class _HomePageState extends State<HomePage> {
   Widget _tituloSecao(String titulo) {
     return Padding(
       padding: EdgeInsets.only(bottom: AppSpacing.normal + 2),
-      child: appText(
-        titulo,
-        bold: true,
-        fontSize: 18,
-        color: local.AppColors.text,
-      ),
+      child: appText(titulo, bold: true, fontSize: 18, color: local.AppColors.text),
     );
   }
 
@@ -350,13 +325,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     if (isEmpty) {
-      return _estadoSecao(
-        homeEmptyState(
-          icon: emptyIcon,
-          iconSize: 28,
-          message: emptyMessage,
-        ),
-      );
+      return _estadoSecao(homeEmptyState(icon: emptyIcon, iconSize: 28, message: emptyMessage));
     }
 
     return lista;
@@ -369,10 +338,8 @@ class _HomePageState extends State<HomePage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: favoritas
             .map(
-              (BarbeariaModel barbearia) => homeFavoritaCard(
-                barbearia: barbearia,
-                onTap: () => _openBarbearia(barbearia),
-              ),
+              (BarbeariaModel barbearia) =>
+                  homeFavoritaCard(barbearia: barbearia, onTap: () => _openBarbearia(barbearia)),
             )
             .toList(),
       ),
@@ -396,10 +363,8 @@ class _HomePageState extends State<HomePage> {
     return Column(
       children: promocoes
           .map(
-            (PromocaoModel promocao) => homePromocaoCard(
-              promocao: promocao,
-              onTap: () => _openPromocao(promocao),
-            ),
+            (PromocaoModel promocao) =>
+                homePromocaoCard(promocao: promocao, onTap: () => _openPromocao(promocao)),
           )
           .toList(),
     );
@@ -489,11 +454,7 @@ class _HomePageState extends State<HomePage> {
   Widget _secoesListas() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _secaoFavoritas(),
-        _secaoProximas(),
-        _secaoPromocoes(),
-      ],
+      children: [_secaoFavoritas(), _secaoProximas(), _secaoPromocoes()],
     );
   }
 
@@ -508,12 +469,8 @@ class _HomePageState extends State<HomePage> {
       builder: (BuildContext context, HomeState state) {
         final bool secoesVazias = state.todasSecoesVazias;
         final bool carregando = state.carregando;
-        final double paddingBottom =
-            AppSpacing.giant + kBottomNavigationBarHeight;
-        final double alturaCentro = (alturaMinima -
-                AppSpacing.medium * 2 -
-                paddingBottom -
-                72)
+        final double paddingBottom = AppSpacing.giant + kBottomNavigationBarHeight;
+        final double alturaCentro = (alturaMinima - AppSpacing.medium * 2 - paddingBottom - 72)
             .clamp(180.0, 560.0);
 
         return ConstrainedBox(
@@ -530,11 +487,7 @@ class _HomePageState extends State<HomePage> {
               children: [
                 _blocoPerfil(),
                 if (carregando)
-                  SizedBox(
-                    height: alturaCentro,
-                    width: double.infinity,
-                    child: appLoadingRazor(),
-                  )
+                  SizedBox(height: alturaCentro, width: double.infinity, child: appLoadingRazor())
                 else if (secoesVazias)
                   homeEmptyStateCentral(
                     message: homeMensagemSemBarbeariasProximas,
@@ -556,9 +509,7 @@ class _HomePageState extends State<HomePage> {
     return ValueListenableBuilder<double>(
       valueListenable: _folhaRadiusAtual,
       builder: (BuildContext context, double radius, Widget? child) {
-        final BorderRadius geometria = BorderRadius.vertical(
-          top: Radius.circular(radius),
-        );
+        final BorderRadius geometria = BorderRadius.vertical(top: Radius.circular(radius));
 
         return DecoratedBox(
           decoration: BoxDecoration(
@@ -574,10 +525,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ],
           ),
-          child: ClipRRect(
-            borderRadius: geometria,
-            child: child,
-          ),
+          child: ClipRRect(borderRadius: geometria, child: child),
         );
       },
       child: _conteudoScroll(alturaMinima: alturaMinima),
@@ -637,9 +585,7 @@ class _HomePageState extends State<HomePage> {
                 child: SizedBox(height: alturaMapa - _folhaRadius),
               ),
             ),
-            SliverToBoxAdapter(
-              child: _folhaConteudo(alturaMinima: alturaFolha),
-            ),
+            SliverToBoxAdapter(child: _folhaConteudo(alturaMinima: alturaFolha)),
           ],
         ),
         _headerColapsado(topInset),

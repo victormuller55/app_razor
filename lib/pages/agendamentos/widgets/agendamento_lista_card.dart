@@ -301,6 +301,20 @@ Widget _cabecalho(AgendamentoModel agendamento, {required bool aberto}) {
                   ),
                 ),
               ),
+            if (agendamento.cancelamentoLabel != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: appText(
+                  agendamento.canceladoPelaBarbearia &&
+                          agendamento.motivoCancelamento != null
+                      ? '${agendamento.cancelamentoLabel}: ${agendamento.motivoCancelamento}'
+                      : agendamento.cancelamentoLabel!,
+                  maxLines: 3,
+                  overflow: true,
+                  color: local.AppColors.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
             if (agendamento.nomeBarbearia != null)
               Padding(
                 padding: const EdgeInsets.only(top: 2),

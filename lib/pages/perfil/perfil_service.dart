@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:app_razor/app_config/const/app_endpoints.dart';
 import 'package:app_razor/functions/http_cache.dart';
 import 'package:app_razor/functions/local_storage.dart';
+import 'package:app_razor/functions/push_notificacoes.dart';
 import 'package:app_razor/models/usuario_model.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -96,11 +97,15 @@ Future<void> excluirContaPerfil({required String senha}) async {
     endpoint: AppEndpoints.endpointUsuariosEuExcluir,
     body: <String, dynamic>{'senha': senha},
   );
+  // A API já desativou os aparelhos da conta; aqui só se apaga o token deste aparelho.
+  await PushNotificacoes.instance.esquecerAparelho();
   await HttpCache.clearCache();
   await clearLocalData();
 }
 
 Future<void> sairDaConta() async {
+  // Antes de apagar o login: a API só desvincula o aparelho de quem está logado.
+  await PushNotificacoes.instance.desvincular();
   await HttpCache.clearCache();
   await clearLocalData();
 }

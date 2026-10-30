@@ -6,6 +6,9 @@ class AppEndpoints {
 
   static String get endpointAuthCadastro => '$server/api/v1/auth/cadastro';
   static String get endpointAuthLogin => '$server/api/v1/auth/login';
+  static String get endpointAuthRecuperarSenha => '$server/api/v1/auth/recuperar-senha';
+  static String get endpointAuthVerificarCodigo => '$server/api/v1/auth/recuperar-senha/verificar';
+  static String get endpointAuthRedefinirSenha => '$server/api/v1/auth/recuperar-senha/redefinir';
   static String get endpointUsuariosEu => '$server/api/v1/usuarios/eu';
   static String get endpointUsuariosEuSenha => '$server/api/v1/usuarios/eu/senha';
   static String get endpointUsuariosEuEmail => '$server/api/v1/usuarios/eu/email';
@@ -26,7 +29,10 @@ class AppEndpoints {
       '$server/api/v1/agendamentos/$id/avaliacao-atendimento';
   static String get endpointNotificacoes => '$server/api/v1/notificacoes';
   static String endpointNotificacaoLida(int id) => '$server/api/v1/notificacoes/$id/lida';
+  static String get endpointDispositivos => '$server/api/v1/dispositivos';
+  static String get endpointDispositivosRemover => '$server/api/v1/dispositivos/remover';
   static String endpointOrdemServicoPagamento(int id) => '$server/api/v1/agendamentos/ordem/$id/pagamento';
+  static String get endpointAgendamentosPolitica => '$server/api/v1/agendamentos/politica';
   static String endpointOrdemServicoCancelar(int id) => '$server/api/v1/agendamentos/ordem/$id/cancelar';
   static String endpointAgendamentoEditar(int id) => '$server/api/v1/agendamentos/$id';
   static String endpointOrdemServicoEditar(int id) => '$server/api/v1/agendamentos/ordem/$id';

@@ -10,6 +10,7 @@ import 'package:app_razor/pages/barbearia_perfil/barbearia_perfil_page.dart';
 import 'package:app_razor/pages/barbearias/barbearias_service.dart';
 import 'package:app_razor/pages/home/widgets/home_empty_state.dart';
 import 'package:app_razor/pages/home/widgets/home_proxima_card.dart';
+import 'package:app_razor/widgets/app_error_razor.dart';
 import 'package:app_razor/widgets/app_campo_busca.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
@@ -223,7 +224,7 @@ class _PesquisaBarbeariasPageState extends State<PesquisaBarbeariasPage> {
     final ErrorModel? erro = _erro;
 
     if (erro != null) {
-      return appError(erro, function: _carregar);
+      return appErrorRazor(erro, function: _carregar);
     }
 
     final List<BarbeariaModel> resultados = _resultados;

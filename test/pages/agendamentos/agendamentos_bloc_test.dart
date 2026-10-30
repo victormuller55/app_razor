@@ -211,8 +211,9 @@ void main() {
         }) async {
           return ok(envelope(itens: itemUm));
         },
-        cancelar: ({required int id}) async {
+        cancelar: ({required int id, String? motivo}) async {
           expect(id, 1);
+          expect(motivo, 'Imprevisto');
           return ok('''
 {
   "id": 1,
@@ -221,7 +222,10 @@ void main() {
   "data_agendamento": "2026-09-02",
   "hora_inicio": "10:00:00",
   "status": "CANCELADO",
-  "preco": 45
+  "preco": 45,
+  "cancelado_por": "CLIENTE",
+  "cancelamento_tardio": true,
+  "motivo_cancelamento": "Imprevisto"
 }
 ''');
         },
@@ -234,11 +238,12 @@ void main() {
         (AgendamentosState state) =>
             state is AgendamentosSuccessState && state.cancelandoId == null,
       );
-      bloc.add(AgendamentosCancelEvent(1));
+      bloc.add(AgendamentosCancelEvent(1, motivo: 'Imprevisto'));
       final AgendamentosState state = await done;
 
       expect(state.itens.single.status, 'CANCELADO');
       expect(state.itens.single.podeCancelar, isFalse);
+      expect(state.itens.single.cancelamentoLabel, 'Você cancelou fora do prazo');
 
       await bloc.close();
     });

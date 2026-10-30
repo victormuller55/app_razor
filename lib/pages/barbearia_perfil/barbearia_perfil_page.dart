@@ -16,6 +16,7 @@ import 'package:app_razor/pages/barbearia_perfil/widgets/servico_grid_card.dart'
 import 'package:app_razor/pages/home/widgets/home_barbearia_logo.dart';
 import 'package:app_razor/pages/home/widgets/home_promocao_card.dart';
 import 'package:app_razor/pages/home/widgets/home_proxima_card.dart';
+import 'package:app_razor/widgets/app_error_razor.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
@@ -1428,7 +1429,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
   Widget _bodyTela(BarbeariaPerfilState state) {
     if (state is BarbeariaPerfilErrorState) {
       return Center(
-        child: appError(
+        child: appErrorRazor(
           state.errorModel,
           function: () => _loadPerfil(forceRefresh: true),
         ),

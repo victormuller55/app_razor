@@ -4,6 +4,8 @@ import 'package:app_razor/models/agendamento_model.dart';
 /// então chega mesmo que o app estivesse fechado quando o atendimento terminou.
 class NotificacaoModel {
   static const String tipoAtendimentoConcluido = 'ATENDIMENTO_CONCLUIDO';
+  static const String tipoCanceladoPelaBarbearia =
+      'AGENDAMENTO_CANCELADO_BARBEARIA';
 
   final int id;
   final String? tipo;
@@ -56,6 +58,24 @@ class NotificacaoModel {
   }
 
   bool get atendimentoConcluido => tipo == tipoAtendimentoConcluido;
+
+  bool get canceladoPelaBarbearia => tipo == tipoCanceladoPelaBarbearia;
+
+  /// Aviso só para informar (confirmação, lembrete, pagamento, devolução...): sem tela própria no app.
+  bool get informativo => !atendimentoConcluido && !canceladoPelaBarbearia;
+
+  /// O agendamento cancelado, quando dá para marcar outro horário na mesma barbearia.
+  AgendamentoModel? get agendamentoParaRemarcar {
+    final AgendamentoModel? item = agendamento;
+    if (!canceladoPelaBarbearia ||
+        item == null ||
+        item.id != idAgendamento ||
+        item.idBarbearia == null) {
+      return null;
+    }
+
+    return item;
+  }
 
   /// O agendamento do aviso, se ainda tiver alguma nota por dar.
   AgendamentoModel? get agendamentoParaAvaliar {
