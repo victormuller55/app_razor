@@ -98,11 +98,10 @@ struct AgendamentoLiveActivity: Widget {
             .dynamicIsland(verticalPlacement: .belowIfTooWide)
         }
       } compactLeading: {
+        // Sem largura fixa: a ilha fechada ocupa só o tamanho dos itens.
         Avatar(attributes: context.attributes, cor: s.estado.cor, tamanho: 20, borda: 1.5)
-          .frame(width: 20)
       } compactTrailing: {
         IndicadorCompacto(s: s)
-          .frame(width: 42)
       } minimal: {
         Avatar(attributes: context.attributes, cor: s.estado.cor, tamanho: 20, borda: 1.5)
       }
@@ -236,7 +235,7 @@ private struct Botao: View {
   }
 }
 
-/// Ilha fechada, à direita da câmera (42 pt).
+/// Ilha fechada, à direita da câmera: só o tamanho do conteúdo, para a ilha não crescer à toa.
 private struct IndicadorCompacto: View {
   let s: Situacao
 
@@ -247,27 +246,36 @@ private struct IndicadorCompacto: View {
         Image(systemName: "qrcode")
           .foregroundStyle(Razor.aguardando)
       } else {
-        Text(timerInterval: s.contagem, countsDown: true)
-          .monospacedDigit()
-          .font(.caption2.weight(.semibold))
-          .foregroundStyle(Razor.aguardando)
-          .multilineTextAlignment(.trailing)
-          .minimumScaleFactor(0.7)
+        Relogio(intervalo: s.contagem, regressivo: true, cor: Razor.aguardando)
       }
     case .confirmado:
       Image(systemName: "checkmark.circle.fill")
         .foregroundStyle(Razor.confirmado)
     case .emAtendimento:
-      Text(timerInterval: s.desdeInicio, countsDown: false)
-        .monospacedDigit()
-        .font(.caption2.weight(.semibold))
-        .foregroundStyle(Razor.emAtendimento)
-        .multilineTextAlignment(.trailing)
-        .minimumScaleFactor(0.7)
+      Relogio(intervalo: s.desdeInicio, regressivo: false, cor: Razor.emAtendimento)
     case .finalizado:
       Image(systemName: "checkmark.seal.fill")
         .foregroundStyle(Razor.finalizado)
     }
+  }
+}
+
+/// Contagem ou cronômetro da ilha fechada. O `Text(timerInterval:)` ocupa toda a largura que receber, então
+/// a largura é a de "00:00" (o que passar de 1 hora encolhe a fonte).
+private struct Relogio: View {
+  let intervalo: ClosedRange<Date>
+  let regressivo: Bool
+  let cor: Color
+
+  var body: some View {
+    Text(timerInterval: intervalo, countsDown: regressivo)
+      .monospacedDigit()
+      .font(.caption2.weight(.semibold))
+      .foregroundStyle(cor)
+      .multilineTextAlignment(.trailing)
+      .lineLimit(1)
+      .minimumScaleFactor(0.7)
+      .frame(width: 30)
   }
 }
 
