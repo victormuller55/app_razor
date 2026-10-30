@@ -16,6 +16,7 @@ import 'package:app_razor/pages/perfil/perfil_service.dart';
 import 'package:app_razor/pages/perfil/perfil_state.dart';
 import 'package:app_razor/pages/perfil/politica_privacidade_page.dart';
 import 'package:app_razor/pages/perfil/trocar_senha_page.dart';
+import 'package:app_razor/widgets/app_error_razor.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
@@ -666,7 +667,7 @@ class _PerfilPageState extends State<PerfilPage> {
         _cabecalho(),
         Expanded(
           child: state is PerfilErrorState
-              ? appError(
+              ? appErrorRazor(
                   state.errorModel,
                   function: () => _load(),
                 )

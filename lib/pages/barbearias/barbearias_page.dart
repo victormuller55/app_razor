@@ -1,6 +1,7 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/models/barbearia_model.dart';
+import 'package:app_razor/pages/barbearia_perfil/barbearia_perfil_page.dart';
 import 'package:app_razor/pages/barbearias/barbearias_bloc.dart';
 import 'package:app_razor/pages/barbearias/barbearias_event.dart';
 import 'package:app_razor/pages/barbearias/barbearias_state.dart';
@@ -8,8 +9,8 @@ import 'package:app_razor/pages/barbearias/filters/barbearias_filtros.dart';
 import 'package:app_razor/pages/barbearias/filters/barbearias_filtros_modal.dart';
 import 'package:app_razor/pages/barbearias/widgets/barbearia_grid_card.dart';
 import 'package:app_razor/pages/home/widgets/home_empty_state.dart';
-import 'package:app_razor/pages/barbearia_perfil/barbearia_perfil_page.dart';
 import 'package:app_razor/pages/pesquisa_barbearias/pesquisa_barbearias_page.dart';
+import 'package:app_razor/widgets/app_error_razor.dart';
 import 'package:app_razor/widgets/app_campo_busca.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
@@ -17,7 +18,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
-
 
 /// Altura dos campos e botões do cabeçalho.
 const double _alturaCampo = appCampoBuscaAltura;
@@ -37,16 +37,10 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
 
   Future<void> _loadBarbearias({bool forceRefresh = false}) async {
     final Future<BarbeariasState> done = bloc.stream.firstWhere(
-      (BarbeariasState state) =>
-          state is BarbeariasSuccessState || state is BarbeariasErrorState,
+      (BarbeariasState state) => state is BarbeariasSuccessState || state is BarbeariasErrorState,
     );
 
-    bloc.add(
-      BarbeariasLoadEvent(
-        filtros: _filtros,
-        forceRefresh: forceRefresh,
-      ),
-    );
+    bloc.add(BarbeariasLoadEvent(filtros: _filtros, forceRefresh: forceRefresh));
 
     await done;
   }
@@ -133,10 +127,7 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
                 color: local.AppColors.primary,
                 borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
               ),
-              child: const Icon(
-                Phosphor.slidersHorizontal,
-                color: local.AppColors.white,
-              ),
+              child: const Icon(Phosphor.slidersHorizontal, color: local.AppColors.white),
             ),
             if (ativo)
               Positioned(
@@ -148,10 +139,7 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
                   decoration: BoxDecoration(
                     color: AppEstilo.destaque,
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: local.AppColors.white,
-                      width: 2,
-                    ),
+                    border: Border.all(color: local.AppColors.white, width: 2),
                   ),
                 ),
               ),
@@ -172,12 +160,7 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          appText(
-            AppStrings.barbearias,
-            bold: true,
-            fontSize: 26,
-            color: local.AppColors.text,
-          ),
+          appText(AppStrings.barbearias, bold: true, fontSize: 26, color: local.AppColors.text),
           appSizedBox(height: 2),
           appText(
             'Encontre a barbearia ideal perto de você',
@@ -224,10 +207,7 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
   Widget _listaItens(BarbeariasState state) {
     final double espacoHorizontal = AppSpacing.medium - 6;
     final double larguraCard =
-        (MediaQuery.sizeOf(context).width -
-            AppSpacing.medium * 2 -
-            espacoHorizontal) /
-        2;
+        (MediaQuery.sizeOf(context).width - AppSpacing.medium * 2 - espacoHorizontal) / 2;
 
     return SliverPadding(
       padding: EdgeInsets.fromLTRB(
@@ -245,22 +225,16 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
               crossAxisSpacing: espacoHorizontal,
               mainAxisExtent: larguraCard + barbeariaGridCardAlturaTexto,
             ),
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                final BarbeariaModel barbearia = state.itens[index];
+            delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
+              final BarbeariaModel barbearia = state.itens[index];
 
-                return barbeariaGridCard(
-                  barbearia: barbearia,
-                  onTap: () => _openBarbearia(barbearia),
-                );
-              },
-              childCount: state.itens.length,
-            ),
+              return barbeariaGridCard(
+                barbearia: barbearia,
+                onTap: () => _openBarbearia(barbearia),
+              );
+            }, childCount: state.itens.length),
           ),
-          if (state.loadingMore)
-            SliverToBoxAdapter(
-              child: _footerLoading(),
-            ),
+          if (state.loadingMore) SliverToBoxAdapter(child: _footerLoading()),
         ],
       ),
     );
@@ -273,7 +247,7 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
 
     if (state is BarbeariasErrorState) {
       return _estadoCentral(
-        appError(
+        appErrorRazor(
           state.errorModel,
           function: () {
             _loadBarbearias();
@@ -305,11 +279,8 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: <Widget>[
-            // O título e a busca rolam junto com a lista.
             SliverToBoxAdapter(child: _cabecalho()),
-            SliverToBoxAdapter(
-              child: appSizedBox(height: AppSpacing.small),
-            ),
+            SliverToBoxAdapter(child: appSizedBox(height: AppSpacing.small)),
             _conteudoLista(state),
           ],
         ),

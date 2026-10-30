@@ -14,6 +14,7 @@ import 'package:app_razor/pages/agendamento/widgets/profissional_select_card.dar
 import 'package:app_razor/pages/agendamento/widgets/servico_agendamento_card.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_service.dart';
 import 'package:app_razor/pages/pagamento/pagamento_modal.dart';
+import 'package:app_razor/widgets/app_error_razor.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
@@ -1283,7 +1284,7 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
     }
 
     if (state is AgendamentoErrorState) {
-      return appError(
+      return appErrorRazor(
         state.errorModel,
         function: () => bloc.add(AgendamentoLoadEvent(forceRefresh: true)),
       );

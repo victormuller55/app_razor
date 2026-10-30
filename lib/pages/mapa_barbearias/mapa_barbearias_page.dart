@@ -5,6 +5,7 @@ import 'package:app_razor/pages/mapa_barbearias/mapa_barbearias_bloc.dart';
 import 'package:app_razor/pages/mapa_barbearias/mapa_barbearias_event.dart';
 import 'package:app_razor/pages/mapa_barbearias/mapa_barbearias_state.dart';
 import 'package:app_razor/pages/mapa_barbearias/widgets/barbearia_mapa_modal.dart';
+import 'package:app_razor/widgets/app_error_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:app_razor/widgets/app_maps.dart';
 import 'package:flutter/material.dart';
@@ -104,7 +105,7 @@ class _MapaBarbeariasPageState extends State<MapaBarbeariasPage> {
 
   Widget _conteudo(MapaBarbeariasState state) {
     if (state is MapaBarbeariasErrorState) {
-      return appError(
+      return appErrorRazor(
         state.errorModel,
         function: () => bloc.add(MapaBarbeariasLoadEvent(forceRefresh: true)),
       );

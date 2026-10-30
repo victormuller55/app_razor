@@ -22,6 +22,7 @@ import 'package:app_razor/pages/agendamentos/widgets/qr_confirmacao_modal.dart';
 import 'package:app_razor/pages/home/widgets/home_empty_state.dart';
 import 'package:app_razor/pages/pagamento/pagamento_modal.dart';
 import 'package:app_razor/pages/pagamento/pagar_ordem_servico.dart';
+import 'package:app_razor/widgets/app_error_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -354,7 +355,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
         _cabecalho(),
         Expanded(
           child: state is AgendamentosErrorState
-              ? appError(
+              ? appErrorRazor(
                   state.errorModel,
                   function: () => _loadAgendamentos(forceRefresh: true),
                 )
