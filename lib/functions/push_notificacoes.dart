@@ -10,18 +10,21 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Configuração do Firebase vinda do build (`--dart-define`), sem arquivo do Firebase no repositório:
+/// Configuração do Firebase vinda do build, sem arquivo do Firebase no repositório. O jeito mais simples é um
+/// JSON fora do Git (`firebase.env.json`, ignorado) com as chaves abaixo:
 ///
 /// ```
-/// flutter run --dart-define=FIREBASE_PROJECT_ID=... --dart-define=FIREBASE_API_KEY=...
-///   --dart-define=FIREBASE_SENDER_ID=... --dart-define=FIREBASE_APP_ID_ANDROID=...
-///   --dart-define=FIREBASE_APP_ID_IOS=... [--dart-define=FIREBASE_IOS_BUNDLE_ID=...]
+/// flutter run --dart-define-from-file=firebase.env.json
 /// ```
+///
+/// Chaves: FIREBASE_PROJECT_ID, FIREBASE_SENDER_ID, FIREBASE_API_KEY (Android), FIREBASE_API_KEY_IOS (se
+/// diferente), FIREBASE_APP_ID_ANDROID, FIREBASE_APP_ID_IOS e FIREBASE_IOS_BUNDLE_ID (opcional).
 ///
 /// Sem esses valores o push fica desligado e o app segue só com os avisos buscados na API.
 class ConfigFirebase {
   static const String projectId = String.fromEnvironment('FIREBASE_PROJECT_ID');
-  static const String apiKey = String.fromEnvironment('FIREBASE_API_KEY');
+  static const String apiKeyAndroid = String.fromEnvironment('FIREBASE_API_KEY');
+  static const String apiKeyIos = String.fromEnvironment('FIREBASE_API_KEY_IOS');
   static const String senderId = String.fromEnvironment('FIREBASE_SENDER_ID');
   static const String appIdAndroid = String.fromEnvironment('FIREBASE_APP_ID_ANDROID');
   static const String appIdIos = String.fromEnvironment('FIREBASE_APP_ID_IOS');
@@ -30,12 +33,13 @@ class ConfigFirebase {
   /// Opções para o aparelho atual, ou nulo quando falta algum valor (push desligado).
   static FirebaseOptions? opcoes({
     String projeto = projectId,
-    String chave = apiKey,
+    String? chave,
     String remetente = senderId,
     String? appId,
     String bundleIos = iosBundleId,
   }) {
     final String app = appId ?? (_ios ? appIdIos : appIdAndroid);
+    chave ??= _ios && apiKeyIos.isNotEmpty ? apiKeyIos : apiKeyAndroid;
     if (projeto.isEmpty || chave.isEmpty || remetente.isEmpty || app.isEmpty) {
       return null;
     }

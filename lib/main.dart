@@ -36,7 +36,6 @@ void main() {
     final WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
     _initGoogleMaps();
-    // Push (RAZ-11): sem a configuração do Firebase no build, fica desligado e o app segue igual.
     await PushNotificacoes.instance.inicializar();
     runApp(const AppWidget());
   });
