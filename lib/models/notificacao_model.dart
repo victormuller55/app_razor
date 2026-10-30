@@ -57,6 +57,60 @@ class NotificacaoModel {
         .toList();
   }
 
+  /// Título curto para mostrar dentro do app. O [titulo] do servidor é o texto do push, longo e com emojis.
+  String get tituloNoApp {
+    if (atendimentoConcluido) {
+      return 'Como foi seu atendimento?';
+    }
+    if (canceladoPelaBarbearia) {
+      return 'A barbearia cancelou seu horário';
+    }
+    final String? quando = _quando;
+    return switch (tipo) {
+      'AGENDAMENTO_CONFIRMADO' =>
+        quando == null ? 'Agendamento confirmado' : 'Agendamento confirmado para $quando',
+      'LEMBRETE_AGENDAMENTO' =>
+        quando == null ? 'Seu horário está chegando' : 'Lembrete: seu horário é $quando',
+      'NAO_COMPARECIMENTO' => 'Horário registrado como não comparecimento',
+      'PAGAMENTO_CONFIRMADO' => 'Pagamento confirmado',
+      'PAGAMENTO_RECUSADO' => 'Pagamento recusado',
+      'REEMBOLSO_SOLICITADO' => 'Devolução do valor solicitada',
+      'REEMBOLSO_CONFIRMADO' => 'Valor devolvido',
+      'REEMBOLSO_FALHOU' => 'Não foi possível devolver o valor',
+      _ => titulo.replaceFirst(RegExp(r'^[^\p{L}\p{N}]+', unicode: true), '').trim(),
+    };
+  }
+
+  /// Uma ou duas linhas abaixo do título nos avisos com tela própria; null nos informativos (só a faixa).
+  String? get mensagemNoApp {
+    final AgendamentoModel? item = agendamento;
+    if (atendimentoConcluido) {
+      return 'Conte o que achou do serviço e do profissional.';
+    }
+    if (!canceladoPelaBarbearia) {
+      return null;
+    }
+    final String? quando = _quando;
+    final String? motivo = item?.motivoCancelamento;
+    final bool pago = item?.statusPagamento == 'APROVADO' || item?.statusReembolso != null;
+    final List<String> linhas = <String>[
+      if (quando != null) 'Horário de $quando',
+      if (motivo != null && motivo.isNotEmpty) 'Motivo: $motivo',
+      if (pago) 'O valor pago será devolvido.',
+    ];
+    return linhas.isEmpty ? null : linhas.join('\n');
+  }
+
+  /// "30/10 às 17:30", quando o aviso traz o agendamento.
+  String? get _quando {
+    final DateTime? inicio = agendamento?.dataHora;
+    if (inicio == null) {
+      return null;
+    }
+    String dois(int n) => n.toString().padLeft(2, '0');
+    return '${dois(inicio.day)}/${dois(inicio.month)} às ${dois(inicio.hour)}:${dois(inicio.minute)}';
+  }
+
   bool get atendimentoConcluido => tipo == tipoAtendimentoConcluido;
 
   bool get canceladoPelaBarbearia => tipo == tipoCanceladoPelaBarbearia;
