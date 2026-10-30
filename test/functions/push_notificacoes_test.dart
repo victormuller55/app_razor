@@ -61,10 +61,11 @@ void main() {
     tokenSalvo = null;
   });
 
-  PushNotificacoes push({bool disponivel = true, bool apiFalha = false}) {
+  PushNotificacoes push({bool disponivel = true, bool apiFalha = false, String? tokenInicio}) {
     return PushNotificacoes(
       plataforma: plataforma,
       disponivel: disponivel,
+      tokenInicioAtividade: () async => tokenInicio,
       registrar: (Map<String, dynamic> corpo) async {
         if (apiFalha) {
           throw Exception('sem rede');
@@ -146,6 +147,15 @@ void main() {
     });
     expect(tokenSalvo, 'token-b');
     await servico.encerrarSessao();
+  });
+
+  test('com o token de início da Live Activity (iOS 17.2+), manda junto no cadastro', () async {
+    await push(tokenInicio: 'inicio-a').registrarAparelho();
+    expect(registrados.single, <String, dynamic>{
+      'token': 'token-a',
+      'plataforma': 'ANDROID',
+      'token_inicio_atividade': 'inicio-a',
+    });
   });
 
   test('sem permissão não cadastra nada; ao liberar na tela de permissões, cadastra', () async {

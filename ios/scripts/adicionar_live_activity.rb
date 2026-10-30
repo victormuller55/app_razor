@@ -71,6 +71,8 @@ grupo_extensao = grupo(project, NOME)
   compilar(extensao, arquivo(grupo_extensao, nome))
 end
 arquivo(grupo_extensao, 'Info.plist')
+# App Group: a extensão lê a foto do profissional que o app guardou.
+arquivo(grupo_extensao, "#{NOME}.entitlements")
 xcconfig = arquivo(grupo_extensao, "#{NOME}.xcconfig")
 compilar(extensao, compartilhado)
 
@@ -80,6 +82,7 @@ extensao.build_configurations.each do |config|
     'PRODUCT_NAME' => '$(TARGET_NAME)',
     'PRODUCT_BUNDLE_IDENTIFIER' => BUNDLE_EXTENSAO,
     'INFOPLIST_FILE' => "#{NOME}/Info.plist",
+    'CODE_SIGN_ENTITLEMENTS' => "#{NOME}/#{NOME}.entitlements",
     'GENERATE_INFOPLIST_FILE' => 'NO',
     'IPHONEOS_DEPLOYMENT_TARGET' => IOS_MINIMO,
     'SWIFT_VERSION' => '5.0',
