@@ -182,7 +182,7 @@ class AvisosAtendimento with WidgetsBindingObserver {
     _informar(
       recente.mensagem == null || recente.mensagem!.isEmpty
           ? recente.titulo
-          : '${recente.titulo}: ${recente.mensagem}',
+          : '${recente.titulo}\n${recente.mensagem}',
     );
     for (final NotificacaoModel aviso in informativos) {
       await _lido(aviso.id);

@@ -261,7 +261,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(faixas, <String>[
-        'Pagamento confirmado: O Pix do seu horário foi confirmado.',
+        'Pagamento confirmado\nO Pix do seu horário foi confirmado.',
       ]);
       expect(lidos, <int>[21, 20]);
       expect(agendamentosAtualizados.value, antes + 1);
