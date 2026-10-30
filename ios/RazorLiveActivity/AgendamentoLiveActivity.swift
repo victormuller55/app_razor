@@ -71,6 +71,9 @@ private struct Situacao {
 }
 
 struct AgendamentoLiveActivity: Widget {
+  /// Foto do profissional na ilha expandida; o item da direita usa a mesma altura.
+  static let fotoExpandida: CGFloat = 58
+
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: AgendamentoActivityAttributes.self) { context in
       TelaDeBloqueio(s: Situacao(context: context))
@@ -83,12 +86,14 @@ struct AgendamentoLiveActivity: Widget {
         // Os lados da câmera são estreitos: o que não couber desce para baixo dela (belowIfTooWide) em vez
         // de ser cortado.
         DynamicIslandExpandedRegion(.leading) {
-          Identificacao(s: s, tamanhoFoto: 44)
+          Identificacao(s: s, tamanhoFoto: Self.fotoExpandida)
             .padding(.leading, 4)
             .dynamicIsland(verticalPlacement: .belowIfTooWide)
         }
         DynamicIslandExpandedRegion(.trailing) {
+          // Mesma altura da foto, para ficar centralizado na altura e encostado à direita.
           ItemDoEstado(s: s)
+            .frame(height: Self.fotoExpandida, alignment: .trailing)
             .padding(.trailing, 4)
             .dynamicIsland(verticalPlacement: .belowIfTooWide)
         }
@@ -109,27 +114,20 @@ struct AgendamentoLiveActivity: Widget {
 
 // MARK: - Partes
 
-/// Foto, serviço, barbearia e o chip do estado: a parte fixa, à esquerda.
+/// Foto, serviço e o chip do estado: a parte fixa, à esquerda.
 private struct Identificacao: View {
   let s: Situacao
   let tamanhoFoto: CGFloat
 
   var body: some View {
-    HStack(alignment: .center, spacing: 10) {
-      Avatar(attributes: s.context.attributes, cor: s.estado.cor, tamanho: tamanhoFoto, borda: 2)
-      VStack(alignment: .leading, spacing: 3) {
+    HStack(alignment: .center, spacing: 12) {
+      Avatar(attributes: s.context.attributes, cor: s.estado.cor, tamanho: tamanhoFoto, borda: 2.5)
+      VStack(alignment: .leading, spacing: 6) {
         Text(s.context.attributes.servico)
           .font(.headline)
           .foregroundStyle(.white)
           .lineLimit(1)
-        if !s.context.attributes.barbearia.isEmpty {
-          Text(s.context.attributes.barbearia)
-            .font(.caption)
-            .foregroundStyle(Razor.textoSecundario)
-            .lineLimit(1)
-        }
         ChipEstado(estado: s.estado)
-          .padding(.top, 1)
       }
     }
   }
@@ -330,7 +328,7 @@ private struct TelaDeBloqueio: View {
 
   var body: some View {
     HStack(alignment: .center, spacing: 12) {
-      Identificacao(s: s, tamanhoFoto: 50)
+      Identificacao(s: s, tamanhoFoto: 60)
       Spacer(minLength: 8)
       ItemDoEstado(s: s)
     }
