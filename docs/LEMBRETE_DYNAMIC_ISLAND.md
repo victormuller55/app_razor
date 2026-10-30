@@ -17,7 +17,8 @@ quando está fechado.
 | `CANCELADO`, `NO_SHOW` | — | a atividade termina e some | — |
 
 À esquerda ficam sempre a foto do profissional, com borda na cor do estado, o
-serviço, a barbearia e o chip do estado. Na ilha fechada aparece a foto
+serviço e o chip do estado; o item da direita fica centralizado na altura da
+foto. Na ilha fechada aparece a foto
 pequena. Quando não há foto, aparecem as iniciais num círculo neutro.
 
 Regras de segurança:
