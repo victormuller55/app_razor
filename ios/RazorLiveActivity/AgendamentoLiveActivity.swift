@@ -71,31 +71,23 @@ private struct Situacao {
 }
 
 struct AgendamentoLiveActivity: Widget {
-  /// Foto do profissional na ilha expandida; o item da direita usa a mesma altura.
-  static let fotoExpandida: CGFloat = 58
-
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: AgendamentoActivityAttributes.self) { context in
-      TelaDeBloqueio(s: Situacao(context: context))
+      Linha(s: Situacao(context: context), tamanhoFoto: 60)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
         .activityBackgroundTint(Razor.fundo)
         .activitySystemActionForegroundColor(.white)
         .widgetURL(Situacao(context: context).linkAgendamento)
     } dynamicIsland: { context in
       let s = Situacao(context: context)
       return DynamicIsland {
-        // Os lados da câmera são estreitos: o que não couber desce para baixo dela (belowIfTooWide) em vez
-        // de ser cortado.
-        DynamicIslandExpandedRegion(.leading) {
-          Identificacao(s: s, tamanhoFoto: Self.fotoExpandida)
-            .padding(.leading, 4)
-            .dynamicIsland(verticalPlacement: .belowIfTooWide)
-        }
-        DynamicIslandExpandedRegion(.trailing) {
-          // Mesma altura da foto, para ficar centralizado na altura e encostado à direita.
-          ItemDoEstado(s: s)
-            .frame(height: Self.fotoExpandida, alignment: .trailing)
-            .padding(.trailing, 4)
-            .dynamicIsland(verticalPlacement: .belowIfTooWide)
+        // Uma linha só, abaixo da câmera e com a largura toda: separar em leading/trailing dividia a largura
+        // ao meio (cortando o serviço) e cada lado descia ou não conforme coubesse, desalinhando a altura.
+        DynamicIslandExpandedRegion(.bottom) {
+          Linha(s: s, tamanhoFoto: 66)
+            .padding(.horizontal, 4)
+            .padding(.vertical, 10)
         }
       } compactLeading: {
         // Sem largura fixa: a ilha fechada ocupa só o tamanho dos itens.
@@ -122,10 +114,18 @@ private struct Identificacao: View {
     HStack(alignment: .center, spacing: 12) {
       Avatar(attributes: s.context.attributes, cor: s.estado.cor, tamanho: tamanhoFoto, borda: 2.5)
       VStack(alignment: .leading, spacing: 6) {
-        Text(s.context.attributes.servico)
-          .font(.headline)
-          .foregroundStyle(.white)
-          .lineLimit(1)
+        VStack(alignment: .leading, spacing: 1) {
+          Text(s.context.attributes.servico)
+            .font(.headline)
+            .foregroundStyle(.white)
+            .lineLimit(1)
+          if let profissional = s.context.attributes.profissional, !profissional.isEmpty {
+            Text("com \(profissional)")
+              .font(.caption)
+              .foregroundStyle(Razor.textoSecundario)
+              .lineLimit(1)
+          }
+        }
         ChipEstado(estado: s.estado)
       }
     }
@@ -148,6 +148,7 @@ private struct ChipEstado: View {
     .padding(.horizontal, 7)
     .padding(.vertical, 3)
     .background(estado.cor.opacity(0.16), in: Capsule())
+    .fixedSize()
   }
 }
 
@@ -330,17 +331,18 @@ private struct Avatar: View {
   }
 }
 
-/// Tela bloqueada (e aparelhos sem Dynamic Island): mesma informação, numa linha só.
-private struct TelaDeBloqueio: View {
+/// Ilha expandida e tela bloqueada: identificação à esquerda e o item do estado à direita, centralizados na
+/// altura. Quem encolhe é o nome do serviço, nunca o item da direita.
+private struct Linha: View {
   let s: Situacao
+  let tamanhoFoto: CGFloat
 
   var body: some View {
     HStack(alignment: .center, spacing: 12) {
-      Identificacao(s: s, tamanhoFoto: 60)
+      Identificacao(s: s, tamanhoFoto: tamanhoFoto)
       Spacer(minLength: 8)
       ItemDoEstado(s: s)
+        .layoutPriority(1)
     }
-    .padding(.horizontal, 16)
-    .padding(.vertical, 14)
   }
 }

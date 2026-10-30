@@ -178,12 +178,8 @@ class AvisosAtendimento with WidgetsBindingObserver {
       await HttpCache.invalidateContaining('agendamentos');
     } catch (_) {}
     avisarAgendamentosAtualizados();
-    final NotificacaoModel recente = informativos.first;
-    _informar(
-      recente.mensagem == null || recente.mensagem!.isEmpty
-          ? recente.titulo
-          : '${recente.titulo}\n${recente.mensagem}',
-    );
+    // Texto curto do app: o do servidor é o do push, grande demais para a faixa.
+    _informar(informativos.first.tituloNoApp);
     for (final NotificacaoModel aviso in informativos) {
       await _lido(aviso.id);
     }
@@ -285,16 +281,16 @@ Future<bool?> _showAviso({
               icone,
               appSizedBox(height: AppSpacing.small),
               appText(
-                aviso.titulo,
+                aviso.tituloNoApp,
                 bold: true,
                 fontSize: AppFontSizes.medium,
                 color: local.AppColors.text,
                 textAlign: TextAlign.center,
               ),
-              if (aviso.mensagem != null) ...[
+              if (aviso.mensagemNoApp != null) ...[
                 appSizedBox(height: 4),
                 appText(
-                  aviso.mensagem!,
+                  aviso.mensagemNoApp!,
                   color: local.AppColors.textSecondary,
                   fontSize: AppFontSizes.verySmall,
                   textAlign: TextAlign.center,

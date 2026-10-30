@@ -146,6 +146,7 @@ void main() {
           'id_barbearia': idBarbearia,
           'status': 'CANCELADO',
           'cancelado_por': 'BARBEARIA',
+          'motivo_cancelamento': 'barbeiro doente',
           'nome_servico': 'Corte',
         },
       };
@@ -260,9 +261,8 @@ void main() {
       await checador.verificar();
       await tester.pumpAndSettle();
 
-      expect(faixas, <String>[
-        'Pagamento confirmado\nO Pix do seu horário foi confirmado.',
-      ]);
+      // Texto curto do app, não o do push.
+      expect(faixas, <String>['Pagamento confirmado']);
       expect(lidos, <int>[21, 20]);
       expect(agendamentosAtualizados.value, antes + 1);
 
