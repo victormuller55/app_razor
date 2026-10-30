@@ -59,6 +59,9 @@ class AgendamentoModel {
   String? imagemBarbearia;
   int? idFuncionarioBarbearia;
   String? nomeFuncionario;
+
+  /// Foto do profissional (URL completa), para o lembrete na Dynamic Island.
+  String? fotoFuncionario;
   int? idBarbeariaServico;
   String? nomeServico;
   String? imagemServico;
@@ -117,6 +120,15 @@ class AgendamentoModel {
   /// Quando o horário foi registrado como não comparecimento.
   String? dataNoShow;
 
+  /// Quando o barbeiro iniciou o atendimento (`2026-10-28T14:02:00`).
+  String? dataInicioAtendimento;
+
+  /// Quando o atendimento foi concluído.
+  String? dataConclusao;
+
+  /// Chave assinada pela API para a Live Activity deste horário receber atualizações por push.
+  String? chaveAtividade;
+
   AgendamentoModel({
     this.id,
     this.idBarbearia,
@@ -124,6 +136,7 @@ class AgendamentoModel {
     this.imagemBarbearia,
     this.idFuncionarioBarbearia,
     this.nomeFuncionario,
+    this.fotoFuncionario,
     this.idBarbeariaServico,
     this.nomeServico,
     this.imagemServico,
@@ -152,6 +165,9 @@ class AgendamentoModel {
     this.motivoCancelamento,
     this.cancelamentoTardio = false,
     this.dataNoShow,
+    this.dataInicioAtendimento,
+    this.dataConclusao,
+    this.chaveAtividade,
   });
 
   factory AgendamentoModel.fromJson(Map<String, dynamic> json) {
@@ -164,6 +180,9 @@ class AgendamentoModel {
       ),
       idFuncionarioBarbearia: _asInt(json['id_funcionario_barbearia']),
       nomeFuncionario: json['nome_funcionario'] as String?,
+      fotoFuncionario: resolveMediaUrl(
+        _asNonEmptyString(json['foto_funcionario']),
+      ),
       idBarbeariaServico: _asInt(json['id_barbearia_servico']),
       nomeServico: json['nome_servico'] as String?,
       imagemServico: resolveMediaUrl(_asNonEmptyString(json['imagem_servico'])),
@@ -194,6 +213,9 @@ class AgendamentoModel {
       motivoCancelamento: _asNonEmptyString(json['motivo_cancelamento']),
       cancelamentoTardio: json['cancelamento_tardio'] == true,
       dataNoShow: _asNonEmptyString(json['data_no_show']),
+      dataInicioAtendimento: _asNonEmptyString(json['data_inicio_atendimento']),
+      dataConclusao: _asNonEmptyString(json['data_conclusao']),
+      chaveAtividade: _asNonEmptyString(json['chave_atividade']),
     );
   }
 

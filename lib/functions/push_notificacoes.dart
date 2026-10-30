@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:app_razor/app_config/const/app_endpoints.dart';
 import 'package:app_razor/functions/http_cache.dart';
+import 'package:app_razor/functions/lembrete_agendamento.dart';
 import 'package:app_razor/functions/permissoes.dart';
 import 'package:app_razor/models/notificacao_model.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -178,8 +179,10 @@ class PushNotificacoes {
     EnviarAparelho? remover,
     Future<String?> Function()? lerTokenSalvo,
     Future<void> Function(String? token)? salvarToken,
+    Future<String?> Function()? tokenInicioAtividade,
     bool disponivel = false,
   }) : _plataforma = plataforma,
+       _tokenInicioAtividade = tokenInicioAtividade ?? LembreteAgendamento.instance.tokenInicio,
        _registrar = registrar ?? _registrarNaApi,
        _remover = remover ?? _removerNaApi,
        _lerTokenSalvo = lerTokenSalvo ?? (() => _armazenamento.read(key: _chaveToken)),
@@ -193,6 +196,7 @@ class PushNotificacoes {
   final EnviarAparelho _remover;
   final Future<String?> Function() _lerTokenSalvo;
   final Future<void> Function(String? token) _salvarToken;
+  final Future<String?> Function() _tokenInicioAtividade;
   bool _disponivel;
   final List<StreamSubscription<dynamic>> _ouvintes = <StreamSubscription<dynamic>>[];
   bool _inicialConsumido = false;
@@ -269,10 +273,16 @@ class PushNotificacoes {
 
   Future<void> _enviar(String token) async {
     final String? anterior = await _lerTokenSalvo();
+    // iOS 17.2+: com ele a API inicia o lembrete na Dynamic Island mesmo com o app fechado.
+    String? inicioAtividade;
+    try {
+      inicioAtividade = await _tokenInicioAtividade();
+    } catch (_) {}
     await _registrar(<String, dynamic>{
       'token': token,
       'plataforma': _nomePlataforma,
       if (anterior != null && anterior.isNotEmpty && anterior != token) 'token_anterior': anterior,
+      if (inicioAtividade != null && inicioAtividade.isNotEmpty) 'token_inicio_atividade': inicioAtividade,
     });
     await _salvarToken(token);
   }

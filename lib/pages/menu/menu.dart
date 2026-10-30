@@ -6,6 +6,9 @@ import 'package:app_razor/functions/agendamentos_atualizados.dart';
 import 'package:app_razor/functions/aviso_avaliacao.dart';
 import 'package:app_razor/functions/lembrete_agendamento.dart';
 import 'package:app_razor/functions/push_notificacoes.dart';
+import 'package:app_razor/models/agendamento_model.dart';
+import 'package:app_razor/pages/agendamentos/widgets/avaliar_servico_modal.dart';
+import 'package:app_razor/pages/agendamentos/widgets/qr_confirmacao_modal.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_page.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_service.dart';
 import 'package:app_razor/pages/barbearias/barbearias_page.dart';
@@ -30,6 +33,7 @@ class MenuScreen extends StatefulWidget {
 class _MenuScreenState extends State<MenuScreen> {
   late final List<Widget> _screens;
   final AvisosAtendimento _avisos = AvisosAtendimento();
+  StreamSubscription<LinkAtividade>? _linksAtividade;
 
   bool get _iosNativo => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
@@ -51,6 +55,7 @@ class _MenuScreenState extends State<MenuScreen> {
     // Depois do primeiro quadro: o aviso abre por cima do menu já montado.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _avisos.iniciar();
+      _ouvirLinksDaAtividade();
       unawaited(
         PushNotificacoes.instance.iniciarSessao(
           aoReceber: _aoReceberPush,
@@ -69,6 +74,7 @@ class _MenuScreenState extends State<MenuScreen> {
   @override
   void dispose() {
     LembreteAgendamento.instance.parar();
+    unawaited(_linksAtividade?.cancel());
     _avisos.parar();
     unawaited(PushNotificacoes.instance.encerrarSessao());
     super.dispose();
@@ -96,6 +102,59 @@ class _MenuScreenState extends State<MenuScreen> {
         }
       case DestinoAviso.inicio:
         unawaited(_avisos.verificar());
+    }
+  }
+
+  /// Toques na Live Activity, com o app aberto ou o link que abriu o app fechado.
+  void _ouvirLinksDaAtividade() {
+    _linksAtividade = LembreteAgendamento.instance.links.listen(
+      (LinkAtividade link) => unawaited(_abrirLinkDaAtividade(link)),
+    );
+    unawaited(
+      LembreteAgendamento.instance.linkPendente().then((LinkAtividade? link) {
+        if (link != null) {
+          unawaited(_abrirLinkDaAtividade(link));
+        }
+      }),
+    );
+  }
+
+  /// Abre a agenda e, conforme a situação atual na API, o QR Code ou a avaliação. Chegar a hora não confirma
+  /// nada: o QR só aparece para quem ainda aguarda, e quem confirma é a barbearia ao ler o código. Confirmado,
+  /// cancelado ou já avaliado ficam só na agenda, que mostra a situação.
+  Future<void> _abrirLinkDaAtividade(LinkAtividade link) async {
+    if (!mounted) {
+      return;
+    }
+    _selectAba(2);
+    avisarAgendamentosAtualizados();
+    if (link.acao == AcaoLink.abrir) {
+      return;
+    }
+
+    final AgendamentoModel? item = await LembreteAgendamento.instance.buscar(
+      link.idAgendamento,
+    );
+    if (!mounted || item == null) {
+      return;
+    }
+    switch (link.acao) {
+      case AcaoLink.qrCode:
+        if (item.aguardando && item.codigoQr != null) {
+          showQrConfirmacaoModal(context: context, agendamento: item);
+        }
+      case AcaoLink.avaliar:
+        if (item.podeAvaliar) {
+          final bool? enviou = await showAvaliarServicoModal(
+            context: context,
+            agendamento: item,
+          );
+          if (enviou == true) {
+            avisarAgendamentosAtualizados();
+          }
+        }
+      case AcaoLink.abrir:
+        break;
     }
   }
 
