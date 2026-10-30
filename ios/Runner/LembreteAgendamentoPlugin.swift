@@ -132,6 +132,7 @@ final class LembreteAgendamentoPlugin: NSObject, FlutterPlugin, FlutterSceneLife
 }
 
 /// Dados que o Dart manda. Datas em milissegundos desde 1970.
+@available(iOS 16.2, *)
 private struct Lembrete {
   let atributos: AgendamentoActivityAttributes
   let estado: AgendamentoActivityAttributes.ContentState
@@ -250,6 +251,7 @@ final class TokensAtividade {
     }
   }
 
+  @available(iOS 16.2, *)
   private func enviar(token: String, de atributos: AgendamentoActivityAttributes) async {
     guard
       let chave = atributos.chave,
