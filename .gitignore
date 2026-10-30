@@ -44,3 +44,6 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 /android/build/
+
+# Config do Firebase (push): local, nunca versionada. No Codemagic vem do grupo "firebase".
+firebase.env.json
