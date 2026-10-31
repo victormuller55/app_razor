@@ -27,9 +27,6 @@ class _PermissoesPageState extends State<PermissoesPage>
   final Map<PermissaoApp, PermissaoStatus> _status =
       <PermissaoApp, PermissaoStatus>{};
 
-  bool get _localizacaoConcedida =>
-      _status[PermissaoApp.localizacao] == PermissaoStatus.concedida;
-
   @override
   void initState() {
     super.initState();
@@ -69,13 +66,6 @@ class _PermissoesPageState extends State<PermissoesPage>
   }
 
   void _continuar() {
-    if (!_localizacaoConcedida) {
-      showSnackbarWarning(
-        message: 'Permita o acesso à localização para continuar.',
-      );
-      return;
-    }
-
     open(screen: const MenuScreen(), closePrevious: true);
   }
 
@@ -100,7 +90,7 @@ class _PermissoesPageState extends State<PermissoesPage>
   String _descricao(PermissaoApp permissao) {
     switch (permissao) {
       case PermissaoApp.localizacao:
-        return 'Mostra barbearias e promoções perto de você.';
+        return 'Usada para mostrar barbearias perto de você. A busca por nome e cidade funciona sem ela.';
       case PermissaoApp.camera:
         return 'Tire uma foto para o seu perfil.';
       case PermissaoApp.galeria:
@@ -154,8 +144,6 @@ class _PermissoesPageState extends State<PermissoesPage>
   }
 
   Widget _card(PermissaoApp permissao) {
-    final bool obrigatoria = permissao == PermissaoApp.localizacao;
-
     return Container(
       margin: EdgeInsets.only(bottom: AppSpacing.normal),
       padding: EdgeInsets.all(AppSpacing.normal + 2),
@@ -193,11 +181,9 @@ class _PermissoesPageState extends State<PermissoesPage>
                     ),
                     appSizedBox(width: 6),
                     appText(
-                      obrigatoria ? 'Obrigatória' : 'Opcional',
+                      'Opcional',
                       fontSize: 11,
-                      color: obrigatoria
-                          ? local.AppColors.danger
-                          : AppEstilo.campoIcone,
+                      color: AppEstilo.campoIcone,
                     ),
                   ],
                 ),
@@ -226,9 +212,7 @@ class _PermissoesPageState extends State<PermissoesPage>
         appElevatedButtonRazor(
           title: 'Continuar',
           onTap: _continuar,
-          color: _localizacaoConcedida
-              ? local.AppColors.primary
-              : local.AppColors.statusFechado,
+          color: local.AppColors.primary,
           height: 54,
           radius: 10,
           padding: AppSpacing.medium,
@@ -251,7 +235,7 @@ class _PermissoesPageState extends State<PermissoesPage>
         ),
         appSizedBox(height: 4),
         appText(
-          'Libere o acesso abaixo para o Razor\nencontrar as barbearias perto de você.',
+          'A localização é opcional. Sem ela, você pesquisa\npor nome, serviço, profissional ou cidade.',
           fontSize: AppFontSizes.verySmall,
           color: local.AppColors.textSecondary,
           textAlign: TextAlign.center,

@@ -101,10 +101,14 @@ String? homeTextoDistanciaKm(double? distanciaKm) {
   return '${distanciaKm.toStringAsFixed(1).replaceAll('.', ',')} km';
 }
 
-/// Estrela amarela com a nota da barbearia.
+/// Estrela amarela com a nota, só quando existe avaliação de cliente.
 Widget homeNota(BarbeariaModel barbearia) {
+  if ((barbearia.totalAvaliacoes ?? 0) <= 0 || barbearia.nota == null) {
+    return const SizedBox.shrink();
+  }
+
   final String nota =
-      (barbearia.nota ?? 0).toStringAsFixed(1).replaceAll('.', ',');
+      barbearia.nota!.toStringAsFixed(1).replaceAll('.', ',');
 
   return Row(
     mainAxisSize: MainAxisSize.min,
@@ -124,14 +128,20 @@ Widget homeNota(BarbeariaModel barbearia) {
 Widget homeNotaDistancia({
   required BarbeariaModel barbearia,
 }) {
+  final bool temNota =
+      (barbearia.totalAvaliacoes ?? 0) > 0 && barbearia.nota != null;
   final String? distancia = homeTextoDistanciaKm(barbearia.distanciaKm);
+
+  if (!temNota && distancia == null) {
+    return const SizedBox.shrink();
+  }
 
   return Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      homeNota(barbearia),
+      if (temNota) homeNota(barbearia),
+      if (temNota && distancia != null) appSizedBox(width: AppSpacing.normal),
       if (distancia != null) ...[
-        appSizedBox(width: AppSpacing.normal),
         const Icon(Phosphor.mapPin, size: 13, color: Color(0xFF98A0AC)),
         appSizedBox(width: 3),
         appText(
