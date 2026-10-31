@@ -37,10 +37,13 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
 
   Future<void> _loadBarbearias({bool forceRefresh = false}) async {
     final Future<BarbeariasState> done = bloc.stream.firstWhere(
-      (BarbeariasState state) => state is BarbeariasSuccessState || state is BarbeariasErrorState,
+      (BarbeariasState state) =>
+          state is BarbeariasSuccessState || state is BarbeariasErrorState,
     );
 
-    bloc.add(BarbeariasLoadEvent(filtros: _filtros, forceRefresh: forceRefresh));
+    bloc.add(
+      BarbeariasLoadEvent(filtros: _filtros, forceRefresh: forceRefresh),
+    );
 
     await done;
   }
@@ -58,7 +61,8 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
       context: context,
       filtros: _filtros,
       onApply: _applyFiltros,
-      temLocalizacao: bloc.state.latitude != null && bloc.state.longitude != null,
+      temLocalizacao:
+          bloc.state.latitude != null && bloc.state.longitude != null,
     );
   }
 
@@ -127,7 +131,10 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
                 color: local.AppColors.primary,
                 borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
               ),
-              child: const Icon(Phosphor.slidersHorizontal, color: local.AppColors.white),
+              child: const Icon(
+                Phosphor.slidersHorizontal,
+                color: local.AppColors.white,
+              ),
             ),
             if (ativo)
               Positioned(
@@ -160,7 +167,12 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          appText(AppStrings.barbearias, bold: true, fontSize: 26, color: local.AppColors.text),
+          appText(
+            AppStrings.barbearias,
+            bold: true,
+            fontSize: 26,
+            color: local.AppColors.text,
+          ),
           appSizedBox(height: 2),
           appText(
             'Encontre a barbearia ideal perto de você',
@@ -207,7 +219,10 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
   Widget _listaItens(BarbeariasState state) {
     final double espacoHorizontal = AppSpacing.medium - 6;
     final double larguraCard =
-        (MediaQuery.sizeOf(context).width - AppSpacing.medium * 2 - espacoHorizontal) / 2;
+        (MediaQuery.sizeOf(context).width -
+            AppSpacing.medium * 2 -
+            espacoHorizontal) /
+        2;
 
     return SliverPadding(
       padding: EdgeInsets.fromLTRB(
@@ -223,9 +238,14 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
               crossAxisCount: 2,
               mainAxisSpacing: AppSpacing.medium,
               crossAxisSpacing: espacoHorizontal,
-              mainAxisExtent: larguraCard + barbeariaGridCardAlturaTexto,
+              mainAxisExtent:
+                  larguraCard +
+                  barbeariaGridCardAlturaTexto(MediaQuery.textScalerOf(context)),
             ),
-            delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
+            delegate: SliverChildBuilderDelegate((
+              BuildContext context,
+              int index,
+            ) {
               final BarbeariaModel barbearia = state.itens[index];
 
               return barbeariaGridCard(

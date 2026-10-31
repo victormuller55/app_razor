@@ -149,7 +149,9 @@ class _PesquisaBarbeariasPageState extends State<PesquisaBarbeariasPage> {
           child: Column(
             children: [
               _topo(),
+              appSizedBox(height: AppSpacing.small),
               _ordenacao(),
+              appSizedBox(height: AppSpacing.normal),
               Expanded(
                 child: BlocBuilder<PesquisaBarbeariasBloc, PesquisaBarbeariasState>(
                   bloc: bloc,
@@ -175,7 +177,7 @@ class _PesquisaBarbeariasPageState extends State<PesquisaBarbeariasPage> {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         AppSpacing.small,
-        AppSpacing.small,
+        AppSpacing.medium,
         AppSpacing.medium,
         AppSpacing.small,
       ),
@@ -256,6 +258,8 @@ class _PesquisaBarbeariasPageState extends State<PesquisaBarbeariasPage> {
     );
   }
 
+  static const double _larguraChip = 96;
+
   Widget _ordenacao() {
     const List<(String?, String)> opcoes = <(String?, String)>[
       (null, 'Padrão'),
@@ -278,8 +282,10 @@ class _PesquisaBarbeariasPageState extends State<PesquisaBarbeariasPage> {
           return GestureDetector(
             onTap: () => _ordenar(valor),
             child: Container(
+              // Mesma largura em todos: cabe "Maior preço" em negrito.
+              width: _larguraChip,
               alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: BoxDecoration(
                 color: selecionado ? local.AppColors.primary : AppEstilo.campoFundo,
                 borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
@@ -287,6 +293,8 @@ class _PesquisaBarbeariasPageState extends State<PesquisaBarbeariasPage> {
               child: appText(
                 rotulo,
                 bold: selecionado,
+                maxLines: 1,
+                overflow: true,
                 fontSize: 12,
                 color: selecionado ? local.AppColors.white : local.AppColors.text,
               ),

@@ -1,9 +1,7 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
-import 'package:app_razor/app_config/const/app_fonts.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:app_razor/pages/agendamentos/widgets/avaliar_servico_modal.dart';
-import 'package:app_razor/pages/barbearia_perfil/widgets/servico_grid_card.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
@@ -109,55 +107,69 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
 
   Widget _detalhes() {
     final AgendamentoModel agendamento = widget.agendamento;
+    final String quando = <String>[
+      agendamento.dataRelativaLabel(DateTime.now()),
+      agendamento.horarioFaixa,
+      ?agendamento.duracaoLabel,
+    ].where((String parte) => parte.isNotEmpty).join(' · ');
 
-    return Padding(
-      padding: EdgeInsets.only(top: AppSpacing.normal),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (agendamento.nomeFuncionario != null)
-            _destaqueProfissional(agendamento.nomeFuncionario!),
-          if (agendamento.nomeFuncionario != null)
-            appSizedBox(height: AppSpacing.small),
-          _cardsMetricas(agendamento),
-          if (agendamento.enderecoCompleto != null) ...[
-            appSizedBox(height: AppSpacing.small),
-            _cardInterno(
-              child: _infoLinha(
-                icone: Phosphor.mapPin,
-                texto: agendamento.enderecoCompleto!,
-                maxLines: 2,
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: AppSpacing.normal + 2),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: local.AppColors.divisor,
+          ),
+        ),
+        if (agendamento.nomeFuncionario != null)
+          _linhaDetalhe(
+            icone: Phosphor.user,
+            rotulo: 'Profissional',
+            valor: agendamento.nomeFuncionario!,
+          ),
+        if (quando.isNotEmpty)
+          _linhaDetalhe(icone: Phosphor.clock, rotulo: 'Quando', valor: quando),
+        if (agendamento.enderecoCompleto != null)
+          _linhaDetalhe(
+            icone: Phosphor.mapPin,
+            rotulo: 'Endereço',
+            valor: agendamento.enderecoCompleto!,
+            maxLines: 3,
+          ),
+        if (agendamento.observacao != null)
+          _linhaDetalhe(
+            icone: Phosphor.notePencil,
+            rotulo: 'Observação',
+            valor: agendamento.observacao!,
+            maxLines: 4,
+          ),
+        if (_avaliavel)
+          Padding(
+            padding: EdgeInsets.only(top: AppSpacing.small),
+            child: botaoAvaliarServico(onTap: widget.onAvaliar!),
+          )
+        else if (agendamento.notaAvaliacao != null)
+          Padding(
+            padding: EdgeInsets.only(top: AppSpacing.small),
+            child: notaDadaAvaliacao(agendamento.notaAvaliacao!),
+          ),
+        if (_temAcoes)
+          Padding(
+            padding: EdgeInsets.only(top: AppSpacing.small),
+            child: _acoes(
+              agendamento: agendamento,
+              onComoChegar: widget.onComoChegar,
+              onCancelar: widget.onCancelar,
+              onMostrarQr: widget.onMostrarQr,
+              onPagar: widget.onPagar,
+              onEditar: widget.onEditar,
+              cancelando: widget.cancelando,
             ),
-          ],
-          if (agendamento.observacao != null) ...[
-            appSizedBox(height: AppSpacing.small),
-            _cardInterno(child: _observacao(agendamento.observacao!)),
-          ],
-          if (_avaliavel)
-            Padding(
-              padding: EdgeInsets.only(top: AppSpacing.normal),
-              child: botaoAvaliarServico(onTap: widget.onAvaliar!),
-            )
-          else if (agendamento.notaAvaliacao != null) ...[
-            appSizedBox(height: AppSpacing.small),
-            _cardInterno(child: notaDadaAvaliacao(agendamento.notaAvaliacao!)),
-          ],
-          if (_temAcoes)
-            Padding(
-              padding: EdgeInsets.only(top: AppSpacing.normal),
-              child: _acoes(
-                agendamento: agendamento,
-                onComoChegar: widget.onComoChegar,
-                onCancelar: widget.onCancelar,
-                onMostrarQr: widget.onMostrarQr,
-                onPagar: widget.onPagar,
-                onEditar: widget.onEditar,
-                cancelando: widget.cancelando,
-              ),
-            ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 
@@ -175,8 +187,9 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
         width: double.infinity,
         margin: EdgeInsets.only(bottom: AppSpacing.normal + 2),
         decoration: BoxDecoration(
-          color: AppEstilo.campoFundo,
+          color: local.AppColors.surface,
           borderRadius: raio,
+          border: Border.all(color: local.AppColors.border),
         ),
         child: Material(
           color: Colors.transparent,
@@ -184,7 +197,7 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
             onTap: _alternar,
             borderRadius: raio,
             child: Padding(
-              padding: EdgeInsets.all(AppSpacing.normal + 2),
+              padding: EdgeInsets.all(AppSpacing.normal + 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -213,295 +226,256 @@ class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
 }
 
 /// Raio do card de agendamento.
-const double _raioCard = AppEstilo.raioCampo + 6;
+const double _raioCard = AppEstilo.raioCampo + 8;
 
 /// Opacidade do card de agendamento encerrado.
 const double _opacidadeEncerrado = 0.55;
 
-/// Tira a cor da foto de agendamento encerrado (luminância Rec. 709).
-const ColorFilter _cinza = ColorFilter.matrix(<double>[
-  0.2126,
-  0.7152,
-  0.0722,
-  0,
-  0,
-  0.2126,
-  0.7152,
-  0.0722,
-  0,
-  0,
-  0.2126,
-  0.7152,
-  0.0722,
-  0,
-  0,
-  0,
-  0,
-  0,
-  1,
-  0,
-]);
+const Color _vermelho = Color(0xFFB3261E);
 
-Widget _cardInterno({required Widget child}) {
-  return Container(
-    width: double.infinity,
-    padding: EdgeInsets.all(AppSpacing.normal + 2),
-    decoration: BoxDecoration(
-      color: local.AppColors.surface,
-      borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
-    ),
-    child: child,
-  );
+const List<String> _diasSemana = <String>[
+  'SEG',
+  'TER',
+  'QUA',
+  'QUI',
+  'SEX',
+  'SÁB',
+  'DOM',
+];
+
+const List<String> _meses = <String>[
+  'JAN',
+  'FEV',
+  'MAR',
+  'ABR',
+  'MAI',
+  'JUN',
+  'JUL',
+  'AGO',
+  'SET',
+  'OUT',
+  'NOV',
+  'DEZ',
+];
+
+/// Cor do status: a mesma no ponto do card fechado e nos selos.
+Color _corStatus(AgendamentoModel agendamento) {
+  if (agendamento.cancelado) {
+    return _vermelho;
+  }
+
+  if (agendamento.concluido || agendamento.confirmado) {
+    return local.AppColors.statusAberto;
+  }
+
+  if (agendamento.pendente) {
+    return local.AppColors.primaryLight;
+  }
+
+  return local.AppColors.textSecondary;
 }
 
 Widget _cabecalho(AgendamentoModel agendamento, {required bool aberto}) {
-  final String quando = <String>[
-    agendamento.dataLabel,
-    agendamento.horarioFaixa,
-  ].where((String parte) => parte.isNotEmpty).join(' · ');
+  final String? barbearia = agendamento.nomeBarbearia;
+  final String? profissional = agendamento.nomeFuncionario;
+  final String subtitulo = <String>[?barbearia, ?profissional].join(' · ');
 
-  return Row(
+  return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      _foto(agendamento),
-      appSizedBox(width: AppSpacing.normal + 2),
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _blocoData(agendamento),
+          appSizedBox(width: AppSpacing.normal + 2),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: appText(
-                    agendamento.nomeServico ?? AppStrings.vazio,
-                    bold: true,
-                    maxLines: 2,
-                    overflow: true,
-                    color: local.AppColors.text,
-                    fontSize: 15,
-                  ),
-                ),
-                appSizedBox(width: 8),
-                if (agendamento.pago) ...[
-                  _selo('Pago', local.AppColors.statusAberto),
-                  appSizedBox(width: 4),
-                ],
-                _status(agendamento),
-              ],
-            ),
-            if (agendamento.reembolsoLabel != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: _selo(
-                    agendamento.reembolsoLabel!,
-                    corReembolso(agendamento.statusReembolso),
-                  ),
-                ),
-              ),
-            if (agendamento.cancelamentoLabel != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: appText(
-                  agendamento.canceladoPelaBarbearia &&
-                          agendamento.motivoCancelamento != null
-                      ? '${agendamento.cancelamentoLabel}: ${agendamento.motivoCancelamento}'
-                      : agendamento.cancelamentoLabel!,
-                  maxLines: 3,
-                  overflow: true,
-                  color: local.AppColors.textSecondary,
-                  fontSize: 12,
-                ),
-              ),
-            if (agendamento.nomeBarbearia != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: appText(
-                  agendamento.nomeBarbearia!,
+                appText(
+                  agendamento.nomeServico ?? AppStrings.vazio,
+                  bold: true,
                   maxLines: 1,
                   overflow: true,
-                  color: local.AppColors.textSecondary,
-                  fontSize: 12,
+                  color: local.AppColors.text,
+                  fontSize: 15,
                 ),
-              ),
-            if (quando.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Row(
-                  children: [
-                    Icon(
-                      Phosphor.calendarBlank,
-                      size: 13,
-                      color: AppEstilo.campoIcone,
-                    ),
-                    appSizedBox(width: 4),
-                    Expanded(
-                      child: appText(
-                        quando,
-                        maxLines: 1,
-                        overflow: true,
-                        color: local.AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Row(
-                children: [
-                  if (agendamento.preco != null)
-                    appText(
-                      formataDinheiro(agendamento.preco!),
-                      bold: true,
-                      color: local.AppColors.primary,
-                      fontSize: 16,
-                    ),
-                  const Spacer(),
-                  AnimatedRotation(
-                    turns: aberto ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 250),
-                    child: Icon(
-                      Phosphor.caretDown,
-                      size: 18,
-                      color: AppEstilo.campoIcone,
+                if (subtitulo.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: appText(
+                      subtitulo,
+                      maxLines: 1,
+                      overflow: true,
+                      color: local.AppColors.textSecondary,
+                      fontSize: 12,
                     ),
                   ),
-                ],
-              ),
+                appSizedBox(height: 6),
+                Row(
+                  children: [
+                    if (agendamento.horarioFaixa.isNotEmpty) ...[
+                      Icon(
+                        Phosphor.clock,
+                        size: 13,
+                        color: AppEstilo.campoIcone,
+                      ),
+                      appSizedBox(width: 4),
+                      appText(
+                        agendamento.horarioFaixa,
+                        bold: true,
+                        color: local.AppColors.text,
+                        fontSize: 12,
+                      ),
+                      appSizedBox(width: AppSpacing.small + 3),
+                    ],
+                    Flexible(child: _status(agendamento)),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          appSizedBox(width: AppSpacing.small),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (agendamento.preco != null)
+                appText(
+                  formataDinheiro(agendamento.preco!),
+                  bold: true,
+                  color: local.AppColors.primary,
+                  fontSize: 15,
+                ),
+              if (agendamento.pago)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: _selo(
+                    'Pago',
+                    local.AppColors.statusAberto,
+                    icone: Phosphor.checkCircle,
+                  ),
+                ),
+              appSizedBox(height: 6),
+              AnimatedRotation(
+                turns: aberto ? 0.5 : 0,
+                duration: const Duration(milliseconds: 250),
+                child: Icon(
+                  Phosphor.caretDown,
+                  size: 16,
+                  color: AppEstilo.campoIcone,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
+      if (agendamento.reembolsoLabel != null)
+        Padding(
+          padding: EdgeInsets.only(top: AppSpacing.normal),
+          child: _selo(
+            agendamento.reembolsoLabel!,
+            corReembolso(agendamento.statusReembolso),
+          ),
+        ),
+      if (agendamento.cancelamentoLabel != null)
+        Padding(
+          padding: EdgeInsets.only(top: AppSpacing.small + 2),
+          child: _aviso(
+            agendamento.canceladoPelaBarbearia &&
+                    agendamento.motivoCancelamento != null
+                ? '${agendamento.cancelamentoLabel}: ${agendamento.motivoCancelamento}'
+                : agendamento.cancelamentoLabel!,
+          ),
+        ),
     ],
   );
 }
 
-Widget _cardsMetricas(AgendamentoModel agendamento) {
-  final List<Widget> cards = <Widget>[];
+/// Dia da semana, dia e mês no lugar da foto: é o que o cliente procura na agenda.
+Widget _blocoData(AgendamentoModel agendamento) {
+  final DateTime? data = agendamento.dataHora;
+  final bool apagado = agendamento.encerrado;
+  final Color fundo = apagado
+      ? local.AppColors.statusFechado.withValues(alpha: 0.15)
+      : local.AppColors.primary.withValues(alpha: 0.1);
+  final Color cor = apagado
+      ? local.AppColors.textSecondary
+      : local.AppColors.primary;
 
-  if (agendamento.dataLabel.isNotEmpty) {
-    cards.add(
-      _cardMetrica(
-        rotulo: 'Data',
-        valor: agendamento.dataRelativaLabel(DateTime.now()),
-      ),
-    );
-  }
-
-  if (agendamento.horarioFaixa.isNotEmpty) {
-    cards.add(_cardMetrica(rotulo: 'Horário', valor: agendamento.horarioFaixa));
-  }
-
-  if (agendamento.duracaoLabel != null) {
-    cards.add(
-      _cardMetrica(rotulo: 'Duração', valor: agendamento.duracaoLabel!),
-    );
-  }
-
-  if (cards.isEmpty) {
-    return const SizedBox.shrink();
-  }
-
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      for (int i = 0; i < cards.length; i++) ...[
-        if (i > 0) appSizedBox(width: AppSpacing.small),
-        Expanded(child: cards[i]),
-      ],
-    ],
+  return Container(
+    width: 58,
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    decoration: BoxDecoration(
+      color: fundo,
+      borderRadius: BorderRadius.circular(AppEstilo.raioCampo + 4),
+    ),
+    child: data == null
+        ? Icon(Phosphor.calendarBlank, size: 24, color: cor)
+        : Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              appText(
+                _diasSemana[data.weekday - 1],
+                bold: true,
+                color: cor,
+                fontSize: 10,
+              ),
+              appText(
+                data.day.toString().padLeft(2, '0'),
+                bold: true,
+                color: cor,
+                fontSize: 22,
+              ),
+              appText(
+                _meses[data.month - 1],
+                bold: true,
+                color: cor.withValues(alpha: 0.75),
+                fontSize: 10,
+              ),
+            ],
+          ),
   );
 }
 
-Widget _cardMetrica({required String rotulo, required String valor}) {
-  return appContainer(
-    width: double.infinity,
-    padding: EdgeInsets.symmetric(
-      horizontal: AppSpacing.small,
-      vertical: AppSpacing.normal,
-    ),
-    backgroundColor: local.AppColors.surface,
-    radius: BorderRadius.circular(AppEstilo.raioCampo),
-    child: Column(
-      children: [
-        appText(
-          rotulo.toUpperCase(),
-          color: local.AppColors.textSecondary,
-          fontSize: 10,
-          bold: true,
-          textAlign: TextAlign.center,
-        ),
-        appSizedBox(height: 6),
-        appText(
-          valor,
-          bold: true,
-          maxLines: 2,
-          overflow: true,
-          textAlign: TextAlign.center,
-          color: local.AppColors.text,
-          fontSize: AppFontSizes.verySmall,
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _destaqueProfissional(String nome) {
-  return appContainer(
-    width: double.infinity,
-    padding: EdgeInsets.fromLTRB(AppSpacing.normal, 8, AppSpacing.normal, 8),
-    backgroundColor: local.AppColors.surface,
-    radius: BorderRadius.circular(AppEstilo.raioCampo),
+Widget _linhaDetalhe({
+  required IconData icone,
+  required String rotulo,
+  required String valor,
+  int maxLines = 1,
+}) {
+  return Padding(
+    padding: EdgeInsets.only(bottom: AppSpacing.normal),
     child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           width: 32,
           height: 32,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: local.AppColors.primary,
+            color: AppEstilo.campoFundo,
             shape: BoxShape.circle,
           ),
-          child: appText(
-            _inicial(nome),
-            bold: true,
-            color: local.AppColors.white,
-            fontSize: AppFontSizes.verySmall,
-          ),
+          child: Icon(icone, size: 16, color: local.AppColors.primary),
         ),
         appSizedBox(width: AppSpacing.normal),
         Expanded(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Profissional',
-                style: TextStyle(
-                  color: local.AppColors.textSecondary,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  height: 1,
-                  fontFamily: AppFonts.family,
-                ),
+              appText(
+                rotulo,
+                color: local.AppColors.textSecondary,
+                fontSize: 11,
               ),
-              appSizedBox(height: 2),
-              Text(
-                nome,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: local.AppColors.primary,
-                  fontSize: AppFontSizes.small,
-                  fontWeight: FontWeight.bold,
-                  height: 1.1,
-                  fontFamily: AppFonts.family,
-                ),
+              appSizedBox(height: 1),
+              appText(
+                valor,
+                bold: true,
+                maxLines: maxLines,
+                overflow: true,
+                color: local.AppColors.text,
+                fontSize: 13,
               ),
             ],
           ),
@@ -511,50 +485,19 @@ Widget _destaqueProfissional(String nome) {
   );
 }
 
-String _inicial(String nome) {
-  final String limpo = nome.trim();
-
-  if (limpo.isEmpty) {
-    return '?';
-  }
-
-  return limpo.substring(0, 1).toUpperCase();
-}
-
-Widget _infoLinha({
-  required IconData icone,
-  required String texto,
-  int maxLines = 1,
-}) {
+Widget _aviso(String texto) {
   return Row(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Icon(icone, size: 14, color: local.AppColors.primary),
+      Icon(Phosphor.info, size: 14, color: local.AppColors.textSecondary),
       appSizedBox(width: 6),
       Expanded(
         child: appText(
           texto,
-          maxLines: maxLines,
+          maxLines: 3,
           overflow: true,
-          color: local.AppColors.text,
-          fontSize: AppFontSizes.verySmall,
-        ),
-      ),
-    ],
-  );
-}
-
-Widget _observacao(String texto) {
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Icon(Phosphor.notePencil, size: 14, color: local.AppColors.textSecondary),
-      appSizedBox(width: 6),
-      Expanded(
-        child: appText(
-          texto,
           color: local.AppColors.textSecondary,
-          fontSize: 11,
+          fontSize: 12,
         ),
       ),
     ],
@@ -577,120 +520,164 @@ Widget _acoes({
   final bool mostrarEditar = onEditar != null;
   final double? diferenca = agendamento.valorAPagar;
 
+  // Ações principais ocupam a largura toda; as secundárias ficam lado a lado, só com ícone e texto.
+  final List<Widget> secundarias = <Widget>[
+    if (mostrarChegar)
+      _botaoSecundario(
+        icone: Phosphor.navigationArrow,
+        texto: 'Como chegar',
+        cor: local.AppColors.primary,
+        onTap: onComoChegar,
+      ),
+    if (mostrarEditar)
+      _botaoSecundario(
+        icone: Phosphor.pencilSimple,
+        texto: 'Editar',
+        cor: local.AppColors.primary,
+        onTap: onEditar,
+      ),
+    if (mostrarCancelar)
+      _botaoSecundario(
+        icone: Phosphor.xCircle,
+        texto: cancelando ? 'Cancelando...' : 'Cancelar',
+        cor: _vermelho,
+        onTap: cancelando ? () {} : onCancelar,
+      ),
+  ];
+
   return Column(
     children: [
-      if (mostrarPagar) ...[
-        SizedBox(
-          width: double.infinity,
-          child: _botaoAcao(
-            icone: Phosphor.pixLogo,
-            texto: diferenca != null
-                ? 'Pagar diferença de ${formataDinheiro(diferenca)}'
-                : 'Pagar com Pix',
-            cor: local.AppColors.statusAberto,
-            solido: true,
-            onTap: onPagar,
-          ),
+      if (mostrarPagar)
+        _botaoPrincipal(
+          icone: Phosphor.pixLogo,
+          texto: diferenca != null
+              ? 'Pagar diferença de ${formataDinheiro(diferenca)}'
+              : 'Pagar com Pix',
+          cor: local.AppColors.statusAberto,
+          onTap: onPagar,
         ),
-        if (mostrarQr || mostrarChegar || mostrarEditar || mostrarCancelar)
-          appSizedBox(height: AppSpacing.small),
-      ],
+      if (mostrarPagar && mostrarQr) appSizedBox(height: AppSpacing.small),
       if (mostrarQr)
-        SizedBox(
-          width: double.infinity,
-          child: _botaoAcao(
-            icone: Phosphor.qrCode,
-            texto: 'Mostrar QR Code',
-            cor: local.AppColors.primary,
-            solido: true,
-            onTap: onMostrarQr,
+        _botaoPrincipal(
+          icone: Phosphor.qrCode,
+          texto: 'Mostrar QR Code',
+          cor: local.AppColors.primary,
+          onTap: onMostrarQr,
+        ),
+      if (secundarias.isNotEmpty) ...[
+        if (mostrarPagar || mostrarQr) appSizedBox(height: AppSpacing.small),
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
+            border: Border.all(color: local.AppColors.border),
+          ),
+          child: IntrinsicHeight(
+            child: Row(
+              children: [
+                for (int i = 0; i < secundarias.length; i++) ...[
+                  if (i > 0)
+                    VerticalDivider(
+                      width: 1,
+                      thickness: 1,
+                      indent: 10,
+                      endIndent: 10,
+                      color: local.AppColors.border,
+                    ),
+                  Expanded(child: secundarias[i]),
+                ],
+              ],
+            ),
           ),
         ),
-      if (mostrarQr && (mostrarChegar || mostrarEditar || mostrarCancelar))
-        appSizedBox(height: AppSpacing.small),
-      if (mostrarChegar || mostrarEditar)
-        Row(
-          children: [
-            if (mostrarChegar)
-              Expanded(
-                child: _botaoAcao(
-                  icone: Phosphor.navigationArrow,
-                  texto: 'Como chegar',
-                  cor: local.AppColors.primary,
-                  solido: !mostrarQr,
-                  onTap: onComoChegar,
-                ),
-              ),
-            if (mostrarChegar && mostrarEditar)
-              appSizedBox(width: AppSpacing.small),
-            if (mostrarEditar)
-              Expanded(
-                child: _botaoAcao(
-                  icone: Phosphor.pencilSimple,
-                  texto: 'Editar',
-                  cor: local.AppColors.primary,
-                  onTap: onEditar,
-                ),
-              ),
-          ],
-        ),
-      if ((mostrarChegar || mostrarEditar) && mostrarCancelar)
-        appSizedBox(height: AppSpacing.small),
-      if (mostrarCancelar)
-        SizedBox(
-          width: double.infinity,
-          child: _botaoAcao(
-            icone: Phosphor.xCircle,
-            texto: cancelando ? 'Cancelando...' : 'Cancelar',
-            cor: const Color(0xFFB3261E),
-            onTap: cancelando ? () {} : onCancelar,
-          ),
-        ),
+      ],
     ],
   );
 }
 
-Widget _botaoAcao({
+Widget _botaoPrincipal({
   required IconData icone,
   required String texto,
   required Color cor,
   required VoidCallback onTap,
-  bool solido = false,
 }) {
-  final Color corConteudo = solido ? local.AppColors.white : cor;
-
-  return Material(
-    color: solido ? cor : cor.withValues(alpha: 0.1),
-    borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
-    child: InkWell(
-      onTap: onTap,
+  return SizedBox(
+    width: double.infinity,
+    child: Material(
+      color: cor,
       borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 13),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icone, size: 16, color: corConteudo),
-            appSizedBox(width: 6),
-            appText(
-              texto,
-              bold: true,
-              color: corConteudo,
-              fontSize: AppFontSizes.verySmall,
-            ),
-          ],
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icone, size: 17, color: local.AppColors.white),
+              appSizedBox(width: 8),
+              Flexible(
+                child: appText(
+                  texto,
+                  bold: true,
+                  maxLines: 1,
+                  overflow: true,
+                  color: local.AppColors.white,
+                  fontSize: AppFontSizes.verySmall,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     ),
   );
 }
 
-Widget _selo(String texto, Color cor) {
+Widget _botaoSecundario({
+  required IconData icone,
+  required String texto,
+  required Color cor,
+  required VoidCallback onTap,
+}) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icone, size: 18, color: cor),
+          appSizedBox(height: 4),
+          appText(
+            texto,
+            bold: true,
+            maxLines: 1,
+            overflow: true,
+            color: cor,
+            fontSize: 11,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _selo(String texto, Color cor, {IconData? icone}) {
   return appContainer(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
     radius: BorderRadius.circular(AppEstilo.raioCampo),
     backgroundColor: cor.withValues(alpha: 0.12),
-    child: appText(texto, bold: true, color: cor, fontSize: 11),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (icone != null) ...[
+          Icon(icone, size: 11, color: cor),
+          appSizedBox(width: 3),
+        ],
+        appText(texto, bold: true, color: cor, fontSize: 10),
+      ],
+    ),
   );
 }
 
@@ -698,74 +685,34 @@ Widget _selo(String texto, Color cor) {
 Color corReembolso(String? status) {
   return switch (status) {
     'CONFIRMADO' => local.AppColors.statusAberto,
-    'FALHOU' => const Color(0xFFB3261E),
+    'FALHOU' => _vermelho,
     _ => local.AppColors.primaryLight,
   };
 }
 
+/// Ponto colorido + texto, mais leve que um selo ao lado do horário.
 Widget _status(AgendamentoModel agendamento) {
-  final Color cor = agendamento.cancelado
-      ? const Color(0xFFB3261E)
-      : agendamento.concluido || agendamento.confirmado
-      ? local.AppColors.statusAberto
-      : agendamento.pendente
-      ? local.AppColors.primaryLight
-      : local.AppColors.textSecondary;
+  final Color cor = _corStatus(agendamento);
 
-  return appContainer(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    radius: BorderRadius.circular(AppEstilo.raioCampo),
-    backgroundColor: cor.withValues(alpha: 0.12),
-    child: appText(
-      agendamento.statusLabel,
-      bold: true,
-      color: cor,
-      fontSize: 11,
-    ),
-  );
-}
-
-Widget _foto(AgendamentoModel agendamento) {
-  final String? imagem = agendamento.foto;
-  final bool temFoto = imagem != null && imagem.isNotEmpty;
-
-  final Widget foto = ClipRRect(
-    borderRadius: BorderRadius.circular(AppEstilo.raioCampo + 2),
-    child: SizedBox(
-      width: 76,
-      height: 76,
-      child: temFoto
-          ? Image.network(
-              imagem,
-              fit: BoxFit.cover,
-              width: 76,
-              height: 76,
-              errorBuilder: (_, _, _) => _fotoFallback(agendamento),
-            )
-          : _fotoFallback(agendamento),
-    ),
-  );
-
-  return agendamento.encerrado
-      ? ColorFiltered(colorFilter: _cinza, child: foto)
-      : foto;
-}
-
-Widget _fotoFallback(AgendamentoModel agendamento) {
-  return Container(
-    decoration: const BoxDecoration(
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [local.AppColors.primaryBrand, local.AppColors.primaryLight],
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Container(
+        width: 7,
+        height: 7,
+        decoration: BoxDecoration(color: cor, shape: BoxShape.circle),
       ),
-    ),
-    child: Center(
-      child: Icon(
-        iconeServico(agendamento.nomeServico),
-        size: 28,
-        color: local.AppColors.white,
+      appSizedBox(width: 5),
+      Flexible(
+        child: appText(
+          agendamento.statusLabel,
+          bold: true,
+          maxLines: 1,
+          overflow: true,
+          color: cor,
+          fontSize: 12,
+        ),
       ),
-    ),
+    ],
   );
 }

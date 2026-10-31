@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
@@ -22,25 +24,34 @@ import 'package:app_razor/widgets/app_campo_busca.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:app_razor/widgets/app_maps.dart';
+import 'package:app_razor/widgets/app_rota_expandir.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:muller_package/muller_package.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, this.onOpenPerfil});
+  const HomePage({super.key, this.onOpenPerfil, this.ocultarBarra});
 
   final VoidCallback? onOpenPerfil;
+
+  /// Progresso (0 a 1) para a barra de navegação descer junto com a folha ao expandir o mapa.
+  final ValueNotifier<double>? ocultarBarra;
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage>
+    with SingleTickerProviderStateMixin {
   static const double _folhaRadius = AppRadii.externo;
   static const double _headerPaddingTop = 10;
   static const double _headerPaddingBottom = 12;
   static const double _headerAvatarDiameter = 28;
+
+  /// Zoom do mapa da home; o mapa completo abre com o mesmo zoom para a troca não aparecer.
+  static const double _zoomMapa = 15;
 
   HomeBloc bloc = HomeBloc();
 
@@ -49,6 +60,16 @@ class _HomePageState extends State<HomePage> {
   final ScrollController _scrollController = ScrollController();
   final ValueNotifier<bool> _showTitle = ValueNotifier(false);
   final ValueNotifier<double> _folhaRadiusAtual = ValueNotifier(_folhaRadius);
+
+  /// 0 = mapa no topo; 1 = mapa ocupando a tela e a folha fora dela (antes de abrir o mapa completo).
+  late final AnimationController _expansaoMapa = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 380),
+  );
+  late final Animation<double> _expansaoCurva = CurvedAnimation(
+    parent: _expansaoMapa,
+    curve: Curves.easeInOutCubic,
+  );
 
   Future<void> _loadUsuario() async {
     final UsuarioModel local = await getLocalUserModel();
@@ -140,7 +161,32 @@ class _HomePageState extends State<HomePage> {
     open(screen: const PesquisaBarbeariasPage());
   }
 
-  void _openMapa(HomeState state) {
+  /// Centro que o mapa completo precisa ter para mostrar exatamente o que a home mostra. Na home o
+  /// usuário fica no meio da faixa visível do topo; no mapa completo o centro é o meio da tela. A
+  /// diferença em pixels vira latitude pelo zoom (projeção de Mercator, tiles de 256).
+  LatLng _centroMapaCompleto(double latitude, double longitude) {
+    final double topInset = MediaQuery.viewPaddingOf(context).top;
+    final double alturaTela = MediaQuery.sizeOf(context).height;
+    final double alturaMapa = alturaTela * 0.32 + topInset;
+    final double paddingBaixo = alturaTela - alturaMapa + _folhaRadius;
+
+    final double yHome = (alturaTela - paddingBaixo) / 2;
+    // O mapa completo ocupa a tela inteira, sem app bar.
+    final double yMapaCompleto = alturaTela / 2;
+    final double grausPorPixel =
+        360 /
+        (256 * math.pow(2, _zoomMapa)) *
+        math.cos(latitude * math.pi / 180);
+
+    return LatLng(
+      latitude - (yMapaCompleto - yHome) * grausPorPixel,
+      longitude,
+    );
+  }
+
+  /// O mapa cresce no próprio lugar até a tela inteira (a folha desce), e só então o mapa completo
+  /// entra por cima com fade. Na volta, a folha sobe de novo.
+  Future<void> _openMapa(HomeState state) async {
     final double? latitude = state.latitude;
     final double? longitude = state.longitude;
 
@@ -149,9 +195,32 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    open(
-      screen: MapaBarbeariasPage(latitude: latitude, longitude: longitude),
+    if (_expansaoMapa.isAnimating) {
+      return;
+    }
+
+    await _expansaoMapa.forward();
+
+    if (!mounted) {
+      return;
+    }
+
+    await abrirComFade<void>(
+      context: context,
+      tela: MapaBarbeariasPage(
+        latitude: latitude,
+        longitude: longitude,
+        zoomInicial: _zoomMapa,
+        centroInicial: _centroMapaCompleto(latitude, longitude),
+        barbeariasIniciais: state.proximas.status == HomeSecaoStatus.success
+            ? state.proximas.itens
+            : const <BarbeariaModel>[],
+      ),
     );
+
+    if (mounted) {
+      _expansaoMapa.reverse();
+    }
   }
 
   void _openBarbearia(BarbeariaModel barbearia) {
@@ -180,9 +249,14 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _scrollController.addListener(_handleScroll);
+    _expansaoCurva.addListener(_moverBarra);
     favoritasAlteradas.addListener(_recarregarFavoritas);
     _loadUsuario();
     _loadHome();
+  }
+
+  void _moverBarra() {
+    widget.ocultarBarra?.value = _expansaoCurva.value;
   }
 
   void _recarregarFavoritas() {
@@ -218,7 +292,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _headerMapa(HomeState state) {
+  /// [paddingBaixo] é a parte do mapa escondida pela folha: o centro (usuário) fica na área visível.
+  Widget _headerMapa(HomeState state, {required double paddingBaixo}) {
     final double? latitude = state.latitude;
     final double? longitude = state.longitude;
 
@@ -231,7 +306,8 @@ class _HomePageState extends State<HomePage> {
       longitude: longitude,
       interactive: false,
       myLocationEnabled: true,
-      padding: const EdgeInsets.only(bottom: _folhaRadius),
+      zoom: _zoomMapa,
+      padding: EdgeInsets.only(bottom: paddingBaixo),
       barbearias: state.proximas.status == HomeSecaoStatus.success
           ? state.proximas.itens
           : const <BarbeariaModel>[],
@@ -565,31 +641,59 @@ class _HomePageState extends State<HomePage> {
     final double alturaMapa = alturaTela * 0.32 + topInset;
     final double alturaFolha = alturaTela - alturaMapa + _folhaRadius;
 
-    return Stack(
-      children: [
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          height: alturaMapa,
-          child: ClipRect(child: _headerMapa(state)),
+    final Widget conteudo = CustomScrollView(
+      controller: _scrollController,
+      physics: const ClampingScrollPhysics(),
+      slivers: <Widget>[
+        SliverToBoxAdapter(
+          child: GestureDetector(
+            onTap: () => _openMapa(state),
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(height: alturaMapa - _folhaRadius),
+          ),
         ),
-        CustomScrollView(
-          controller: _scrollController,
-          physics: const ClampingScrollPhysics(),
-          slivers: <Widget>[
-            SliverToBoxAdapter(
-              child: GestureDetector(
-                onTap: () => _openMapa(state),
-                behavior: HitTestBehavior.opaque,
-                child: SizedBox(height: alturaMapa - _folhaRadius),
+        SliverToBoxAdapter(child: _folhaConteudo(alturaMinima: alturaFolha)),
+      ],
+    );
+
+    // O mapa tem sempre a altura da tela (redimensionar o GoogleMap a cada quadro deforma a imagem);
+    // a animação só aumenta o recorte visível dele.
+    final Widget mapa = _headerMapa(
+      state,
+      paddingBaixo: alturaTela - alturaMapa + _folhaRadius,
+    );
+
+    return AnimatedBuilder(
+      animation: _expansaoCurva,
+      child: conteudo,
+      builder: (BuildContext context, Widget? conteudo) {
+        final double t = _expansaoCurva.value;
+
+        return Stack(
+          children: [
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: alturaMapa + (alturaTela - alturaMapa) * t,
+              child: ClipRect(
+                child: OverflowBox(
+                  alignment: Alignment.topCenter,
+                  minHeight: alturaTela,
+                  maxHeight: alturaTela,
+                  child: mapa,
+                ),
               ),
             ),
-            SliverToBoxAdapter(child: _folhaConteudo(alturaMinima: alturaFolha)),
+            // A folha desce junto com a borda do mapa e sai da tela.
+            Transform.translate(
+              offset: Offset(0, (alturaTela - alturaMapa + _folhaRadius) * t),
+              child: IgnorePointer(ignoring: t > 0, child: conteudo),
+            ),
+            if (t == 0) _headerColapsado(topInset),
           ],
-        ),
-        _headerColapsado(topInset),
-      ],
+        );
+      },
     );
   }
 
@@ -626,6 +730,7 @@ class _HomePageState extends State<HomePage> {
     _scrollController.removeListener(_handleScroll);
     favoritasAlteradas.removeListener(_recarregarFavoritas);
     _scrollController.dispose();
+    _expansaoMapa.dispose();
     _showTitle.dispose();
     _folhaRadiusAtual.dispose();
     bloc.close();

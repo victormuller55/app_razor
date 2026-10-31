@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:app_razor/models/barbearia_model.dart';
+import 'package:app_razor/widgets/app_marcador_barbearia.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -12,13 +13,15 @@ class AppMaps {
   static Marker markerFromBarbearia(
     BarbeariaModel barbearia, {
     void Function(BarbeariaModel barbearia)? onTap,
+    ({BitmapDescriptor icone, Offset ancora})? marcador,
   }) {
     return Marker(
       markerId: MarkerId('${barbearia.id ?? barbearia.nome}'),
-      position: LatLng(
-        barbearia.latitude ?? 0,
-        barbearia.longitude ?? 0,
-      ),
+      position: LatLng(barbearia.latitude ?? 0, barbearia.longitude ?? 0),
+      icon: marcador?.icone ?? BitmapDescriptor.defaultMarker,
+      anchor: marcador?.ancora ?? const Offset(0.5, 1),
+      // Enquanto o pino com nome não fica pronto, o marcador padrão não aparece.
+      visible: marcador != null,
       consumeTapEvents: onTap != null,
       onTap: onTap == null ? null : () => onTap(barbearia),
       infoWindow: onTap != null
@@ -82,14 +85,119 @@ class AppMaps {
     double zoom = 15,
     EdgeInsets padding = EdgeInsets.zero,
   }) {
-    final Set<Marker> markers = barbearias
+    return _AppMapa(
+      latitude: latitude,
+      longitude: longitude,
+      barbearias: barbearias,
+      onTap: onTap,
+      onBarbeariaTap: onBarbeariaTap,
+      onMapCreated: onMapCreated,
+      interactive: interactive,
+      myLocationEnabled: myLocationEnabled,
+      zoom: zoom,
+      padding: padding,
+    );
+  }
+}
+
+class _AppMapa extends StatefulWidget {
+  const _AppMapa({
+    required this.latitude,
+    required this.longitude,
+    required this.barbearias,
+    this.onTap,
+    this.onBarbeariaTap,
+    this.onMapCreated,
+    required this.interactive,
+    required this.myLocationEnabled,
+    required this.zoom,
+    required this.padding,
+  });
+
+  final double latitude;
+  final double longitude;
+  final List<BarbeariaModel> barbearias;
+  final void Function(LatLng)? onTap;
+  final void Function(BarbeariaModel barbearia)? onBarbeariaTap;
+  final void Function(GoogleMapController controller)? onMapCreated;
+  final bool interactive;
+  final bool myLocationEnabled;
+  final double zoom;
+  final EdgeInsets padding;
+
+  @override
+  State<_AppMapa> createState() => _AppMapaState();
+}
+
+class _AppMapaState extends State<_AppMapa> {
+  final Map<String, ({BitmapDescriptor icone, Offset ancora})> _marcadores =
+      <String, ({BitmapDescriptor icone, Offset ancora})>{};
+
+  @override
+  void initState() {
+    super.initState();
+    _gerarMarcadores();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AppMapa oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (oldWidget.barbearias != widget.barbearias) {
+      _gerarMarcadores();
+    }
+  }
+
+  Future<void> _gerarMarcadores() async {
+    // Os que já foram desenhados (em outro mapa) entram direto, sem um quadro de espera.
+    for (final BarbeariaModel barbearia in widget.barbearias) {
+      final String nome = barbearia.nome ?? '';
+      final ({BitmapDescriptor icone, Offset ancora})? pronto =
+          AppMarcadorBarbearia.pronto(nome);
+
+      if (pronto != null) {
+        _marcadores[nome] = pronto;
+      }
+    }
+
+    for (final BarbeariaModel barbearia in widget.barbearias) {
+      final String nome = barbearia.nome ?? '';
+
+      if (_marcadores.containsKey(nome)) {
+        continue;
+      }
+
+      final ({BitmapDescriptor icone, Offset ancora}) marcador =
+          await AppMarcadorBarbearia.gerar(nome);
+
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        _marcadores[nome] = marcador;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double latitude = widget.latitude;
+    final double longitude = widget.longitude;
+    final double zoom = widget.zoom;
+    final bool interactive = widget.interactive;
+    final void Function(GoogleMapController controller)? onMapCreated =
+        widget.onMapCreated;
+
+    final Set<Marker> markers = widget.barbearias
         .where((BarbeariaModel item) {
           return item.latitude != null && item.longitude != null;
         })
         .map(
-          (BarbeariaModel barbearia) => markerFromBarbearia(
+          (BarbeariaModel barbearia) => AppMaps.markerFromBarbearia(
             barbearia,
-            onTap: onBarbeariaTap,
+            onTap: widget.onBarbeariaTap,
+            marcador: _marcadores[barbearia.nome ?? ''],
           ),
         )
         .toSet();
@@ -102,7 +210,7 @@ class AppMaps {
     );
 
     return GoogleMap(
-      myLocationEnabled: myLocationEnabled,
+      myLocationEnabled: widget.myLocationEnabled,
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,
       zoomGesturesEnabled: interactive,
@@ -111,8 +219,8 @@ class AppMaps {
       tiltGesturesEnabled: false,
       compassEnabled: false,
       mapToolbarEnabled: false,
-      padding: padding,
-      onTap: onTap,
+      padding: widget.padding,
+      onTap: widget.onTap,
       markers: markers,
       initialCameraPosition: camera,
       onMapCreated: (GoogleMapController controller) {

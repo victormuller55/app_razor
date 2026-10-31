@@ -35,6 +35,9 @@ class _MenuScreenState extends State<MenuScreen> {
   final AvisosAtendimento _avisos = AvisosAtendimento();
   StreamSubscription<LinkAtividade>? _linksAtividade;
 
+  /// 0 = barra visível; 1 = barra fora da tela. A home controla ao expandir o mapa.
+  final ValueNotifier<double> _ocultarBarra = ValueNotifier<double>(0);
+
   bool get _iosNativo => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   void _selectAba(int index) {
@@ -64,7 +67,7 @@ class _MenuScreenState extends State<MenuScreen> {
       );
     });
     _screens = <Widget>[
-      HomePage(onOpenPerfil: _openAbaPerfil),
+      HomePage(onOpenPerfil: _openAbaPerfil, ocultarBarra: _ocultarBarra),
       const BarbeariasPage(),
       const AgendamentosPage(),
       const PerfilPage(),
@@ -76,6 +79,7 @@ class _MenuScreenState extends State<MenuScreen> {
     LembreteAgendamento.instance.parar();
     unawaited(_linksAtividade?.cancel());
     _avisos.parar();
+    _ocultarBarra.dispose();
     unawaited(PushNotificacoes.instance.encerrarSessao());
     super.dispose();
   }
@@ -249,6 +253,33 @@ class _MenuScreenState extends State<MenuScreen> {
     );
   }
 
+  /// Barra que desce e some junto com a folha da home quando o mapa se expande.
+  Widget _barraOcultavel(Widget barra, {required bool encolher}) {
+    return ValueListenableBuilder<double>(
+      valueListenable: _ocultarBarra,
+      child: barra,
+      builder: (BuildContext context, double t, Widget? barra) {
+        final Widget descendo = FractionalTranslation(
+          translation: Offset(0, t),
+          child: Opacity(opacity: 1 - t, child: barra),
+        );
+
+        if (!encolher) {
+          return IgnorePointer(ignoring: t > 0, child: descendo);
+        }
+
+        // No Android a barra é do Scaffold: encolhe a altura junto para o corpo ocupar o espaço dela.
+        return ClipRect(
+          child: Align(
+            alignment: Alignment.topCenter,
+            heightFactor: 1 - t,
+            child: IgnorePointer(ignoring: t > 0, child: descendo),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _bodyTela() {
     return IndexedStack(index: MenuConst.currentIndex, children: _screens);
   }
@@ -267,7 +298,7 @@ class _MenuScreenState extends State<MenuScreen> {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: _barraNavegacaoIos(),
+                child: _barraOcultavel(_barraNavegacaoIos(), encolher: false),
               ),
             ],
           ),
@@ -280,7 +311,10 @@ class _MenuScreenState extends State<MenuScreen> {
       child: Scaffold(
         backgroundColor: local.AppColors.background,
         body: _bodyTela(),
-        bottomNavigationBar: _barraNavegacaoAndroid(),
+        bottomNavigationBar: _barraOcultavel(
+          _barraNavegacaoAndroid(),
+          encolher: true,
+        ),
       ),
     );
   }

@@ -12,22 +12,24 @@ import 'package:muller_package/muller_package.dart';
 
 const double mapaBarbeariasRaioKm = 50;
 
-typedef GetBarbeariasMapa = Future<AppResponse> Function({
-  int numPag,
-  int itensPag,
-  Map<String, dynamic>? filtrosQuery,
-  double? latitude,
-  double? longitude,
-  bool forceRefresh,
-});
+typedef GetBarbeariasMapa =
+    Future<AppResponse> Function({
+      int numPag,
+      int itensPag,
+      Map<String, dynamic>? filtrosQuery,
+      double? latitude,
+      double? longitude,
+      bool forceRefresh,
+    });
 
-class MapaBarbeariasBloc extends Bloc<MapaBarbeariasEvent, MapaBarbeariasState> {
+class MapaBarbeariasBloc
+    extends Bloc<MapaBarbeariasEvent, MapaBarbeariasState> {
   MapaBarbeariasBloc({
     required this.latitude,
     required this.longitude,
     GetBarbeariasMapa? getLista,
-  })  : _getBarbearias = getLista ?? getBarbearias,
-        super(MapaBarbeariasInitialState()) {
+  }) : _getBarbearias = getLista ?? getBarbearias,
+       super(MapaBarbeariasInitialState()) {
     on<MapaBarbeariasLoadEvent>(_load);
   }
 
@@ -64,18 +66,9 @@ class MapaBarbeariasBloc extends Bloc<MapaBarbeariasEvent, MapaBarbeariasState> 
         pagina += 1;
       } while (paginacao.hasMore && pagina < paginacao.maxPag);
 
-      emit(
-        MapaBarbeariasSuccessState(
-          itens: itens,
-          paginacao: paginacao,
-        ),
-      );
+      emit(MapaBarbeariasSuccessState(itens: itens, paginacao: paginacao));
     } catch (e) {
-      emit(
-        MapaBarbeariasErrorState(
-          errorModel: errorModelFromApi(e),
-        ),
-      );
+      emit(MapaBarbeariasErrorState(errorModel: errorModelFromApi(e)));
     }
   }
 
@@ -96,24 +89,17 @@ class MapaBarbeariasBloc extends Bloc<MapaBarbeariasEvent, MapaBarbeariasState> 
     final List<BarbeariaModel> itens = itensJson
         .whereType<Map>()
         .map(
-          (Map<dynamic, dynamic> item) => BarbeariaModel.fromJson(
-            Map<String, dynamic>.from(item),
-          ),
+          (Map<dynamic, dynamic> item) =>
+              BarbeariaModel.fromJson(Map<String, dynamic>.from(item)),
         )
         .toList();
 
-    return _Envelope(
-      itens: itens,
-      paginacao: PaginacaoModel.fromJson(json),
-    );
+    return _Envelope(itens: itens, paginacao: PaginacaoModel.fromJson(json));
   }
 }
 
 class _Envelope {
-  const _Envelope({
-    required this.itens,
-    required this.paginacao,
-  });
+  const _Envelope({required this.itens, required this.paginacao});
 
   final List<BarbeariaModel> itens;
   final PaginacaoModel paginacao;
