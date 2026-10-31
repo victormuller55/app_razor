@@ -12,10 +12,7 @@ class MapaBarbeariasInitialState extends MapaBarbeariasState {}
 class MapaBarbeariasLoadingState extends MapaBarbeariasState {}
 
 class MapaBarbeariasSuccessState extends MapaBarbeariasState {
-  MapaBarbeariasSuccessState({
-    required this.itens,
-    required this.paginacao,
-  });
+  MapaBarbeariasSuccessState({required this.itens, required this.paginacao});
 
   @override
   final List<BarbeariaModel> itens;

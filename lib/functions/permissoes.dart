@@ -8,10 +8,10 @@ enum PermissaoStatus { concedida, pendente, bloqueada }
 
 /// Permissões que o app pede na tela de permissões.
 ///
-/// Só a localização é obrigatória para entrar na home; câmera e galeria são
-/// usadas apenas na foto de perfil. No Android a galeria usa o seletor do
-/// sistema, que não precisa de permissão. Avisos (push, RAZ-11) é opcional e só
-/// aparece com o Firebase configurado no build.
+/// Localização ajuda a ordenar por proximidade, mas a busca funciona sem ela.
+/// Câmera e galeria são usadas apenas na foto de perfil. No Android a galeria
+/// usa o seletor do sistema, que não precisa de permissão. Avisos (push, RAZ-11)
+/// é opcional e só aparece com o Firebase configurado no build.
 enum PermissaoApp { localizacao, camera, galeria, notificacoes }
 
 List<PermissaoApp> permissoesDoApp() {

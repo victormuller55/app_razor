@@ -78,6 +78,32 @@ void main() {
       expect(filtros.cidade, isNull);
     });
 
+    test('toQuery serializa busca, serviço, profissional, preço e ordenação', () {
+      final BarbeariasFiltros filtros = BarbeariasFiltros(
+        busca: 'corte',
+        servico: 'barba',
+        profissional: 'João',
+        precoMin: 20,
+        precoMax: 80,
+        ordenacao: OrdenacaoBusca.precoAsc,
+      );
+
+      expect(filtros.toQuery(), <String, dynamic>{
+        'busca': 'corte',
+        'servico': 'barba',
+        'profissional': 'João',
+        'preco_min': 20,
+        'preco_max': 80,
+        'ordenacao': 'preco_asc',
+      });
+      expect(filtros.temRefino, isTrue);
+
+      final BarbeariasFiltros soBusca = const BarbeariasFiltros(busca: 'central');
+      expect(soBusca.temRefino, isFalse);
+      expect(soBusca.comBusca('  ').busca, isNull);
+      expect(soBusca.comOrdenacao(OrdenacaoBusca.distancia).ordenacao, 'distancia');
+    });
+
     test('toQuery e fromQuery fazem round-trip', () {
       final BarbeariasFiltros original = BarbeariasFiltros(
         cidade: 'Curitiba',

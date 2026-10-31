@@ -78,6 +78,19 @@ Widget _metadadosProxima(BarbeariaModel barbearia) {
         color: local.AppColors.textSecondary,
         fontSize: 12,
       ),
+      if ((barbearia.nomeServico ?? '').isNotEmpty) ...[
+        appSizedBox(height: 2),
+        appText(
+          barbearia.precoServico != null
+              ? '${barbearia.nomeServico} · ${formataDinheiro(barbearia.precoServico!)}'
+              : barbearia.nomeServico!,
+          maxLines: 1,
+          overflow: true,
+          color: local.AppColors.primaryLight,
+          bold: true,
+          fontSize: 12,
+        ),
+      ],
       appSizedBox(height: AppSpacing.small + 1),
       homeNotaDistancia(barbearia: barbearia),
     ],

@@ -9,8 +9,11 @@ import 'package:muller_package/muller_package.dart';
 /// Raio da foto do card.
 const double _raioFoto = 16;
 
-/// Altura do bloco de texto abaixo da foto (usada pelo grid).
-const double barbeariaGridCardAlturaTexto = 92;
+/// Altura do bloco de texto abaixo da foto (usada pelo grid). O texto cresce com a fonte do aparelho; os
+/// espaçamentos não mudam. Folga de 4 px no fim.
+double barbeariaGridCardAlturaTexto(TextScaler escala) {
+  return 20 + escala.scale(57) + 4;
+}
 
 Widget barbeariaGridCard({
   required BarbeariaModel barbearia,
@@ -22,10 +25,7 @@ Widget barbeariaGridCard({
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        AspectRatio(
-          aspectRatio: 1,
-          child: _capaCard(barbearia),
-        ),
+        AspectRatio(aspectRatio: 1, child: _capaCard(barbearia)),
         Padding(
           padding: EdgeInsets.fromLTRB(2, AppSpacing.normal, 2, 0),
           child: _metadadosCard(barbearia),
@@ -68,8 +68,9 @@ Widget _capaCard(BarbeariaModel barbearia) {
 
 Widget _capaFallback(BarbeariaModel barbearia) {
   final String nome = barbearia.nome ?? '';
-  final String inicial =
-      nome.isNotEmpty ? nome.substring(0, 1).toUpperCase() : '?';
+  final String inicial = nome.isNotEmpty
+      ? nome.substring(0, 1).toUpperCase()
+      : '?';
 
   return Container(
     decoration: const BoxDecoration(
@@ -108,24 +109,16 @@ Widget _pill({required List<Widget> children}) {
 }
 
 Widget _pillNota(BarbeariaModel barbearia) {
-  final String nota =
-      (barbearia.nota ?? 0).toStringAsFixed(1).replaceAll('.', ',');
+  final String nota = (barbearia.nota ?? 0)
+      .toStringAsFixed(1)
+      .replaceAll('.', ',');
   final int? total = barbearia.totalAvaliacoes;
 
   return _pill(
     children: [
-      const Icon(
-        PhosphorFill.star,
-        size: 12,
-        color: Color(0xFFF2B01E),
-      ),
+      const Icon(PhosphorFill.star, size: 12, color: Color(0xFFF2B01E)),
       appSizedBox(width: 4),
-      appText(
-        nota,
-        bold: true,
-        fontSize: 11,
-        color: local.AppColors.text,
-      ),
+      appText(nota, bold: true, fontSize: 11, color: local.AppColors.text),
       if (total != null && total > 0)
         appText(
           ' ($total)',
@@ -161,9 +154,6 @@ Widget _pillStatus(BarbeariaModel barbearia) {
 }
 
 Widget _metadadosCard(BarbeariaModel barbearia) {
-  final String? servico = barbearia.nomeServico;
-  final bool temServico = servico != null && servico.isNotEmpty;
-
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisSize: MainAxisSize.min,
@@ -186,20 +176,6 @@ Widget _metadadosCard(BarbeariaModel barbearia) {
       ),
       appSizedBox(height: AppSpacing.small + 1),
       _horarioEDistancia(barbearia),
-      if (temServico)
-        Padding(
-          padding: const EdgeInsets.only(top: 3),
-          child: appText(
-            barbearia.precoServico != null
-                ? '$servico · ${formataDinheiro(barbearia.precoServico!)}'
-                : servico,
-            maxLines: 1,
-            overflow: true,
-            color: local.AppColors.primaryLight,
-            bold: true,
-            fontSize: 12,
-          ),
-        ),
     ],
   );
 }
@@ -228,11 +204,14 @@ Widget _horarioEDistancia(BarbeariaModel barbearia) {
       if (distancia != null) ...[
         Icon(Phosphor.mapPin, size: 13, color: AppEstilo.campoIcone),
         appSizedBox(width: 3),
-        appText(
-          distancia,
-          maxLines: 1,
-          color: local.AppColors.textSecondary,
-          fontSize: 12,
+        Flexible(
+          child: appText(
+            distancia,
+            maxLines: 1,
+            overflow: true,
+            color: local.AppColors.textSecondary,
+            fontSize: 12,
+          ),
         ),
       ],
     ],

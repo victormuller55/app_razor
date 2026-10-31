@@ -1,4 +1,5 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
+import 'package:app_razor/app_config/const/app_fonts.dart';
 import 'package:app_razor/pages/barbearias/filters/barbearias_filtros.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
@@ -10,10 +11,11 @@ void showBarbeariasFiltrosModal({
   required BarbeariasFiltros filtros,
   required void Function(BarbeariasFiltros filtros) onApply,
   bool temLocalizacao = true,
+  bool avancado = false,
 }) {
   showModalEmpty(
     context,
-    initialHeight: 0.7,
+    initialHeight: avancado ? 0.92 : 0.7,
     minHeight: 0.5,
     maxHeight: 0.95,
     backgroundColor: local.AppColors.surface,
@@ -21,6 +23,7 @@ void showBarbeariasFiltrosModal({
       filtros: filtros,
       onApply: onApply,
       temLocalizacao: temLocalizacao,
+      avancado: avancado,
     ),
   );
 }
@@ -31,11 +34,13 @@ class BarbeariasFiltrosModal extends StatefulWidget {
     required this.filtros,
     required this.onApply,
     this.temLocalizacao = true,
+    this.avancado = false,
   });
 
   final BarbeariasFiltros filtros;
   final void Function(BarbeariasFiltros filtros) onApply;
   final bool temLocalizacao;
+  final bool avancado;
 
   @override
   State<BarbeariasFiltrosModal> createState() => _BarbeariasFiltrosModalState();
@@ -45,6 +50,12 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
   bool? _aberto;
   late double _distancia;
   late double _nota;
+  TextEditingController? _cidade;
+  TextEditingController? _bairro;
+  TextEditingController? _servico;
+  TextEditingController? _profissional;
+  TextEditingController? _precoMin;
+  TextEditingController? _precoMax;
 
   @override
   void initState() {
@@ -54,6 +65,40 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
       widget.filtros.distanciaMaxima,
     );
     _nota = BarbeariasFiltrosOpcoes.notaSliderDe(widget.filtros.notaMinima);
+    if (widget.avancado) {
+      _cidade = TextEditingController(text: widget.filtros.cidade ?? '');
+      _bairro = TextEditingController(text: widget.filtros.bairro ?? '');
+      _servico = TextEditingController(text: widget.filtros.servico ?? '');
+      _profissional = TextEditingController(text: widget.filtros.profissional ?? '');
+      _precoMin = TextEditingController(text: _textoPreco(widget.filtros.precoMin));
+      _precoMax = TextEditingController(text: _textoPreco(widget.filtros.precoMax));
+    }
+  }
+
+  @override
+  void dispose() {
+    _cidade?.dispose();
+    _bairro?.dispose();
+    _servico?.dispose();
+    _profissional?.dispose();
+    _precoMin?.dispose();
+    _precoMax?.dispose();
+    super.dispose();
+  }
+
+  String _textoPreco(double? valor) {
+    if (valor == null) {
+      return '';
+    }
+    return valor.toStringAsFixed(valor % 1 == 0 ? 0 : 2).replaceAll('.', ',');
+  }
+
+  double? _lerPreco(TextEditingController? controller) {
+    final String texto = controller?.text.trim().replaceAll(',', '.') ?? '';
+    if (texto.isEmpty) {
+      return null;
+    }
+    return double.tryParse(texto);
   }
 
   void _selectAberto(bool? value) {
@@ -67,16 +112,31 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
       _aberto = null;
       _distancia = BarbeariasFiltrosOpcoes.distanciaSliderMax;
       _nota = BarbeariasFiltrosOpcoes.notaSliderMin;
+      _cidade?.clear();
+      _bairro?.clear();
+      _servico?.clear();
+      _profissional?.clear();
+      _precoMin?.clear();
+      _precoMax?.clear();
     });
   }
 
   void _applyFiltros() {
-    final BarbeariasFiltros filtros = BarbeariasFiltros.fromQuery(
-      BarbeariasFiltros(
-        aberto: _aberto,
-        notaMinima: BarbeariasFiltrosOpcoes.notaQueryDe(_nota),
-        distanciaMaxima: BarbeariasFiltrosOpcoes.distanciaQueryDe(_distancia),
-      ).toQuery(),
+    final BarbeariasFiltros filtros = BarbeariasFiltros(
+      busca: widget.filtros.busca,
+      ordenacao: widget.filtros.ordenacao,
+      cidade: widget.avancado ? _cidade?.text : widget.filtros.cidade,
+      bairro: widget.avancado ? _bairro?.text : widget.filtros.bairro,
+      servico: widget.avancado ? _servico?.text : widget.filtros.servico,
+      profissional: widget.avancado ? _profissional?.text : widget.filtros.profissional,
+      precoMin: widget.avancado ? _lerPreco(_precoMin) : widget.filtros.precoMin,
+      precoMax: widget.avancado ? _lerPreco(_precoMax) : widget.filtros.precoMax,
+      aberto: _aberto,
+      notaMinima: BarbeariasFiltrosOpcoes.notaQueryDe(_nota),
+      distanciaMaxima: widget.avancado &&
+              _distancia >= BarbeariasFiltrosOpcoes.distanciaSliderMax
+          ? null
+          : BarbeariasFiltrosOpcoes.distanciaQueryDe(_distancia),
     );
 
     Navigator.of(context).pop();
@@ -161,6 +221,60 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
         divisions: divisions,
         padding: EdgeInsets.zero,
         onChanged: onChanged,
+      ),
+    );
+  }
+
+  Widget _campo(String titulo, TextEditingController? controller) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: AppSpacing.normal),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          appText(
+            titulo,
+            bold: true,
+            fontSize: AppFontSizes.verySmall,
+            color: local.AppColors.text,
+          ),
+          appSizedBox(height: AppSpacing.small),
+          Container(
+            height: 48,
+            decoration: BoxDecoration(
+              color: local.AppColors.surface,
+              borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
+            ),
+            alignment: Alignment.centerLeft,
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.normal),
+            child: TextField(
+              controller: controller,
+              textInputAction: TextInputAction.next,
+              style: TextStyle(
+                fontFamily: AppFonts.family,
+                fontSize: 15,
+                color: local.AppColors.text,
+              ),
+              decoration: const InputDecoration(
+                isCollapsed: true,
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _precos() {
+    return Padding(
+      padding: EdgeInsets.only(bottom: AppSpacing.normal + 2),
+      child: Row(
+        children: [
+          Expanded(child: _campo('Preço mínimo', _precoMin)),
+          appSizedBox(width: AppSpacing.normal),
+          Expanded(child: _campo('Preço máximo', _precoMax)),
+        ],
       ),
     );
   }
@@ -346,6 +460,13 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
         children: [
           _cabecalho(),
           appSizedBox(height: AppSpacing.medium + 4),
+          if (widget.avancado) ...<Widget>[
+            _campo('Cidade', _cidade),
+            _campo('Bairro', _bairro),
+            _campo('Serviço', _servico),
+            _campo('Profissional', _profissional),
+            _precos(),
+          ],
           _cardDistancia(),
           _cardNota(),
           _cardAberto(),
