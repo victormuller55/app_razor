@@ -318,7 +318,26 @@ class _CadastroPageState extends State<CadastroPage> {
     );
   }
 
-  Widget _tituloPasso() {
+  /// [compacto]: com o teclado aberto o título vira uma linha só e menor, para
+  /// sobrar espaço para o campo.
+  Widget _tituloPasso(bool compacto) {
+    final Widget titulo = AnimatedDefaultTextStyle(
+      duration: _duracaoCompacto,
+      curve: Curves.easeOutCubic,
+      style: TextStyle(
+        fontFamily: AppFonts.family,
+        fontWeight: FontWeight.w800,
+        fontSize: compacto ? 21 : 28,
+        height: 1.12,
+        color: local.AppColors.white,
+      ),
+      child: Text(
+        compacto ? _passo.titulo.replaceAll('\n', ' ') : _passo.titulo,
+        maxLines: compacto ? 1 : null,
+        softWrap: !compacto,
+      ),
+    );
+
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 380),
       switchInCurve: Curves.easeOutCubic,
@@ -343,17 +362,18 @@ class _CadastroPageState extends State<CadastroPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              _passo.titulo,
-              style: TextStyle(
-                fontFamily: AppFonts.family,
-                fontWeight: FontWeight.w800,
-                fontSize: 28,
-                height: 1.12,
-                color: local.AppColors.white,
-              ),
+            compacto
+                ? FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: titulo,
+                  )
+                : titulo,
+            AnimatedContainer(
+              duration: _duracaoCompacto,
+              curve: Curves.easeOutCubic,
+              height: compacto ? 4 : AppSpacing.normal,
             ),
-            appSizedBox(height: AppSpacing.normal),
             appText(
               _passo.subtitulo,
               fontSize: AppFontSizes.verySmall,
@@ -365,13 +385,25 @@ class _CadastroPageState extends State<CadastroPage> {
     );
   }
 
-  Widget _cabecalho(BuildContext context) {
-    return Padding(
+  static const Duration _duracaoCompacto = Duration(milliseconds: 260);
+
+  /// [compacto]: teclado aberto. O cabeçalho encolhe (espaços menores e título
+  /// em uma linha) e devolve essa altura para a folha com o campo.
+  Widget _cabecalho(BuildContext context, bool compacto) {
+    Widget espaco(double normal, double reduzido) => AnimatedContainer(
+          duration: _duracaoCompacto,
+          curve: Curves.easeOutCubic,
+          height: compacto ? reduzido : normal,
+        );
+
+    return AnimatedPadding(
+      duration: _duracaoCompacto,
+      curve: Curves.easeOutCubic,
       padding: EdgeInsets.fromLTRB(
         24,
         MediaQuery.of(context).padding.top + AppSpacing.normal,
         24,
-        AppSpacing.big + 4,
+        compacto ? AppSpacing.medium : AppSpacing.big + 4,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,13 +415,27 @@ class _CadastroPageState extends State<CadastroPage> {
               _contadorPasso(),
             ],
           ),
-          appSizedBox(height: AppSpacing.medium + 4),
+          espaco(AppSpacing.medium + 4, AppSpacing.normal),
           CadastroProgresso(
             total: CadastroPasso.values.length,
             atual: _passo.indice,
           ),
-          appSizedBox(height: AppSpacing.big),
-          SizedBox(height: 96, child: _tituloPasso()),
+          espaco(AppSpacing.big, AppSpacing.medium),
+          AnimatedContainer(
+            duration: _duracaoCompacto,
+            curve: Curves.easeOutCubic,
+            height: compacto ? 48 : 96,
+            // Durante a animação o texto pode passar da caixa por um instante:
+            // fica alinhado embaixo e cortado, sem estourar o layout.
+            child: ClipRect(
+              child: OverflowBox(
+                alignment: Alignment.bottomLeft,
+                minHeight: 0,
+                maxHeight: 96,
+                child: _tituloPasso(compacto),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -446,7 +492,7 @@ class _CadastroPageState extends State<CadastroPage> {
             Expanded(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(24, 28, 24, 16),
+                padding: EdgeInsets.fromLTRB(24, teclado > 0 ? 16 : 28, 24, 16),
                 child: _transicaoPasso(),
               ),
             ),
@@ -505,7 +551,7 @@ class _CadastroPageState extends State<CadastroPage> {
                   ),
                   Column(
                     children: [
-                      _cabecalho(context),
+                      _cabecalho(context, teclado > 0),
                       Expanded(child: _folha(carregando, teclado)),
                     ],
                   ),

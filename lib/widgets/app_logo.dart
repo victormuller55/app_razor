@@ -1,5 +1,4 @@
-import 'package:app_razor/app_config/const/app_colors.dart' as local;
-import 'package:app_razor/app_config/const/app_fonts.dart';
+import 'package:app_razor/app_config/const/app_assets.dart';
 import 'package:flutter/material.dart';
 
 Widget appLogoRazor({
@@ -9,16 +8,9 @@ Widget appLogoRazor({
   bool inverted = false,
   bool fill = false,
 }) {
-  final Widget logo = Text(
-    'Razor',
-    textAlign: TextAlign.center,
-    style: TextStyle(
-      fontFamily: AppFonts.family,
-      fontWeight: FontWeight.w700,
-      fontSize: height * 0.62,
-      letterSpacing: height * 0.03,
-      color: inverted ? local.AppColors.white : local.AppColors.primary,
-    ),
+  final Widget logo = Image.asset(
+    inverted ? AppAssets.logoBranca : AppAssets.logo,
+    fit: BoxFit.contain,
   );
 
   if (fill) {
@@ -27,17 +19,13 @@ Widget appLogoRazor({
       child: FractionallySizedBox(
         widthFactor: 0.7,
         heightFactor: 0.7,
-        child: FittedBox(fit: BoxFit.contain, child: logo),
+        child: logo,
       ),
     );
   }
 
   return Align(
     alignment: alignment,
-    child: SizedBox(
-      width: width,
-      height: height,
-      child: FittedBox(fit: BoxFit.contain, child: logo),
-    ),
+    child: SizedBox(width: width, height: height, child: logo),
   );
 }

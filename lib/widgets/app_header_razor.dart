@@ -16,7 +16,7 @@ class AppEstilo {
   static const double raioCampo = 10;
 
   /// Cor de destaque (barra do título).
-  static const Color destaque = Color(0xFF7FB3E6);
+  static const Color destaque = Color(0xFF6FA3FF);
 
   /// Fundo dos campos e superfícies neutras sobre a folha branca.
   static Color get campoFundo => local.AppColors.escuro

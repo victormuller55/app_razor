@@ -145,7 +145,7 @@ class _LoginPageState extends State<LoginPage> {
       bloc: bloc,
       builder: (context, state) {
         return AppAuthLayout(
-          titulo: 'Entrar no Razor',
+          titulo: 'Entrar no Cortaro',
           subtitulo:
               'Acesse sua conta com seu e-mail e senha\npara agendar seu próximo corte.',
           rodapePergunta: '${AppStrings.naoTenhoConta}?',
