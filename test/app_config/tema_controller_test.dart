@@ -102,7 +102,7 @@ void main() {
   group('AppColors', () {
     test('modo claro mantém as cores originais', () {
       AppColors.escuro = false;
-      expect(AppColors.primary, const Color(0xFF1C3A5A));
+      expect(AppColors.primary, const Color(0xFF0039A6));
       expect(AppColors.surface, Colors.white);
       expect(AppColors.text, const Color(0xFF1A1A1A));
       expect(AppColors.background, const Color(0xFFF4F4F6));
@@ -112,7 +112,7 @@ void main() {
       AppColors.escuro = true;
       expect(AppColors.surface, isNot(Colors.white));
       expect(AppColors.text, isNot(const Color(0xFF1A1A1A)));
-      expect(AppColors.primaryBrand, const Color(0xFF1C3A5A));
+      expect(AppColors.primaryBrand, const Color(0xFF0039A6));
       expect(AppColors.white, Colors.white);
     });
   });

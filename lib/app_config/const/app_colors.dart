@@ -8,14 +8,14 @@ class AppColors {
 
   static Color _modo(Color claro, Color noEscuro) => escuro ? noEscuro : claro;
 
-  /// Azul da marca, igual nos dois modos (barra inferior, cabeçalhos).
-  static const Color primaryBrand = Color(0xFF1C3A5A);
+  /// Azul da marca (o mesmo da logo), igual nos dois modos (barra inferior, cabeçalhos).
+  static const Color primaryBrand = Color(0xFF0039A6);
 
   /// Azul de destaque: no escuro fica mais claro para ler sobre o fundo.
-  static Color get primary => _modo(primaryBrand, const Color(0xFF4A7FB8));
-  static const Color primaryDark = Color(0xFF12263C);
-  static const Color primaryLight = Color(0xFF2E5C8A);
-  static const Color secondary = Color(0xFF2A3F55);
+  static Color get primary => _modo(primaryBrand, const Color(0xFF4F7FE0));
+  static const Color primaryDark = Color(0xFF001A66);
+  static const Color primaryLight = Color(0xFF0157D7);
+  static const Color secondary = Color(0xFF1F3466);
 
   static Color get background =>
       _modo(const Color(0xFFF4F4F6), const Color(0xFF0D0F12));
@@ -30,7 +30,7 @@ class AppColors {
   static Color get textSecondary =>
       _modo(const Color(0xFF5C5C5C), const Color(0xFFA3A9B3));
 
-  static Color get iconMuted => _modo(secondary, const Color(0xFF9DB0C6));
+  static Color get iconMuted => _modo(secondary, const Color(0xFFA0B4E0));
   static Color get border =>
       _modo(const Color(0xFFE0E0E0), const Color(0xFF2C3139));
 

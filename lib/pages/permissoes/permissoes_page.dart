@@ -6,14 +6,15 @@ import 'package:app_razor/pages/login/login_page.dart';
 import 'package:app_razor/pages/menu/menu.dart';
 import 'package:app_razor/pages/perfil/perfil_service.dart';
 import 'package:app_razor/pages/permissoes/widgets/permissoes_animacao.dart';
-import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
+import 'package:app_razor/widgets/app_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:muller_package/muller_package.dart';
 
 /// Tela exibida após o login (e na abertura do app, se a localização não
-/// estiver liberada). Só deixa seguir para a home com a localização permitida.
+/// estiver liberada). Pede uma permissão por vez, só as que ainda faltam; todas
+/// são opcionais e "Agora não" segue para a próxima.
 class PermissoesPage extends StatefulWidget {
   const PermissoesPage({super.key});
 
@@ -23,49 +24,109 @@ class PermissoesPage extends StatefulWidget {
 
 class _PermissoesPageState extends State<PermissoesPage>
     with WidgetsBindingObserver {
-  final List<PermissaoApp> _permissoes = permissoesDoApp();
-  final Map<PermissaoApp, PermissaoStatus> _status =
-      <PermissaoApp, PermissaoStatus>{};
+  /// Só as que ainda não estavam liberadas ao abrir a tela; null enquanto lê.
+  List<PermissaoApp>? _passos;
+  int _indice = 0;
+  PermissaoStatus? _status;
+  bool _pedindo = false;
+  bool _concedida = false;
+  bool _saindo = false;
+
+  PermissaoApp get _atual => _passos![_indice];
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _atualizarStatus();
+    _carregar();
+  }
+
+  Future<void> _carregar() async {
+    final List<PermissaoApp> faltando = <PermissaoApp>[];
+    for (final PermissaoApp permissao in permissoesDoApp()) {
+      if (await statusPermissao(permissao) != PermissaoStatus.concedida) {
+        faltando.add(permissao);
+      }
+    }
+
+    if (!mounted) return;
+    if (faltando.isEmpty) {
+      _continuar();
+      return;
+    }
+
+    _passos = faltando;
+    await _lerStatusAtual();
+  }
+
+  Future<void> _lerStatusAtual() async {
+    final PermissaoStatus status = await statusPermissao(_atual);
+    if (mounted) setState(() => _status = status);
   }
 
   // Ao voltar dos Ajustes, relê o que o usuário liberou por lá.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _atualizarStatus();
+    if (state != AppLifecycleState.resumed || _passos == null || _concedida) {
+      return;
     }
+    statusPermissao(_atual).then((PermissaoStatus status) {
+      if (!mounted) return;
+      if (status == PermissaoStatus.concedida) {
+        _marcarConcedida();
+      } else {
+        setState(() => _status = status);
+      }
+    });
   }
 
-  Future<void> _atualizarStatus() async {
-    for (final PermissaoApp permissao in _permissoes) {
-      _status[permissao] = await statusPermissao(permissao);
-    }
+  Future<void> _permitir() async {
+    if (_pedindo || _concedida || _status == null) return;
 
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  Future<void> _pedir(PermissaoApp permissao) async {
-    if (_status[permissao] == PermissaoStatus.bloqueada) {
+    if (_status == PermissaoStatus.bloqueada) {
       await abrirAjustesDoApp();
       return;
     }
 
-    final PermissaoStatus status = await pedirPermissao(permissao);
+    setState(() => _pedindo = true);
+    final PermissaoStatus status = await pedirPermissao(_atual);
+    if (!mounted) return;
+    setState(() => _pedindo = false);
 
-    if (mounted) {
-      setState(() => _status[permissao] = status);
+    if (status == PermissaoStatus.concedida) {
+      _marcarConcedida();
+    } else if (status == PermissaoStatus.bloqueada) {
+      // Negou de vez (ou já estava negada): o botão passa a abrir os ajustes.
+      setState(() => _status = status);
+    } else {
+      _proximo();
     }
   }
 
+  /// Mostra o "Permitido" por um instante antes de ir para a próxima.
+  Future<void> _marcarConcedida() async {
+    HapticFeedback.lightImpact();
+    setState(() => _concedida = true);
+    await Future<void>.delayed(const Duration(milliseconds: 750));
+    if (mounted) _proximo();
+  }
+
+  void _proximo() {
+    if (_indice >= _passos!.length - 1) {
+      _continuar();
+      return;
+    }
+    setState(() {
+      _indice++;
+      _status = null;
+      _concedida = false;
+    });
+    _lerStatusAtual();
+  }
+
   void _continuar() {
+    if (_saindo) return;
+    _saindo = true;
     open(screen: const MenuScreen(), closePrevious: true);
   }
 
@@ -77,166 +138,118 @@ class _PermissoesPageState extends State<PermissoesPage>
   String _titulo(PermissaoApp permissao) {
     switch (permissao) {
       case PermissaoApp.localizacao:
-        return 'Localização';
+        return 'Barbearias perto de você';
       case PermissaoApp.camera:
-        return 'Câmera';
+        return 'Sua foto de perfil';
       case PermissaoApp.galeria:
-        return 'Fotos';
+        return 'Fotos da galeria';
       case PermissaoApp.notificacoes:
-        return 'Avisos';
+        return 'Não perca seu horário';
     }
   }
 
   String _descricao(PermissaoApp permissao) {
     switch (permissao) {
       case PermissaoApp.localizacao:
-        return 'Usada para mostrar barbearias perto de você. A busca por nome e cidade funciona sem ela.';
+        return 'Com a sua localização, mostramos as barbearias mais próximas e a distância até cada uma. Sem ela, você ainda busca por nome, serviço ou cidade.';
       case PermissaoApp.camera:
-        return 'Tire uma foto para o seu perfil.';
+        return 'Use a câmera para tirar a foto do seu perfil. Ela só é usada quando você escolher trocar a foto.';
       case PermissaoApp.galeria:
-        return 'Escolha uma foto do perfil na galeria.';
+        return 'Permita o acesso às fotos para escolher a imagem do seu perfil direto da galeria.';
       case PermissaoApp.notificacoes:
-        return 'Lembrete 1 hora antes, confirmações e mudanças no seu horário.';
+        return 'Avisamos 1 hora antes do atendimento e quando seu horário for confirmado, alterado ou cancelado.';
     }
   }
 
-  IconData _icone(PermissaoApp permissao) {
+  String _botao(PermissaoApp permissao) {
+    if (_status == PermissaoStatus.bloqueada) return 'Abrir ajustes';
     switch (permissao) {
       case PermissaoApp.localizacao:
-        return Phosphor.mapPin;
+        return 'Permitir localização';
       case PermissaoApp.camera:
-        return Phosphor.camera;
+        return 'Permitir câmera';
       case PermissaoApp.galeria:
-        return Phosphor.images;
+        return 'Permitir acesso às fotos';
       case PermissaoApp.notificacoes:
-        return Phosphor.bell;
+        return 'Ativar avisos';
     }
   }
 
-  Widget _acao(PermissaoApp permissao) {
-    final PermissaoStatus? status = _status[permissao];
+  Widget _progresso() {
+    final int total = _passos!.length;
 
-    if (status == PermissaoStatus.concedida) {
-      return Icon(
-        PhosphorFill.checkCircle,
-        color: local.AppColors.statusAberto,
-        size: 26,
-      );
-    }
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: status == null ? null : () => _pedir(permissao),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: local.AppColors.primary,
-          borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
-        ),
-        child: appText(
-          status == PermissaoStatus.bloqueada ? 'Ajustes' : 'Permitir',
-          bold: true,
-          fontSize: AppFontSizes.verySmall,
-          color: local.AppColors.white,
-        ),
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (int i = 0; i < total; i++)
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            width: i == _indice ? 22 : 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: i <= _indice
+                  ? local.AppColors.primary
+                  : local.AppColors.primary.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+      ],
     );
   }
 
-  Widget _card(PermissaoApp permissao) {
-    return Container(
-      margin: EdgeInsets.only(bottom: AppSpacing.normal),
-      padding: EdgeInsets.all(AppSpacing.normal + 2),
-      decoration: BoxDecoration(
-        color: AppEstilo.campoFundo,
-        borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
+  Widget _topo() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.medium,
+        AppSpacing.small,
+        AppSpacing.small,
+        0,
       ),
       child: Row(
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: local.AppColors.surface,
-              borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
+          if (_passos!.length > 1) _progresso(),
+          const Spacer(),
+          TextButton(
+            onPressed: _sair,
+            style: TextButton.styleFrom(
+              foregroundColor: local.AppColors.textSecondary,
             ),
-            child: Icon(
-              _icone(permissao),
-              color: local.AppColors.primary,
-              size: 22,
-            ),
-          ),
-          appSizedBox(width: AppSpacing.normal),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    appText(
-                      _titulo(permissao),
-                      bold: true,
-                      fontSize: AppFontSizes.small,
-                      color: local.AppColors.text,
-                    ),
-                    appSizedBox(width: 6),
-                    appText(
-                      'Opcional',
-                      fontSize: 11,
-                      color: AppEstilo.campoIcone,
-                    ),
-                  ],
-                ),
-                appSizedBox(height: 2),
-                appText(
-                  _descricao(permissao),
-                  fontSize: AppFontSizes.verySmall,
-                  color: local.AppColors.textSecondary,
-                ),
-              ],
+            child: appText(
+              'Sair',
+              bold: true,
+              fontSize: AppFontSizes.verySmall + 1,
+              color: local.AppColors.textSecondary,
             ),
           ),
-          appSizedBox(width: AppSpacing.small),
-          _acao(permissao),
         ],
       ),
     );
   }
 
-  Widget _conteudo() {
+  Widget _conteudoPasso(PermissaoApp permissao) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      key: ValueKey(permissao),
+      mainAxisSize: MainAxisSize.min,
       children: [
-        for (final PermissaoApp permissao in _permissoes) _card(permissao),
-        appSizedBox(height: AppSpacing.small),
-        appElevatedButtonRazor(
-          title: 'Continuar',
-          onTap: _continuar,
-          color: local.AppColors.primary,
-          height: 54,
-          radius: 10,
-          padding: AppSpacing.medium,
+        PermissaoAnimacao(permissao: permissao),
+        appSizedBox(height: AppSpacing.big),
+        Text(
+          _titulo(permissao),
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: AppFonts.family,
+            fontWeight: FontWeight.w800,
+            fontSize: 26,
+            height: 1.15,
+            color: local.AppColors.text,
+          ),
         ),
-      ],
-    );
-  }
-
-  Widget _cabecalho() {
-    return Column(
-      children: [
-        const PermissoesAnimacao(),
         appSizedBox(height: AppSpacing.normal),
         appText(
-          'Permissões',
-          bold: true,
-          fontSize: 26,
-          color: local.AppColors.text,
-          textAlign: TextAlign.center,
-        ),
-        appSizedBox(height: 4),
-        appText(
-          'A localização é opcional. Sem ela, você pesquisa\npor nome, serviço, profissional ou cidade.',
-          fontSize: AppFontSizes.verySmall,
+          _descricao(permissao),
+          fontSize: AppFontSizes.small,
           color: local.AppColors.textSecondary,
           textAlign: TextAlign.center,
         ),
@@ -244,31 +257,127 @@ class _PermissoesPageState extends State<PermissoesPage>
     );
   }
 
-  Widget _rodape() {
+  Widget _conteudo() {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 420),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        final bool entrando = child.key == ValueKey(_atual);
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween<Offset>(
+              begin: Offset(entrando ? 0.3 : -0.3, 0),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          ),
+        );
+      },
+      child: _conteudoPasso(_atual),
+    );
+  }
+
+  Widget _botaoPrincipal() {
+    final bool pronto = _status != null && !_pedindo;
+    final Color cor = _concedida ? local.AppColors.statusAberto : local.AppColors.primary;
+
+    final Widget rotulo = _concedida
+        ? Row(
+            key: const ValueKey('ok'),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(PhosphorFill.checkCircle, color: local.AppColors.white, size: 22),
+              appSizedBox(width: 8),
+              appText('PERMITIDO', bold: true, color: local.AppColors.white, letterSpacing: 0.4),
+            ],
+          )
+        : _pedindo
+            ? SizedBox(
+                key: const ValueKey('carregando'),
+                height: 22,
+                child: appLoadingRazor(color: local.AppColors.white, size: 22),
+              )
+            : Row(
+                key: ValueKey(_botao(_atual)),
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (_status == PermissaoStatus.bloqueada) ...[
+                    const Icon(Phosphor.gear, color: local.AppColors.white, size: 20),
+                    appSizedBox(width: 8),
+                  ],
+                  appText(
+                    _botao(_atual).toUpperCase(),
+                    bold: true,
+                    color: local.AppColors.white,
+                    letterSpacing: 0.4,
+                  ),
+                ],
+              );
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: _sair,
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: AppSpacing.normal),
-        child: Text.rich(
-          TextSpan(
-            style: TextStyle(
-              fontFamily: AppFonts.family,
-              fontSize: AppFontSizes.verySmall + 1,
-              color: local.AppColors.textSecondary,
-            ),
-            children: [
-              TextSpan(text: 'Quer usar outra conta? '),
-              TextSpan(
-                text: 'Sair',
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: local.AppColors.primary,
-                ),
-              ),
-            ],
-          ),
+      onTap: pronto ? _permitir : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        height: 54,
+        width: double.infinity,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: pronto || _concedida ? cor : cor.withValues(alpha: 0.6),
+          borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
         ),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 220),
+          child: rotulo,
+        ),
+      ),
+    );
+  }
+
+  Widget _rodape() {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.medium,
+        0,
+        AppSpacing.medium,
+        AppSpacing.small,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            child: _status == PermissaoStatus.bloqueada && !_concedida
+                ? Padding(
+                    key: const ValueKey('bloqueada'),
+                    padding: EdgeInsets.only(bottom: AppSpacing.normal),
+                    child: appText(
+                      'Essa permissão foi negada antes. Libere nos ajustes do celular e volte para o app.',
+                      fontSize: AppFontSizes.verySmall,
+                      color: local.AppColors.textSecondary,
+                      textAlign: TextAlign.center,
+                    ),
+                  )
+                : const SizedBox.shrink(key: ValueKey('livre')),
+          ),
+          _botaoPrincipal(),
+          appSizedBox(height: AppSpacing.small),
+          TextButton(
+            onPressed: _pedindo || _concedida ? null : _proximo,
+            style: TextButton.styleFrom(
+              minimumSize: const Size.fromHeight(48),
+              foregroundColor: local.AppColors.primary,
+            ),
+            child: appText(
+              'Agora não',
+              bold: true,
+              fontSize: AppFontSizes.small,
+              color: local.AppColors.primary,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -284,35 +393,33 @@ class _PermissoesPageState extends State<PermissoesPage>
       child: Scaffold(
         backgroundColor: local.AppColors.surface,
         body: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    // Centraliza na tela e ainda rola em telas baixas.
-                    return SingleChildScrollView(
-                      padding: EdgeInsets.all(AppSpacing.medium),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight:
-                              constraints.maxHeight - AppSpacing.medium * 2,
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _cabecalho(),
-                            appSizedBox(height: AppSpacing.medium + 4),
-                            _conteudo(),
-                          ],
-                        ),
+          child: _passos == null
+              ? Center(child: appLoadingRazor())
+              : Column(
+                  children: [
+                    _topo(),
+                    Expanded(
+                      child: LayoutBuilder(
+                        builder: (BuildContext context, BoxConstraints constraints) {
+                          // Centraliza na tela e ainda rola em telas baixas.
+                          return SingleChildScrollView(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: AppSpacing.big,
+                              vertical: AppSpacing.medium,
+                            ),
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minHeight: constraints.maxHeight - AppSpacing.medium * 2,
+                              ),
+                              child: Center(child: _conteudo()),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
+                    ),
+                    _rodape(),
+                  ],
                 ),
-              ),
-              _rodape(),
-            ],
-          ),
         ),
       ),
     );

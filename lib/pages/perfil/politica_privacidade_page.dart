@@ -38,14 +38,14 @@ class PoliticaPrivacidadePage extends StatelessWidget {
         padding: EdgeInsets.all(AppSpacing.normal),
         children: [
           appText(
-            'Razor',
+            'Cortaro',
             bold: true,
             fontSize: AppFontSizes.medium,
             color: local.AppColors.text,
           ),
           appSizedBox(height: AppSpacing.small),
           appText(
-            'Esta política descreve como o aplicativo Razor trata os dados pessoais no cadastro, login e agendamentos.',
+            'Esta política descreve como o aplicativo Cortaro trata os dados pessoais no cadastro, login e agendamentos.',
             fontSize: AppFontSizes.verySmall,
             color: local.AppColors.textSecondary,
           ),

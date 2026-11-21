@@ -35,22 +35,6 @@ class AppAuthLayout extends StatelessWidget {
     this.loading = false,
   });
 
-  Widget _marca() {
-    return Container(
-      width: 50,
-      height: 50,
-      decoration: BoxDecoration(
-        color: local.AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Icon(
-        Phosphor.scissors,
-        color: local.AppColors.primary,
-        size: 26,
-      ),
-    );
-  }
-
   Widget _botaoVoltar() {
     return Padding(
       padding: EdgeInsets.only(bottom: AppSpacing.medium),
@@ -85,8 +69,6 @@ class AppAuthLayout extends StatelessWidget {
           children: [
             if (onVoltar != null) _botaoVoltar(),
             const Spacer(),
-            _marca(),
-            appSizedBox(height: AppSpacing.medium),
             appHeaderTitulo(titulo: titulo, subtitulo: subtitulo),
           ],
         ),

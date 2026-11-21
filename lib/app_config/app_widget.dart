@@ -162,7 +162,7 @@ class _AppWidgetState extends State<AppWidget> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Razor',
+      title: 'Cortaro',
       navigatorKey: AppContext.navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: _buildTheme(),
