@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.net.convertix.scissor"
+    namespace = "br.com.cortaro.cliente"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,7 +21,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.net.convertix.scissor"
+        applicationId = "br.com.cortaro.cliente"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
