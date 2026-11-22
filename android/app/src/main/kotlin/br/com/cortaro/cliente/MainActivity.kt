@@ -1,4 +1,4 @@
-package com.net.convertix.scissor
+package br.com.cortaro.cliente
 
 import android.app.Notification
 import android.app.NotificationChannel
