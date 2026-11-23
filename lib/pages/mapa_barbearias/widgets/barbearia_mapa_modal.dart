@@ -41,10 +41,6 @@ Widget barbeariaMapaCard({
                 _botaoFechar(onFechar),
               ],
             ),
-            if (barbearia.nomeServico != null) ...[
-              appSizedBox(height: AppSpacing.normal),
-              _servico(barbearia),
-            ],
             appSizedBox(height: AppSpacing.normal + 2),
             Row(
               children: [
@@ -244,52 +240,6 @@ Widget _status(BarbeariaModel barbearia) {
         ),
       ],
     ],
-  );
-}
-
-/// Serviço em destaque da barbearia, com o preço "a partir de".
-Widget _servico(BarbeariaModel barbearia) {
-  final double? preco = barbearia.precoServico;
-
-  return Container(
-    padding: EdgeInsets.symmetric(
-      horizontal: AppSpacing.normal,
-      vertical: AppSpacing.small + 3,
-    ),
-    decoration: BoxDecoration(
-      color: AppEstilo.campoFundo,
-      borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
-    ),
-    child: Row(
-      children: [
-        Icon(Phosphor.scissors, size: 16, color: local.AppColors.primary),
-        appSizedBox(width: AppSpacing.small + 3),
-        Expanded(
-          child: appText(
-            barbearia.nomeServico!,
-            bold: true,
-            maxLines: 1,
-            overflow: true,
-            color: local.AppColors.text,
-            fontSize: 13,
-          ),
-        ),
-        if (preco != null) ...[
-          appSizedBox(width: AppSpacing.small),
-          appText(
-            'a partir de ',
-            color: local.AppColors.textSecondary,
-            fontSize: 11,
-          ),
-          appText(
-            formataDinheiro(preco),
-            bold: true,
-            color: local.AppColors.primary,
-            fontSize: 13,
-          ),
-        ],
-      ],
-    ),
   );
 }
 

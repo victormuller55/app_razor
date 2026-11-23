@@ -1,5 +1,8 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
+import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/models/agendamento_model.dart';
+import 'package:app_razor/widgets/app_folha_modal.dart';
+import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -19,109 +22,87 @@ void showQrConfirmacaoModal({
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     builder: (BuildContext modalContext) {
-      // O fundo branco desce até a borda da tela; só o conteúdo respeita a
-      // área do indicador de início do iOS.
-      return appContainer(
-        width: double.infinity,
-        backgroundColor: local.AppColors.surface,
-        radius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.viewPaddingOf(modalContext).bottom,
+      return FolhaModal(
+        titulo: 'Confirme sua presença',
+        subtitulo:
+            'Mostre este código para o barbeiro. A leitura confirma sua presença e o serviço.',
+        icone: Phosphor.qrCode,
+        centralizado: true,
+        conteudo: <Widget>[
+          // O QR fica sempre em fundo branco, também no modo escuro, para a leitura.
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: local.AppColors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: local.AppColors.divisor),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: QrImageView(
+                data: codigo,
+                version: QrVersions.auto,
+                size: 220,
+                backgroundColor: local.AppColors.white,
+                errorCorrectionLevel: QrErrorCorrectLevel.H,
+                eyeStyle: const QrEyeStyle(
+                  eyeShape: QrEyeShape.square,
+                  color: Color(0xFF111111),
+                ),
+                dataModuleStyle: const QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.square,
+                  color: Color(0xFF111111),
+                ),
+              ),
+            ),
           ),
+          if (agendamento.nomeServico != null ||
+              agendamento.periodoLabel.isNotEmpty)
+            _resumo(agendamento),
+        ],
+      );
+    },
+  );
+}
+
+/// Serviço e horário num bloco cinza embaixo do código.
+Widget _resumo(AgendamentoModel agendamento) {
+  return Container(
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    decoration: BoxDecoration(
+      color: AppEstilo.campoFundo,
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Row(
+      children: <Widget>[
+        Icon(Phosphor.scissors, size: 18, color: AppEstilo.campoIcone),
+        const SizedBox(width: 12),
+        Expanded(
           child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Container(
-                  height: 6,
-                  width: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(20),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              if (agendamento.nomeServico != null)
+                appText(
+                  agendamento.nomeServico!,
+                  bold: true,
+                  color: local.AppColors.text,
+                  fontSize: AppFontSizes.small,
+                  maxLines: 1,
+                  overflow: true,
+                ),
+              if (agendamento.periodoLabel.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: appText(
+                    agendamento.periodoLabel,
+                    color: local.AppColors.textSecondary,
+                    fontSize: AppFontSizes.verySmall,
                   ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  AppSpacing.medium,
-                  AppSpacing.small,
-                  AppSpacing.medium,
-                  AppSpacing.medium,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    appText(
-                      'Confirme sua presença',
-                      bold: true,
-                      fontSize: AppFontSizes.medium,
-                      color: local.AppColors.text,
-                      textAlign: TextAlign.center,
-                    ),
-                    appSizedBox(height: AppSpacing.small),
-                    appText(
-                      'Mostre este código para o barbeiro. A leitura confirma sua presença e o serviço.',
-                      color: local.AppColors.textSecondary,
-                      fontSize: AppFontSizes.verySmall,
-                      textAlign: TextAlign.center,
-                    ),
-                    appSizedBox(height: AppSpacing.normal),
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: local.AppColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: local.AppColors.border),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: QrImageView(
-                          data: codigo,
-                          version: QrVersions.auto,
-                          size: 220,
-                          backgroundColor: local.AppColors.white,
-                          errorCorrectionLevel: QrErrorCorrectLevel.H,
-                          eyeStyle: const QrEyeStyle(
-                            eyeShape: QrEyeShape.square,
-                            color: Color(0xFF111111),
-                          ),
-                          dataModuleStyle: const QrDataModuleStyle(
-                            dataModuleShape: QrDataModuleShape.square,
-                            color: Color(0xFF111111),
-                          ),
-                        ),
-                      ),
-                    ),
-                    appSizedBox(height: AppSpacing.normal),
-                    if (agendamento.nomeServico != null)
-                      appText(
-                        agendamento.nomeServico!,
-                        bold: true,
-                        color: local.AppColors.text,
-                        fontSize: AppFontSizes.small,
-                        textAlign: TextAlign.center,
-                      ),
-                    if (agendamento.periodoLabel.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: appText(
-                          agendamento.periodoLabel,
-                          color: local.AppColors.textSecondary,
-                          fontSize: AppFontSizes.verySmall,
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
-      );
-    },
+      ],
+    ),
   );
 }

@@ -10,6 +10,7 @@ import 'package:app_razor/pages/pagamento/pagamento_event.dart';
 import 'package:app_razor/pages/pagamento/pagamento_service.dart';
 import 'package:app_razor/pages/pagamento/pagamento_state.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
+import 'package:app_razor/widgets/app_scaffold_razor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -166,11 +167,9 @@ class _PagamentoPixPageState extends State<_PagamentoPixPage>
         // Tudo tem lugar fixo: trocar de etapa só troca o conteúdo, nada muda de posição.
         return PopScope(
           canPop: !state.ocupado,
-          child: scaffold(
+          child: scaffoldRazor(
             title: 'Pagamento',
-            centerTitle: true,
             background: local.AppColors.surface,
-            appBarColor: local.AppColors.primaryBrand,
             actions: [
               if (pixDeTeste && state.etapa == EtapaPagamento.aguardandoPix)
                 TextButton(
@@ -178,7 +177,7 @@ class _PagamentoPixPageState extends State<_PagamentoPixPage>
                   child: appText(
                     'Simular',
                     bold: true,
-                    color: local.AppColors.white,
+                    color: local.AppColors.primary,
                     fontSize: AppFontSizes.verySmall,
                   ),
                 ),

@@ -5,6 +5,7 @@ import 'package:app_razor/app_config/const/app_fonts.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
+import 'package:app_razor/widgets/app_texto_termos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:muller_package/muller_package.dart';
@@ -120,7 +121,9 @@ class AppAuthLayout extends StatelessWidget {
       width: double.infinity,
       decoration: const BoxDecoration(
         color: local.AppColors.white,
-        borderRadius: BorderRadius.only(topLeft: Radius.circular(AppEstilo.raioFolha)),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(AppEstilo.raioFolha),
+        ),
       ),
       padding: EdgeInsets.fromLTRB(
         AppSpacing.medium + 4,
@@ -222,23 +225,16 @@ class AppAuthTermos extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: Text.rich(
-                TextSpan(
-                  style: TextStyle(
-                    fontFamily: AppFonts.family,
-                    fontSize: AppFontSizes.verySmall,
-                    color: local.AppColors.textSecondary,
-                  ),
-                  children: const [
-                    TextSpan(text: 'Aceito os '),
-                    TextSpan(
-                      text: 'termos de uso e a política de privacidade',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: local.AppColors.primaryLight,
-                      ),
-                    ),
-                  ],
+              child: AppTextoTermos(
+                prefixo: 'Aceito os ',
+                style: TextStyle(
+                  fontFamily: AppFonts.family,
+                  fontSize: AppFontSizes.verySmall,
+                  color: local.AppColors.textSecondary,
+                ),
+                linkStyle: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: local.AppColors.primaryLight,
                 ),
               ),
             ),
@@ -291,6 +287,7 @@ AppFormField appAuthFormField({
   String? Function(String? value)? validator,
   bool senha = false,
   TextInputFormatter? textInputFormatter,
+  double topPadding = 10,
 }) {
   final Color iconeCor = AppEstilo.campoIcone;
 
@@ -298,6 +295,7 @@ AppFormField appAuthFormField({
     context: context,
     hint: hint,
     paddingHeight: 18,
+    topPadding: topPadding,
     maxLines: 1,
     fontSize: 15,
     errorFontSize: 11,

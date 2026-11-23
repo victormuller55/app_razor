@@ -2,6 +2,7 @@ import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_fonts.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
+import 'package:app_razor/widgets/app_texto_termos.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -356,24 +357,17 @@ class CadastroTermosCard extends StatelessWidget {
             ),
             appSizedBox(width: 14),
             Expanded(
-              child: Text.rich(
-                TextSpan(
-                  style: TextStyle(
-                    fontFamily: AppFonts.family,
-                    fontSize: 13,
-                    height: 1.35,
-                    color: local.AppColors.textSecondary,
-                  ),
-                  children: const [
-                    TextSpan(text: 'Li e aceito os '),
-                    TextSpan(
-                      text: 'termos de uso e a política de privacidade',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: local.AppColors.primaryLight,
-                      ),
-                    ),
-                  ],
+              child: AppTextoTermos(
+                prefixo: 'Li e aceito os ',
+                style: TextStyle(
+                  fontFamily: AppFonts.family,
+                  fontSize: 13,
+                  height: 1.35,
+                  color: local.AppColors.textSecondary,
+                ),
+                linkStyle: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: local.AppColors.primaryLight,
                 ),
               ),
             ),

@@ -18,6 +18,7 @@ import 'package:app_razor/widgets/app_error_razor.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
+import 'package:app_razor/widgets/app_scaffold_razor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
@@ -1409,13 +1410,11 @@ class _AgendamentoPageState extends State<AgendamentoPage> {
         }
       },
       builder: (BuildContext context, AgendamentoState state) {
-        return scaffold(
+        return scaffoldRazor(
           title: _editando
               ? 'Editar reserva'
               : widget.nomeBarbearia ?? 'Agendar',
-          centerTitle: true,
           background: local.AppColors.surface,
-          appBarColor: local.AppColors.primaryBrand,
           safeBottom: false,
           body: _conteudo(state),
           bottomNavigationBar: state is AgendamentoReadyState

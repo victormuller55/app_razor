@@ -1,5 +1,6 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_fonts.dart';
+import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/pages/barbearias/filters/barbearias_filtros.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
@@ -225,55 +226,143 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
     );
   }
 
-  Widget _campo(String titulo, TextEditingController? controller) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: AppSpacing.normal),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+  /// Campo de texto dentro dos cards: fundo da folha sobre o cinza do card,
+  /// ícone, texto de exemplo e botão para apagar quando tem conteúdo.
+  Widget _campo({
+    required TextEditingController? controller,
+    required String hint,
+    IconData? icon,
+    String? prefixo,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    final TextStyle estilo = TextStyle(
+      fontFamily: AppFonts.family,
+      fontSize: 15,
+      color: local.AppColors.text,
+    );
+
+    return Container(
+      height: 46,
+      decoration: BoxDecoration(
+        color: local.AppColors.surface,
+        borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
+        border: Border.all(color: local.AppColors.divisor),
+      ),
+      padding: EdgeInsets.only(left: AppSpacing.normal + 2),
+      child: Row(
         children: [
-          appText(
-            titulo,
-            bold: true,
-            fontSize: AppFontSizes.verySmall,
-            color: local.AppColors.text,
-          ),
-          appSizedBox(height: AppSpacing.small),
-          Container(
-            height: 48,
-            decoration: BoxDecoration(
-              color: local.AppColors.surface,
-              borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
-            ),
-            alignment: Alignment.centerLeft,
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.normal),
+          if (icon != null) ...[
+            Icon(icon, size: 18, color: AppEstilo.campoIcone),
+            appSizedBox(width: AppSpacing.normal),
+          ],
+          if (prefixo != null) ...[
+            Text(prefixo, style: estilo.copyWith(color: AppEstilo.campoIcone)),
+            appSizedBox(width: AppSpacing.small),
+          ],
+          Expanded(
             child: TextField(
               controller: controller,
+              keyboardType: keyboardType,
               textInputAction: TextInputAction.next,
-              style: TextStyle(
-                fontFamily: AppFonts.family,
-                fontSize: 15,
-                color: local.AppColors.text,
-              ),
-              decoration: const InputDecoration(
+              textCapitalization: keyboardType == TextInputType.text
+                  ? TextCapitalization.words
+                  : TextCapitalization.none,
+              cursorColor: local.AppColors.primary,
+              style: estilo,
+              decoration: InputDecoration(
                 isCollapsed: true,
                 border: InputBorder.none,
+                hintText: hint,
+                hintStyle: estilo.copyWith(color: AppEstilo.campoIcone),
               ),
             ),
+          ),
+          if (controller != null)
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: controller,
+              builder: (BuildContext context, TextEditingValue valor, _) {
+                if (valor.text.isEmpty) {
+                  return appSizedBox(width: AppSpacing.normal);
+                }
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: controller.clear,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppSpacing.normal,
+                    ),
+                    child: Icon(
+                      Phosphor.xCircle,
+                      size: 18,
+                      color: AppEstilo.campoIcone,
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _cardLocal() {
+    return _card(
+      titulo: 'Local',
+      child: Column(
+        children: [
+          _campo(controller: _cidade, hint: 'Cidade', icon: Phosphor.buildings),
+          appSizedBox(height: AppSpacing.normal),
+          _campo(controller: _bairro, hint: 'Bairro', icon: Phosphor.mapPin),
+        ],
+      ),
+    );
+  }
+
+  Widget _cardServico() {
+    return _card(
+      titulo: 'Serviço e profissional',
+      child: Column(
+        children: [
+          _campo(
+            controller: _servico,
+            hint: 'Ex.: corte, barba',
+            icon: Phosphor.scissors,
+          ),
+          appSizedBox(height: AppSpacing.normal),
+          _campo(
+            controller: _profissional,
+            hint: 'Nome do profissional',
+            icon: Phosphor.user,
           ),
         ],
       ),
     );
   }
 
-  Widget _precos() {
-    return Padding(
-      padding: EdgeInsets.only(bottom: AppSpacing.normal + 2),
+  Widget _cardPreco() {
+    const TextInputType numero = TextInputType.numberWithOptions(decimal: true);
+
+    return _card(
+      titulo: 'Preço',
       child: Row(
         children: [
-          Expanded(child: _campo('Preço mínimo', _precoMin)),
+          Expanded(
+            child: _campo(
+              controller: _precoMin,
+              hint: 'Mínimo',
+              prefixo: 'R\$',
+              keyboardType: numero,
+            ),
+          ),
           appSizedBox(width: AppSpacing.normal),
-          Expanded(child: _campo('Preço máximo', _precoMax)),
+          Expanded(
+            child: _campo(
+              controller: _precoMax,
+              hint: 'Máximo',
+              prefixo: 'R\$',
+              keyboardType: numero,
+            ),
+          ),
         ],
       ),
     );
@@ -373,6 +462,9 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
           decoration: BoxDecoration(
             color: selected ? local.AppColors.primary : local.AppColors.surface,
             borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
+            border: Border.all(
+              color: selected ? local.AppColors.primary : local.AppColors.divisor,
+            ),
           ),
           child: Center(
             child: appText(
@@ -461,11 +553,9 @@ class _BarbeariasFiltrosModalState extends State<BarbeariasFiltrosModal> {
           _cabecalho(),
           appSizedBox(height: AppSpacing.medium + 4),
           if (widget.avancado) ...<Widget>[
-            _campo('Cidade', _cidade),
-            _campo('Bairro', _bairro),
-            _campo('Serviço', _servico),
-            _campo('Profissional', _profissional),
-            _precos(),
+            _cardLocal(),
+            _cardServico(),
+            _cardPreco(),
           ],
           _cardDistancia(),
           _cardNota(),

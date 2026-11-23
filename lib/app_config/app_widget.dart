@@ -95,6 +95,32 @@ class _AppWidgetState extends State<AppWidget> with WidgetsBindingObserver {
     });
   }
 
+  /// No escuro, as superfícies do Material ficam pretas e cinza neutro, sem o
+  /// tom azul que o seed da marca colocaria nelas.
+  ColorScheme _esquemaDeCores(Brightness brilho) {
+    final ColorScheme base = ColorScheme.fromSeed(
+      seedColor: local.AppColors.primaryBrand,
+      brightness: brilho,
+    );
+    if (brilho == Brightness.light) {
+      return base;
+    }
+    return base.copyWith(
+      primary: local.AppColors.primary,
+      surface: local.AppColors.surface,
+      onSurface: local.AppColors.text,
+      onSurfaceVariant: local.AppColors.textSecondary,
+      surfaceTint: Colors.transparent,
+      surfaceContainerLowest: const Color(0xFF000000),
+      surfaceContainerLow: const Color(0xFF121212),
+      surfaceContainer: const Color(0xFF1C1C1E),
+      surfaceContainerHigh: const Color(0xFF242426),
+      surfaceContainerHighest: const Color(0xFF2C2C2E),
+      outline: local.AppColors.contorno,
+      outlineVariant: local.AppColors.divisor,
+    );
+  }
+
   ThemeData _buildTheme() {
     final Brightness brilho =
     local.AppColors.escuro ? Brightness.dark : Brightness.light;
@@ -110,10 +136,7 @@ class _AppWidgetState extends State<AppWidget> with WidgetsBindingObserver {
         iconTheme: IconThemeData(color: Colors.white),
         actionsIconTheme: IconThemeData(color: Colors.white),
       ),
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: local.AppColors.primaryBrand,
-        brightness: brilho,
-      ),
+      colorScheme: _esquemaDeCores(brilho),
       cardTheme: CardThemeData(
         elevation: 0,
         color: local.AppColors.surface,

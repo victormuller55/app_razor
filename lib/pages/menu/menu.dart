@@ -13,11 +13,11 @@ import 'package:app_razor/pages/agendamentos/agendamentos_page.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_service.dart';
 import 'package:app_razor/pages/barbearias/barbearias_page.dart';
 import 'package:app_razor/pages/home/home_page.dart';
+import 'package:app_razor/pages/menu/widgets/menu_barra_android.dart';
 import 'package:app_razor/pages/perfil/perfil_page.dart';
 import 'package:cupertino_native_better/cupertino_native_better.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:muller_package/muller_package.dart';
 
 class MenuConst {
   static int currentIndex = 0;
@@ -168,57 +168,34 @@ class _MenuScreenState extends State<MenuScreen> {
     } catch (_) {}
   }
 
-  BottomNavigationBarItem _itemNavegacao({
-    required int index,
-    required IconData icon,
-    required IconData iconSelected,
-  }) {
-    return BottomNavigationBarItem(
-      icon: Icon(
-        MenuConst.currentIndex == index ? iconSelected : icon,
-        size: 28,
-      ),
-      label: AppStrings.vazio,
-    );
-  }
-
-  List<BottomNavigationBarItem> _itemsNavegacaoAndroid() {
-    return <BottomNavigationBarItem>[
-      _itemNavegacao(
-        index: 0,
-        icon: Phosphor.house,
-        iconSelected: PhosphorFill.house,
-      ),
-      _itemNavegacao(
-        index: 1,
-        icon: Phosphor.storefront,
-        iconSelected: PhosphorFill.storefront,
-      ),
-      _itemNavegacao(
-        index: 2,
-        icon: Phosphor.calendarBlank,
-        iconSelected: PhosphorFill.calendarBlank,
-      ),
-      _itemNavegacao(
-        index: 3,
-        icon: Phosphor.user,
-        iconSelected: PhosphorFill.user,
-      ),
-    ];
-  }
+  static const List<MenuBarraItem> _itensAndroid = <MenuBarraItem>[
+    MenuBarraItem(
+      label: 'Início',
+      icon: Phosphor.house,
+      iconSelecionado: PhosphorFill.house,
+    ),
+    MenuBarraItem(
+      label: 'Barbearias',
+      icon: Phosphor.storefront,
+      iconSelecionado: PhosphorFill.storefront,
+    ),
+    MenuBarraItem(
+      label: 'Agenda',
+      icon: Phosphor.calendarBlank,
+      iconSelecionado: PhosphorFill.calendarBlank,
+    ),
+    MenuBarraItem(
+      label: 'Perfil',
+      icon: Phosphor.user,
+      iconSelecionado: PhosphorFill.user,
+    ),
+  ];
 
   Widget _barraNavegacaoAndroid() {
-    return BottomNavigationBar(
-      backgroundColor: local.AppColors.primaryBrand,
-      currentIndex: MenuConst.currentIndex,
-      onTap: _selectAba,
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: local.AppColors.white,
-      unselectedItemColor: local.AppColors.white.withValues(alpha: 0.72),
-      showSelectedLabels: false,
-      showUnselectedLabels: false,
-      elevation: 0,
-      items: _itemsNavegacaoAndroid(),
+    return MenuBarraAndroid(
+      itens: _itensAndroid,
+      indiceAtual: MenuConst.currentIndex,
+      onSelecionar: _selectAba,
     );
   }
 

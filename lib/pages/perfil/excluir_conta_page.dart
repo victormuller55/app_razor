@@ -5,9 +5,11 @@ import 'package:app_razor/functions/validators.dart';
 import 'package:app_razor/pages/login/login_page.dart';
 import 'package:app_razor/pages/perfil/perfil_service.dart';
 import 'package:app_razor/pages/perfil/widgets/perfil_form_field.dart';
+import 'package:app_razor/pages/perfil/widgets/perfil_form_lista.dart';
 import 'package:app_razor/pages/perfil/widgets/perfil_info_banner.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_loading.dart';
+import 'package:app_razor/widgets/app_scaffold_razor.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -32,10 +34,8 @@ class _ExcluirContaPageState extends State<ExcluirContaPage> {
       icon: Phosphor.lockKey,
       textInputType: TextInputType.visiblePassword,
       showContent: false,
-      validator: (String? value) => AppValidators.required(
-        value,
-        errorMessage: 'Senha é obrigatória',
-      ),
+      validator: (String? value) =>
+          AppValidators.required(value, errorMessage: 'Senha é obrigatória'),
     );
   }
 
@@ -64,17 +64,15 @@ class _ExcluirContaPageState extends State<ExcluirContaPage> {
 
   @override
   Widget build(BuildContext context) {
-    return scaffold(
+    return scaffoldRazor(
       title: 'Excluir conta',
       background: local.AppColors.surface,
-      appBarColor: local.AppColors.primaryBrand,
       body: _carregando
           ? appLoadingRazor()
           : Form(
               key: _formKey,
-              child: ListView(
-                padding: EdgeInsets.all(AppSpacing.normal),
-                children: [
+              child: perfilFormLista(
+                itens: [
                   perfilInfoBanner(
                     icon: Phosphor.warning,
                     linhas: const <String>[
@@ -87,8 +85,8 @@ class _ExcluirContaPageState extends State<ExcluirContaPage> {
                     title: 'Excluir conta',
                     onTap: _excluir,
                     color: local.AppColors.danger,
-                    padding: AppSpacing.medium,
-                    height: 54,
+                    padding: 0,
+                    height: perfilAlturaItem,
                     radius: 10,
                   ),
                 ],

@@ -1,3 +1,4 @@
+import 'package:app_razor/app_config/const/app_recursos.dart';
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
@@ -21,6 +22,7 @@ import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:app_razor/widgets/app_maps.dart';
+import 'package:app_razor/widgets/app_scaffold_razor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muller_package/muller_package.dart';
@@ -1357,7 +1359,7 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
           _avaliacoes(perfil),
           _localizacao(perfil),
           _horarios(perfil),
-          _promocoes(perfil),
+          if (AppRecursos.promocoes) _promocoes(perfil),
         ],
       ),
     );
@@ -1396,17 +1398,15 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
       icon: Icon(
         perfil.favorito == true ? PhosphorFill.heart : Phosphor.heart,
         size: 22,
-        color: local.AppColors.white,
+        color: perfil.favorito == true ? local.AppColors.danger : local.AppColors.text,
       ),
     );
   }
 
   Widget _telaPerfil(BarbeariaPerfilModel perfil) {
-    return scaffold(
+    return scaffoldRazor(
       title: 'Detalhes',
-      centerTitle: true,
       background: local.AppColors.surface,
-      appBarColor: local.AppColors.primaryBrand,
       safeBottom: false,
       actions: [_botaoFavorito(perfil)],
       bottomNavigationBar: _barraAgendar(),
@@ -1449,11 +1449,9 @@ class _BarbeariaPerfilPageState extends State<BarbeariaPerfilPage> {
           return _telaPerfil(perfil);
         }
 
-        return scaffold(
+        return scaffoldRazor(
           title: 'Detalhes',
-          centerTitle: true,
           background: local.AppColors.surface,
-          appBarColor: local.AppColors.primaryBrand,
           safeBottom: false,
           body: _bodyTela(state),
         );

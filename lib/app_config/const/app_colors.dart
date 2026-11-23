@@ -18,29 +18,29 @@ class AppColors {
   static const Color secondary = Color(0xFF1F3466);
 
   static Color get background =>
-      _modo(const Color(0xFFF4F4F6), const Color(0xFF0D0F12));
+      _modo(const Color(0xFFF4F4F6), const Color(0xFF000000));
   static Color get inputBackground =>
-      _modo(const Color.fromRGBO(236, 236, 240, 1), const Color(0xFF262A31));
+      _modo(const Color.fromRGBO(236, 236, 240, 1), const Color(0xFF1E1E1E));
 
   /// Fundo das telas e folhas (branco no modo claro).
-  static Color get surface => _modo(Colors.white, const Color(0xFF15181D));
+  static Color get surface => _modo(Colors.white, const Color(0xFF000000));
 
   static Color get text =>
-      _modo(const Color(0xFF1A1A1A), const Color(0xFFECEEF1));
+      _modo(const Color(0xFF1A1A1A), const Color(0xFFF2F2F2));
   static Color get textSecondary =>
-      _modo(const Color(0xFF5C5C5C), const Color(0xFFA3A9B3));
+      _modo(const Color(0xFF5C5C5C), const Color(0xFFA1A1A6));
 
-  static Color get iconMuted => _modo(secondary, const Color(0xFFA0B4E0));
+  static Color get iconMuted => _modo(secondary, const Color(0xFFC7C7CC));
   static Color get border =>
-      _modo(const Color(0xFFE0E0E0), const Color(0xFF2C3139));
+      _modo(const Color(0xFFE0E0E0), const Color(0xFF2C2C2E));
 
   /// Divisórias finas e contornos neutros.
   static Color get divisor =>
-      _modo(const Color(0xFFE3E6EB), const Color(0xFF2C3139));
+      _modo(const Color(0xFFE3E6EB), const Color(0xFF2C2C2E));
 
   /// Contorno de itens não selecionados (chips, horários, caixas).
   static Color get contorno =>
-      _modo(const Color(0xFFD5DAE1), const Color(0xFF3A3F48));
+      _modo(const Color(0xFFD5DAE1), const Color(0xFF3A3A3C));
 
   static Color get loading => primary;
 

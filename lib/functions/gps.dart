@@ -4,10 +4,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:muller_package/muller_package.dart';
 
 const String gpsMensagemServicoDesativado =
-    'Ative a localização do dispositivo para ver barbearias próximas e promoções.';
+    'Ative a localização do dispositivo para ver as barbearias próximas.';
 
 const String gpsMensagemPermissaoNegada =
-    'Permita o acesso à localização para ver barbearias próximas e promoções.';
+    'Permita o acesso à localização para ver as barbearias próximas.';
 
 const String gpsMensagemIndisponivel =
     'Não foi possível obter sua localização.';
