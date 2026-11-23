@@ -44,7 +44,7 @@ struct AgendamentoActivityAttributes: ActivityAttributes {
 
 /// Fotos dos profissionais no contêiner do App Group, lidas pela extensão.
 enum FotoProfissional {
-  static let grupo = "group.com.net.convertix.scissor"
+  static let grupo = "group.br.com.cortaro.cliente"
 
   /// Arquivo da foto de uma URL (nome estável, sem caracteres de URL).
   static func arquivo(_ url: String) -> URL? {
