@@ -4,6 +4,7 @@ import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/app_config/tema_controller.dart';
+import 'package:app_razor/functions/abrir_link.dart';
 import 'package:app_razor/functions/api_error.dart';
 import 'package:app_razor/functions/media_url.dart';
 import 'package:app_razor/models/usuario_model.dart';
@@ -14,7 +15,6 @@ import 'package:app_razor/pages/perfil/perfil_bloc.dart';
 import 'package:app_razor/pages/perfil/perfil_event.dart';
 import 'package:app_razor/pages/perfil/perfil_service.dart';
 import 'package:app_razor/pages/perfil/perfil_state.dart';
-import 'package:app_razor/pages/perfil/politica_privacidade_page.dart';
 import 'package:app_razor/pages/perfil/trocar_senha_page.dart';
 import 'package:app_razor/widgets/app_error_razor.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
@@ -263,60 +263,77 @@ class _PerfilPageState extends State<PerfilPage> {
     await temaController.escolher(modo);
   }
 
+  /// Confirmação de saída com a altura do próprio conteúdo.
   void _confirmarSaida() {
-    showModalEmpty(
-      context,
-      initialHeight: 0.38,
-      minHeight: 0.32,
-      maxHeight: 0.5,
-      backgroundColor: local.AppColors.surface,
-      child: Builder(
-        builder: (BuildContext modalContext) {
-          return Padding(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.medium,
-              AppSpacing.small,
-              AppSpacing.medium,
-              AppSpacing.normal,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                appText(
-                  'Sair da conta',
-                  bold: true,
-                  fontSize: AppFontSizes.medium,
-                  color: local.AppColors.text,
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext modalContext) {
+        return appContainer(
+          width: double.infinity,
+          backgroundColor: local.AppColors.surface,
+          radius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.medium,
+            0,
+            AppSpacing.medium,
+            AppSpacing.medium + MediaQuery.viewPaddingOf(modalContext).bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Container(
+                    height: 6,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: AppEstilo.alca,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
                 ),
-                appSizedBox(height: AppSpacing.small),
-                appText(
-                  'Você vai precisar entrar de novo com e-mail e senha.',
-                  color: local.AppColors.textSecondary,
-                  fontSize: AppFontSizes.verySmall,
-                ),
-                appSizedBox(height: AppSpacing.medium),
-                appElevatedButtonRazor(
-                  title: 'Sim, sair',
-                  padding: 0,
-                  height: 46,
-                  color: local.AppColors.danger,
-                  onTap: () {
-                    Navigator.of(modalContext).pop();
-                    bloc.add(PerfilLogoutEvent());
-                  },
-                ),
-                appElevatedButtonRazorTransparent(
-                  title: 'Voltar',
-                  padding: AppSpacing.small,
-                  height: 46,
-                  onTap: () => Navigator.of(modalContext).pop(),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+              appSizedBox(height: AppSpacing.small),
+              appText(
+                'Sair da conta',
+                bold: true,
+                fontSize: AppFontSizes.medium,
+                color: local.AppColors.text,
+              ),
+              appSizedBox(height: AppSpacing.small),
+              appText(
+                'Você vai precisar entrar de novo com e-mail e senha.',
+                color: local.AppColors.textSecondary,
+                fontSize: AppFontSizes.verySmall,
+              ),
+              appSizedBox(height: AppSpacing.medium),
+              appElevatedButtonRazor(
+                title: 'Sim, sair',
+                padding: 0,
+                height: 46,
+                color: local.AppColors.danger,
+                onTap: () {
+                  Navigator.of(modalContext).pop();
+                  bloc.add(PerfilLogoutEvent());
+                },
+              ),
+              appElevatedButtonRazorTransparent(
+                title: 'Voltar',
+                padding: AppSpacing.small,
+                height: 46,
+                onTap: () => Navigator.of(modalContext).pop(),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -627,7 +644,7 @@ class _PerfilPageState extends State<PerfilPage> {
             icon: Phosphor.shieldCheck,
             title: 'Política de privacidade',
             subtitle: 'Como tratamos seus dados',
-            onTap: () => _abrir(const PoliticaPrivacidadePage()),
+            onTap: abrirPoliticaPrivacidade,
           ),
         ],
       ),

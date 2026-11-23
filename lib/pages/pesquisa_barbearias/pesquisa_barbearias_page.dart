@@ -379,6 +379,7 @@ class _PesquisaBarbeariasPageState extends State<PesquisaBarbeariasPage> {
         return homeProximaCard(
           barbearia: barbearia,
           onTap: () => _abrir(barbearia),
+          mostrarServico: _filtros.filtraPreco,
         );
       },
     );

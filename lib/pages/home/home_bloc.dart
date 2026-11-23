@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:app_razor/app_config/const/app_recursos.dart';
 import 'package:app_razor/functions/api_error.dart';
 import 'package:app_razor/functions/gps.dart';
 import 'package:app_razor/models/barbearia_model.dart';
@@ -39,10 +40,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     GetBarbeariasProximas? getProximas,
     GetPromocoesProximas? getPromocoes,
     GetGpsPosition? getGps,
+    bool promocoesAtivas = AppRecursos.promocoes,
   }) : _getFavoritas = getFavoritas ?? getBarbeariasFavoritas,
        _getProximas = getProximas ?? getBarbeariasProximas,
        _getPromocoes = getPromocoes ?? getPromocoesProximas,
        _getGps = getGps ?? getCurrentGps,
+       _promocoesAtivas = promocoesAtivas,
        super(HomeInitialState()) {
     on<HomeLoadEvent>(_loadHome);
     on<HomeFavoritasEvent>(_recarregarFavoritas);
@@ -52,6 +55,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final GetBarbeariasProximas _getProximas;
   final GetPromocoesProximas _getPromocoes;
   final GetGpsPosition _getGps;
+
+  /// Promoções escondidas no app: a seção fica vazia sem chamar a API.
+  final bool _promocoesAtivas;
 
   Future<void> _loadHome(HomeLoadEvent event, Emitter<HomeState> emit) async {
     HomeState current = HomeLoadingState(
@@ -189,6 +195,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     required bool forceRefresh,
     required void Function(HomeState Function(HomeState state)) emitNext,
   }) async {
+    if (!_promocoesAtivas) {
+      emitNext((HomeState state) {
+        return state.copyWith(
+          promocoes: HomeSecao<PromocaoModel>.success(const <PromocaoModel>[]),
+        );
+      });
+      return;
+    }
+
     try {
       final AppResponse response = await _getPromocoes(
         latitude: latitude,

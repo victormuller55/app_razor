@@ -174,6 +174,9 @@ class BarbeariasFiltros {
     return query;
   }
 
+  /// Preço mínimo ou máximo preenchido.
+  bool get filtraPreco => precoMin != null || precoMax != null;
+
   bool get hasFiltros {
     return toQuery().isNotEmpty;
   }

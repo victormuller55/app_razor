@@ -78,6 +78,7 @@ void main() {
                 proximasChamada = true;
                 return ok(barbeariaJson);
               },
+          promocoesAtivas: true,
           getPromocoes:
               ({
                 required double latitude,
@@ -135,6 +136,7 @@ void main() {
                 ),
               );
             },
+        promocoesAtivas: true,
         getPromocoes:
             ({
               required double latitude,
@@ -183,6 +185,7 @@ void main() {
             }) async {
               return ok('[]');
             },
+        promocoesAtivas: true,
         getPromocoes:
             ({
               required double latitude,
@@ -207,6 +210,50 @@ void main() {
       expect(state.promocoes.status, HomeSecaoStatus.success);
       expect(state.promocoes.isEmpty, isTrue);
       expect(state.todasSecoesVazias, isTrue);
+
+      await bloc.close();
+    });
+
+    test('promoções desligadas não chamam a API e deixam a seção vazia', () async {
+      bool promocoesChamada = false;
+      final HomeBloc bloc = HomeBloc(
+        getFavoritas:
+            ({
+              double? latitude,
+              double? longitude,
+              bool forceRefresh = false,
+            }) async {
+              return ok('[]');
+            },
+        getProximas:
+            ({
+              required double latitude,
+              required double longitude,
+              bool forceRefresh = false,
+            }) async {
+              return ok('[]');
+            },
+        getPromocoes:
+            ({
+              required double latitude,
+              required double longitude,
+              bool forceRefresh = false,
+            }) async {
+              promocoesChamada = true;
+              return ok(promocaoJson);
+            },
+        getGps: () async {
+          return const GpsPosition(latitude: -23.55, longitude: -46.63);
+        },
+      );
+
+      final Future<HomeState> done = waitDone(bloc);
+      bloc.add(HomeLoadEvent());
+      final HomeState state = await done;
+
+      expect(promocoesChamada, isFalse);
+      expect(state.promocoes.status, HomeSecaoStatus.success);
+      expect(state.promocoes.isEmpty, isTrue);
 
       await bloc.close();
     });
@@ -238,6 +285,7 @@ void main() {
               proximasChamadas++;
               return ok(barbeariaJson);
             },
+        promocoesAtivas: true,
         getPromocoes:
             ({
               required double latitude,

@@ -6,6 +6,7 @@ import 'package:app_razor/functions/api_error.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:app_razor/pages/agendamentos/agendamentos_service.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
+import 'package:app_razor/widgets/app_folha_modal.dart';
 import 'package:app_razor/widgets/app_header_razor.dart';
 import 'package:app_razor/widgets/app_loading.dart';
 import 'package:flutter/material.dart';
@@ -272,120 +273,55 @@ class _AvaliarServicoSheetState extends State<AvaliarServicoSheet> {
     final String servico = agendamento.nomeServico ?? 'Serviço';
     final String? profissional = agendamento.nomeFuncionario;
 
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: appContainer(
-        width: double.infinity,
-        backgroundColor: local.AppColors.surface,
-        radius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+    return FolhaModal(
+      titulo: 'Como foi seu atendimento?',
+      subtitulo: [
+        servico,
+        if (profissional != null && profissional.isNotEmpty)
+          'com $profissional',
+        if (agendamento.nomeBarbearia != null) agendamento.nomeBarbearia!,
+      ].join(' · '),
+      icone: Phosphor.star,
+      corIcone: corEstrelaAvaliacao,
+      centralizado: true,
+      conteudo: <Widget>[
+        appText(
+          'As duas avaliações são opcionais: dê só a que quiser.',
+          color: local.AppColors.textSecondary,
+          fontSize: 11,
+          textAlign: TextAlign.center,
         ),
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.viewPaddingOf(context).bottom,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Container(
-                    height: 6,
-                    width: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[400],
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.medium,
-                    AppSpacing.small,
-                    AppSpacing.medium,
-                    AppSpacing.normal,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      appText(
-                        'Como foi seu atendimento?',
-                        bold: true,
-                        fontSize: AppFontSizes.medium,
-                        color: local.AppColors.text,
-                        textAlign: TextAlign.center,
-                      ),
-                      appSizedBox(height: 4),
-                      appText(
-                        [
-                          servico,
-                          if (profissional != null && profissional.isNotEmpty)
-                            'com $profissional',
-                          if (agendamento.nomeBarbearia != null)
-                            agendamento.nomeBarbearia!,
-                        ].join(' · '),
-                        color: local.AppColors.textSecondary,
-                        fontSize: AppFontSizes.verySmall,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: true,
-                      ),
-                      appSizedBox(height: 4),
-                      appText(
-                        'As duas avaliações são opcionais: dê só a que quiser.',
-                        color: local.AppColors.textSecondary,
-                        fontSize: 11,
-                        textAlign: TextAlign.center,
-                      ),
-                      appSizedBox(height: AppSpacing.normal),
-                      _secao(
-                        secao: _atendimento,
-                        titulo: 'O serviço e o profissional',
-                        aviso: 'Só a barbearia vê esta nota.',
-                      ),
-                      appSizedBox(height: AppSpacing.small),
-                      _secao(
-                        secao: _barbearia,
-                        titulo: 'A barbearia',
-                        aviso:
-                            'Sua nota e seu comentário aparecem no perfil da barbearia.',
-                      ),
-                      if (_enviando)
-                        Padding(
-                          padding: EdgeInsets.only(top: AppSpacing.normal),
-                          child: appLoadingRazor(size: 40),
-                        )
-                      else
-                        Opacity(
-                          opacity: _temPendente ? 1 : 0.5,
-                          child: appElevatedButtonRazor(
-                            title: 'Enviar avaliação',
-                            padding: AppSpacing.normal,
-                            height: 46,
-                            onTap: _enviar,
-                          ),
-                        ),
-                      appElevatedButtonRazorTransparent(
-                        title: 'Agora não',
-                        padding: AppSpacing.small,
-                        height: 46,
-                        onTap: () => Navigator.of(
-                          context,
-                        ).pop(_enviouAlguma ? true : null),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+        _secao(
+          secao: _atendimento,
+          titulo: 'O serviço e o profissional',
+          aviso: 'Só a barbearia vê esta nota.',
+        ),
+        _secao(
+          secao: _barbearia,
+          titulo: 'A barbearia',
+          aviso: 'Sua nota e seu comentário aparecem no perfil da barbearia.',
+        ),
+      ],
+      acoes: <Widget>[
+        if (_enviando)
+          appLoadingRazor(size: 40)
+        else
+          Opacity(
+            opacity: _temPendente ? 1 : 0.5,
+            child: appElevatedButtonRazor(
+              title: 'Enviar avaliação',
+              padding: 0,
+              height: 50,
+              onTap: _enviar,
             ),
           ),
+        appElevatedButtonRazorTransparent(
+          title: 'Agora não',
+          padding: 0,
+          height: 50,
+          onTap: () => Navigator.of(context).pop(_enviouAlguma ? true : null),
         ),
-      ),
+      ],
     );
   }
 }

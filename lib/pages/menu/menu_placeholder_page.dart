@@ -1,4 +1,5 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
+import 'package:app_razor/widgets/app_scaffold_razor.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -14,11 +15,10 @@ class MenuPlaceholderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return scaffold(
+    return scaffoldRazor(
       title: title,
       hideBackIcon: true,
       background: local.AppColors.background,
-      appBarColor: local.AppColors.primaryBrand,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

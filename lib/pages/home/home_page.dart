@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:app_razor/app_config/const/app_recursos.dart';
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
@@ -279,15 +280,15 @@ class _HomePageState extends State<HomePage>
       children: [
         Expanded(
           child: appText(
-            (usuario.nome ?? AppStrings.vazio).toUpperCase(),
-            color: local.AppColors.white,
-            fontSize: AppFontSizes.small,
+            usuario.nome ?? AppStrings.vazio,
+            color: local.AppColors.text,
+            fontSize: 17,
             bold: true,
             maxLines: 1,
             overflow: true,
           ),
         ),
-        _avatarUsuario(radius: 14),
+        _avatarUsuario(radius: 16),
       ],
     );
   }
@@ -530,7 +531,11 @@ class _HomePageState extends State<HomePage>
   Widget _secoesListas() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [_secaoFavoritas(), _secaoProximas(), _secaoPromocoes()],
+      children: [
+        _secaoFavoritas(),
+        _secaoProximas(),
+        if (AppRecursos.promocoes) _secaoPromocoes(),
+      ],
     );
   }
 
@@ -618,7 +623,10 @@ class _HomePageState extends State<HomePage>
             opacity: show ? 1 : 0,
             duration: const Duration(milliseconds: 200),
             child: Material(
-              color: local.AppColors.primary,
+              color: local.AppColors.surface,
+              shape: Border(
+                bottom: BorderSide(color: local.AppColors.divisor),
+              ),
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
                   AppSpacing.medium,
@@ -700,12 +708,12 @@ class _HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
+      value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: local.AppColors.iconesBarraStatus,
+        statusBarBrightness: local.AppColors.brilhoBarraStatus,
         systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarIconBrightness: local.AppColors.iconesBarraStatus,
         systemNavigationBarContrastEnforced: false,
       ),
       child: Scaffold(

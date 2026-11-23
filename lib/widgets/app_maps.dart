@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 
+import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/models/barbearia_model.dart';
 import 'package:app_razor/widgets/app_marcador_barbearia.dart';
+import 'package:app_razor/widgets/app_maps_estilo.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -210,6 +212,7 @@ class _AppMapaState extends State<_AppMapa> {
     );
 
     return GoogleMap(
+      style: local.AppColors.escuro ? estiloMapaEscuro : null,
       myLocationEnabled: widget.myLocationEnabled,
       myLocationButtonEnabled: false,
       zoomControlsEnabled: false,

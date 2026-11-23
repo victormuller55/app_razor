@@ -98,5 +98,35 @@ void main() {
       expect(find.text('0,0 km'), findsNothing);
       expect(find.textContaining('km'), findsNothing);
     });
+
+    testWidgets('serviço e preço só aparecem quando pedidos', (
+      WidgetTester tester,
+    ) async {
+      final BarbeariaModel barbearia = BarbeariaModel(
+        nome: 'Barbearia do Portão',
+        nomeServico: 'Degradê',
+        precoServico: 40,
+      );
+
+      Future<void> montar({required bool mostrarServico}) {
+        return tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: homeProximaCard(
+                barbearia: barbearia,
+                onTap: () {},
+                mostrarServico: mostrarServico,
+              ),
+            ),
+          ),
+        );
+      }
+
+      await montar(mostrarServico: false);
+      expect(find.textContaining('Degradê'), findsNothing);
+
+      await montar(mostrarServico: true);
+      expect(find.textContaining('Degradê'), findsOneWidget);
+    });
   });
 }

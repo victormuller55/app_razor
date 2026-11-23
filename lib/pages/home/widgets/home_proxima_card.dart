@@ -8,10 +8,13 @@ import 'package:muller_package/muller_package.dart';
 
 /// Linha de barbearia próxima: foto arredondada, dados e status.
 /// [divisor] desenha a linha separadora abaixo do item.
+/// [mostrarServico] mostra o serviço e o preço que a API mandou: só na pesquisa
+/// com filtro de preço, onde é ele que explica por que a barbearia entrou.
 Widget homeProximaCard({
   required BarbeariaModel barbearia,
   required VoidCallback onTap,
   bool divisor = true,
+  bool mostrarServico = false,
 }) {
   return GestureDetector(
     behavior: HitTestBehavior.opaque,
@@ -37,20 +40,21 @@ Widget homeProximaCard({
             radius: AppEstilo.raioCampo + 4,
           ),
           appSizedBox(width: AppSpacing.normal + 4),
-          Expanded(child: _metadadosProxima(barbearia)),
-          appSizedBox(width: AppSpacing.small),
-          Icon(
-            Phosphor.caretRight,
-            size: 18,
-            color: AppEstilo.campoIcone,
+          Expanded(
+            child: _metadadosProxima(barbearia, mostrarServico: mostrarServico),
           ),
+          appSizedBox(width: AppSpacing.small),
+          Icon(Phosphor.caretRight, size: 18, color: AppEstilo.campoIcone),
         ],
       ),
     ),
   );
 }
 
-Widget _metadadosProxima(BarbeariaModel barbearia) {
+Widget _metadadosProxima(
+  BarbeariaModel barbearia, {
+  required bool mostrarServico,
+}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -78,7 +82,7 @@ Widget _metadadosProxima(BarbeariaModel barbearia) {
         color: local.AppColors.textSecondary,
         fontSize: 12,
       ),
-      if ((barbearia.nomeServico ?? '').isNotEmpty) ...[
+      if (mostrarServico && (barbearia.nomeServico ?? '').isNotEmpty) ...[
         appSizedBox(height: 2),
         appText(
           barbearia.precoServico != null

@@ -4,9 +4,11 @@ import 'package:app_razor/functions/api_error.dart';
 import 'package:app_razor/functions/validators.dart';
 import 'package:app_razor/pages/perfil/perfil_service.dart';
 import 'package:app_razor/pages/perfil/widgets/perfil_form_field.dart';
+import 'package:app_razor/pages/perfil/widgets/perfil_form_lista.dart';
 import 'package:app_razor/pages/perfil/widgets/perfil_info_banner.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_loading.dart';
+import 'package:app_razor/widgets/app_scaffold_razor.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -41,7 +43,8 @@ class _EditarEmailPageState extends State<EditarEmailPage> {
         if (erro != null) {
           return erro;
         }
-        if (value!.trim().toLowerCase() == widget.emailAtual.trim().toLowerCase()) {
+        if (value!.trim().toLowerCase() ==
+            widget.emailAtual.trim().toLowerCase()) {
           return 'Informe um e-mail diferente do atual';
         }
         return null;
@@ -53,10 +56,8 @@ class _EditarEmailPageState extends State<EditarEmailPage> {
       icon: Phosphor.lock,
       textInputType: TextInputType.visiblePassword,
       showContent: false,
-      validator: (String? value) => AppValidators.required(
-        value,
-        errorMessage: 'Senha é obrigatória',
-      ),
+      validator: (String? value) =>
+          AppValidators.required(value, errorMessage: 'Senha é obrigatória'),
     );
   }
 
@@ -88,17 +89,15 @@ class _EditarEmailPageState extends State<EditarEmailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return scaffold(
+    return scaffoldRazor(
       title: 'Trocar e-mail',
       background: local.AppColors.surface,
-      appBarColor: local.AppColors.primaryBrand,
       body: _carregando
           ? appLoadingRazor()
           : Form(
               key: _formKey,
-              child: ListView(
-                padding: EdgeInsets.all(AppSpacing.normal),
-                children: [
+              child: perfilFormLista(
+                itens: [
                   perfilInfoBanner(
                     linhas: <String>[
                       'Atual: ${widget.emailAtual}',
@@ -110,8 +109,8 @@ class _EditarEmailPageState extends State<EditarEmailPage> {
                   appElevatedButtonRazor(
                     title: 'Salvar',
                     onTap: _salvar,
-                    padding: AppSpacing.medium,
-                    height: 54,
+                    padding: 0,
+                    height: perfilAlturaItem,
                     radius: 10,
                   ),
                 ],

@@ -4,9 +4,11 @@ import 'package:app_razor/functions/api_error.dart';
 import 'package:app_razor/functions/validators.dart';
 import 'package:app_razor/pages/perfil/perfil_service.dart';
 import 'package:app_razor/pages/perfil/widgets/perfil_form_field.dart';
+import 'package:app_razor/pages/perfil/widgets/perfil_form_lista.dart';
 import 'package:app_razor/pages/perfil/widgets/perfil_info_banner.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_loading.dart';
+import 'package:app_razor/widgets/app_scaffold_razor.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -52,10 +54,8 @@ class _TrocarSenhaPageState extends State<TrocarSenhaPage> {
       icon: Phosphor.lockSimple,
       textInputType: TextInputType.visiblePassword,
       showContent: false,
-      validator: (String? value) => AppValidators.confirmacaoSenha(
-        value,
-        _nova.controller.text,
-      ),
+      validator: (String? value) =>
+          AppValidators.confirmacaoSenha(value, _nova.controller.text),
     );
   }
 
@@ -87,17 +87,15 @@ class _TrocarSenhaPageState extends State<TrocarSenhaPage> {
 
   @override
   Widget build(BuildContext context) {
-    return scaffold(
+    return scaffoldRazor(
       title: 'Trocar senha',
       background: local.AppColors.surface,
-      appBarColor: local.AppColors.primaryBrand,
       body: _carregando
           ? appLoadingRazor()
           : Form(
               key: _formKey,
-              child: ListView(
-                padding: EdgeInsets.all(AppSpacing.normal),
-                children: [
+              child: perfilFormLista(
+                itens: [
                   perfilInfoBanner(
                     linhas: const <String>[
                       'Use no mínimo 8 caracteres. Você continua conectado depois de trocar.',
@@ -109,8 +107,8 @@ class _TrocarSenhaPageState extends State<TrocarSenhaPage> {
                   appElevatedButtonRazor(
                     title: 'Atualizar senha',
                     onTap: _salvar,
-                    padding: AppSpacing.medium,
-                    height: 54,
+                    padding: 0,
+                    height: perfilAlturaItem,
                     radius: 10,
                   ),
                 ],

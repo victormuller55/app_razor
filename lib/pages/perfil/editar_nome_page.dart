@@ -4,9 +4,11 @@ import 'package:app_razor/functions/api_error.dart';
 import 'package:app_razor/functions/validators.dart';
 import 'package:app_razor/pages/perfil/perfil_service.dart';
 import 'package:app_razor/pages/perfil/widgets/perfil_form_field.dart';
+import 'package:app_razor/pages/perfil/widgets/perfil_form_lista.dart';
 import 'package:app_razor/pages/perfil/widgets/perfil_info_banner.dart';
 import 'package:app_razor/widgets/app_elevated_button.dart';
 import 'package:app_razor/widgets/app_loading.dart';
+import 'package:app_razor/widgets/app_scaffold_razor.dart';
 import 'package:flutter/material.dart';
 import 'package:muller_package/muller_package.dart';
 
@@ -62,17 +64,15 @@ class _EditarNomePageState extends State<EditarNomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return scaffold(
+    return scaffoldRazor(
       title: 'Editar nome',
       background: local.AppColors.surface,
-      appBarColor: local.AppColors.primaryBrand,
       body: _carregando
           ? appLoadingRazor()
           : Form(
               key: _formKey,
-              child: ListView(
-                padding: EdgeInsets.all(AppSpacing.normal),
-                children: [
+              child: perfilFormLista(
+                itens: [
                   perfilInfoBanner(
                     linhas: const <String>[
                       'Esse nome aparece na home e nos seus agendamentos.',
@@ -82,8 +82,8 @@ class _EditarNomePageState extends State<EditarNomePage> {
                   appElevatedButtonRazor(
                     title: 'Salvar',
                     onTap: _salvar,
-                    padding: AppSpacing.medium,
-                    height: 54,
+                    padding: 0,
+                    height: perfilAlturaItem,
                     radius: 10,
                   ),
                 ],

@@ -18,5 +18,6 @@ AppFormField criarCampoPerfil({
     textInputType: textInputType,
     validator: validator,
     senha: showContent == false,
+    topPadding: 0,
   );
 }

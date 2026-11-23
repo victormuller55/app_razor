@@ -1,4 +1,5 @@
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
+import 'package:app_razor/app_config/const/app_fonts.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/models/agendamento_model.dart';
 import 'package:app_razor/pages/agendamentos/widgets/avaliar_servico_modal.dart';
@@ -29,7 +30,10 @@ Widget agendamentoListaCard({
   );
 }
 
-class _AgendamentoListaCard extends StatefulWidget {
+/// Card enxuto da agenda: data, serviço, barbearia, horário, status, preço e as
+/// ações. O resto (profissional, data completa, endereço, observação,
+/// pagamento) fica no modal "Ver info", aberto também pelo toque no card.
+class _AgendamentoListaCard extends StatelessWidget {
   const _AgendamentoListaCard({
     super.key,
     required this.agendamento,
@@ -51,175 +55,427 @@ class _AgendamentoListaCard extends StatefulWidget {
   final VoidCallback? onEditar;
   final bool cancelando;
 
-  @override
-  State<_AgendamentoListaCard> createState() => _AgendamentoListaCardState();
-}
+  bool get _avaliavel => onAvaliar != null && agendamento.podeAvaliar;
 
-class _AgendamentoListaCardState extends State<_AgendamentoListaCard>
-    with SingleTickerProviderStateMixin {
-  bool _aberto = false;
-  late final AnimationController _fade;
-  late final Animation<double> _opacidade;
-
-  @override
-  void initState() {
-    super.initState();
-    // Confirmado ou encerrado começa fechado: não há mais o que fazer nele,
-    // a não ser avaliar o serviço concluído.
-    _aberto = widget.agendamento.aguardando || _avaliavel;
-    _fade = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 280),
-      value: _aberto ? 1 : 0,
-    );
-    _opacidade = CurvedAnimation(parent: _fade, curve: Curves.easeOut);
-  }
-
-  @override
-  void dispose() {
-    _fade.dispose();
-    super.dispose();
-  }
-
-  void _alternar() {
-    setState(() {
-      _aberto = !_aberto;
-    });
-
-    if (_aberto) {
-      _fade.forward(from: 0);
-    } else {
-      _fade.reverse();
-    }
-  }
-
-  bool get _avaliavel {
-    return widget.onAvaliar != null && widget.agendamento.podeAvaliar;
-  }
-
-  bool get _temAcoes {
-    return widget.agendamento.aguardando &&
-        (widget.onMostrarQr != null ||
-            widget.onPagar != null ||
-            widget.onComoChegar != null ||
-            widget.onCancelar != null);
-  }
-
-  Widget _detalhes() {
-    final AgendamentoModel agendamento = widget.agendamento;
-    final String quando = <String>[
-      agendamento.dataRelativaLabel(DateTime.now()),
-      agendamento.horarioFaixa,
-      ?agendamento.duracaoLabel,
-    ].where((String parte) => parte.isNotEmpty).join(' · ');
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: AppSpacing.normal + 2),
-          child: Divider(
-            height: 1,
-            thickness: 1,
-            color: local.AppColors.divisor,
-          ),
-        ),
-        if (agendamento.nomeFuncionario != null)
-          _linhaDetalhe(
-            icone: Phosphor.user,
-            rotulo: 'Profissional',
-            valor: agendamento.nomeFuncionario!,
-          ),
-        if (quando.isNotEmpty)
-          _linhaDetalhe(icone: Phosphor.clock, rotulo: 'Quando', valor: quando),
-        if (agendamento.enderecoCompleto != null)
-          _linhaDetalhe(
-            icone: Phosphor.mapPin,
-            rotulo: 'Endereço',
-            valor: agendamento.enderecoCompleto!,
-            maxLines: 3,
-          ),
-        if (agendamento.observacao != null)
-          _linhaDetalhe(
-            icone: Phosphor.notePencil,
-            rotulo: 'Observação',
-            valor: agendamento.observacao!,
-            maxLines: 4,
-          ),
-        if (_avaliavel)
-          Padding(
-            padding: EdgeInsets.only(top: AppSpacing.small),
-            child: botaoAvaliarServico(onTap: widget.onAvaliar!),
-          )
-        else if (agendamento.notaAvaliacao != null)
-          Padding(
-            padding: EdgeInsets.only(top: AppSpacing.small),
-            child: notaDadaAvaliacao(agendamento.notaAvaliacao!),
-          ),
-        if (_temAcoes)
-          Padding(
-            padding: EdgeInsets.only(top: AppSpacing.small),
-            child: _acoes(
-              agendamento: agendamento,
-              onComoChegar: widget.onComoChegar,
-              onCancelar: widget.onCancelar,
-              onMostrarQr: widget.onMostrarQr,
-              onPagar: widget.onPagar,
-              onEditar: widget.onEditar,
-              cancelando: widget.cancelando,
-            ),
-          ),
-      ],
-    );
-  }
+  /// Encerrado e sem avaliação pendente: só o toque no card abre as informações.
+  bool get _soConsulta => agendamento.encerrado && !_avaliavel;
 
   @override
   Widget build(BuildContext context) {
     final BorderRadius raio = BorderRadius.circular(_raioCard);
+    void verInfo() =>
+        showAgendamentoInfoModal(context: context, agendamento: agendamento);
 
-    // Encerrado (cancelado, concluído ou sem comparecimento) fica com cara de desativado,
-    // mas continua abrindo para consultar os detalhes.
+    // Encerrado (cancelado, concluído ou sem comparecimento) fica com cara de desativado.
     return Opacity(
-      opacity: widget.agendamento.encerrado && !_avaliavel
-          ? _opacidadeEncerrado
-          : 1,
+      opacity: _soConsulta ? _opacidadeEncerrado : 1,
       child: Container(
         width: double.infinity,
         margin: EdgeInsets.only(bottom: AppSpacing.normal + 2),
         decoration: BoxDecoration(
-          color: local.AppColors.surface,
+          color: AppEstilo.campoFundo,
           borderRadius: raio,
-          border: Border.all(color: local.AppColors.border),
         ),
         child: Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: _alternar,
+            onTap: verInfo,
             borderRadius: raio,
             child: Padding(
               padding: EdgeInsets.all(AppSpacing.normal + 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _cabecalho(widget.agendamento, aberto: _aberto),
-                  ClipRect(
-                    child: AnimatedSize(
-                      duration: const Duration(milliseconds: 280),
-                      curve: Curves.easeOutCubic,
-                      alignment: Alignment.topCenter,
-                      child: _aberto
-                          ? FadeTransition(
-                              opacity: _opacidade,
-                              child: _detalhes(),
-                            )
-                          : const SizedBox(width: double.infinity),
+                  _cabecalho(agendamento, mostrarSeta: _soConsulta),
+                  if (_avaliavel)
+                    Padding(
+                      padding: EdgeInsets.only(top: AppSpacing.normal + 2),
+                      child: botaoAvaliarServico(onTap: onAvaliar!),
                     ),
-                  ),
+                  if (!_soConsulta)
+                    Padding(
+                      padding: EdgeInsets.only(top: AppSpacing.normal + 2),
+                      child: _acoes(
+                        agendamento: agendamento,
+                        onComoChegar: onComoChegar,
+                        onCancelar: onCancelar,
+                        onMostrarQr: onMostrarQr,
+                        onPagar: onPagar,
+                        onEditar: onEditar,
+                        onVerInfo: verInfo,
+                        cancelando: cancelando,
+                      ),
+                    ),
                 ],
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Informações que saíram do card: profissional, data completa, endereço,
+/// observação, pagamento e avaliação dada.
+void showAgendamentoInfoModal({
+  required BuildContext context,
+  required AgendamentoModel agendamento,
+}) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (BuildContext modalContext) {
+      return AgendamentoInfoSheet(agendamento: agendamento);
+    },
+  );
+}
+
+class AgendamentoInfoSheet extends StatelessWidget {
+  const AgendamentoInfoSheet({super.key, required this.agendamento});
+
+  final AgendamentoModel agendamento;
+
+  static const List<String> _diasExtenso = <String>[
+    'Segunda-feira',
+    'Terça-feira',
+    'Quarta-feira',
+    'Quinta-feira',
+    'Sexta-feira',
+    'Sábado',
+    'Domingo',
+  ];
+
+  static const List<String> _mesesExtenso = <String>[
+    'janeiro',
+    'fevereiro',
+    'março',
+    'abril',
+    'maio',
+    'junho',
+    'julho',
+    'agosto',
+    'setembro',
+    'outubro',
+    'novembro',
+    'dezembro',
+  ];
+
+  /// "Terça-feira, 17 de novembro de 2026".
+  String? get _dataExtenso {
+    final DateTime? data = agendamento.dataHora;
+    if (data == null) {
+      return null;
+    }
+    return '${_diasExtenso[data.weekday - 1]}, ${data.day} de '
+        '${_mesesExtenso[data.month - 1]} de ${data.year}';
+  }
+
+  String? get _situacaoPagamento {
+    if (agendamento.preco == null) {
+      return null;
+    }
+    if (agendamento.pago) {
+      return 'Pago pelo app';
+    }
+    if (agendamento.encerrado) {
+      return null;
+    }
+    return 'Pagar na barbearia';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final String? data = _dataExtenso;
+    final String? situacao = _situacaoPagamento;
+    final String? cancelamento = agendamento.cancelamentoLabel == null
+        ? null
+        : agendamento.canceladoPelaBarbearia &&
+              agendamento.motivoCancelamento != null
+        ? '${agendamento.cancelamentoLabel}: ${agendamento.motivoCancelamento}'
+        : agendamento.cancelamentoLabel;
+
+    final List<Widget> blocos = <Widget?>[
+      _bloco(
+        titulo: 'Atendimento',
+        linhas: <Widget>[
+          if (agendamento.nomeBarbearia != null)
+            _linhaInfo(
+              icone: Phosphor.storefront,
+              rotulo: 'Barbearia',
+              valor: agendamento.nomeBarbearia!,
+            ),
+          if (agendamento.nomeFuncionario != null)
+            _linhaInfo(
+              icone: Phosphor.user,
+              rotulo: 'Profissional',
+              valor: agendamento.nomeFuncionario!,
+            ),
+        ],
+      ),
+      _bloco(
+        titulo: 'Data e horário',
+        linhas: <Widget>[
+          if (data != null)
+            _linhaInfo(
+              icone: Phosphor.calendarBlank,
+              rotulo: 'Dia',
+              valor: data,
+            ),
+          if (agendamento.horarioFaixa.isNotEmpty)
+            _linhaInfo(
+              icone: Phosphor.clock,
+              rotulo: 'Horário',
+              valor: agendamento.horarioFaixa,
+            ),
+          if (agendamento.duracaoLabel != null)
+            _linhaInfo(
+              icone: Phosphor.timer,
+              rotulo: 'Duração',
+              valor: agendamento.duracaoLabel!,
+            ),
+        ],
+      ),
+      _bloco(
+        titulo: 'Local',
+        linhas: <Widget>[
+          if (agendamento.enderecoCompleto != null)
+            _linhaTexto(
+              icone: Phosphor.mapPin,
+              texto: agendamento.enderecoCompleto!,
+            ),
+        ],
+      ),
+      _bloco(
+        titulo: 'Pagamento',
+        linhas: <Widget>[
+          if (agendamento.preco != null)
+            _linhaInfo(
+              icone: Phosphor.money,
+              rotulo: 'Valor',
+              valor: formataDinheiro(agendamento.preco!),
+              destaque: true,
+            ),
+          if (situacao != null)
+            _linhaInfo(
+              icone: agendamento.pago
+                  ? Phosphor.checkCircle
+                  : Phosphor.storefront,
+              rotulo: 'Situação',
+              valor: situacao,
+              cor: agendamento.pago ? local.AppColors.statusAberto : null,
+            ),
+          if (agendamento.reembolsoLabel != null)
+            _linhaInfo(
+              icone: Phosphor.arrowCounterClockwise,
+              rotulo: 'Reembolso',
+              valor: agendamento.reembolsoLabel!,
+              cor: corReembolso(agendamento.statusReembolso),
+            ),
+        ],
+      ),
+      _bloco(
+        titulo: 'Cancelamento',
+        linhas: <Widget>[
+          if (cancelamento != null)
+            _linhaTexto(icone: Phosphor.info, texto: cancelamento),
+        ],
+      ),
+      _bloco(
+        titulo: 'Observação',
+        linhas: <Widget>[
+          if (agendamento.observacao != null)
+            _linhaTexto(
+              icone: Phosphor.notePencil,
+              texto: agendamento.observacao!,
+            ),
+        ],
+      ),
+      if (agendamento.notaAvaliacao != null)
+        notaDadaAvaliacao(agendamento.notaAvaliacao!),
+    ].whereType<Widget>().toList();
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.88,
+      ),
+      child: appContainer(
+        width: double.infinity,
+        backgroundColor: local.AppColors.surface,
+        radius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.medium,
+            0,
+            AppSpacing.medium,
+            AppSpacing.medium + MediaQuery.viewPaddingOf(context).bottom,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Container(
+                    height: 6,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: AppEstilo.alca,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ),
+              appSizedBox(height: AppSpacing.small),
+              _topoInfo(),
+              for (final Widget bloco in blocos) ...[
+                appSizedBox(height: AppSpacing.medium),
+                bloco,
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Data em bloco, serviço com o status e o preço, como no card.
+  Widget _topoInfo() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _blocoData(agendamento),
+        appSizedBox(width: AppSpacing.normal + 4),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              appText(
+                agendamento.nomeServico ?? 'Agendamento',
+                bold: true,
+                maxLines: 2,
+                overflow: true,
+                color: local.AppColors.text,
+                fontSize: 19,
+              ),
+              appSizedBox(height: 6),
+              _selo(agendamento.statusLabel, _corStatus(agendamento)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Bloco cinza com título pequeno em cima e linhas separadas por divisória.
+  /// Sem linhas, o bloco não aparece.
+  Widget? _bloco({required String titulo, required List<Widget> linhas}) {
+    if (linhas.isEmpty) {
+      return null;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: appText(
+            titulo.toUpperCase(),
+            bold: true,
+            color: local.AppColors.textSecondary,
+            fontSize: 11,
+          ),
+        ),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: AppEstilo.campoFundo,
+            borderRadius: BorderRadius.circular(_raioCard - 4),
+          ),
+          child: Column(
+            children: [
+              for (int i = 0; i < linhas.length; i++) ...[
+                if (i > 0)
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    indent: 48,
+                    color: local.AppColors.divisor,
+                  ),
+                linhas[i],
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Ícone, rótulo à esquerda e valor à direita.
+  Widget _linhaInfo({
+    required IconData icone,
+    required String rotulo,
+    required String valor,
+    bool destaque = false,
+    Color? cor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      child: Row(
+        children: [
+          Icon(icone, size: 18, color: AppEstilo.campoIcone),
+          appSizedBox(width: 16),
+          appText(rotulo, color: local.AppColors.textSecondary, fontSize: 13),
+          appSizedBox(width: AppSpacing.normal),
+          Expanded(
+            child: Text(
+              valor,
+              textAlign: TextAlign.right,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontFamily: AppFonts.family,
+                fontSize: destaque ? 15 : 13,
+                fontWeight: FontWeight.w700,
+                color:
+                    cor ??
+                    (destaque ? local.AppColors.primary : local.AppColors.text),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Texto longo (endereço, observação, cancelamento) ocupando a linha toda.
+  Widget _linhaTexto({required IconData icone, required String texto}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Icon(icone, size: 18, color: AppEstilo.campoIcone),
+          ),
+          appSizedBox(width: 16),
+          Expanded(
+            child: appText(
+              texto,
+              bold: true,
+              maxLines: 6,
+              overflow: true,
+              color: local.AppColors.text,
+              fontSize: 13,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -275,118 +531,83 @@ Color _corStatus(AgendamentoModel agendamento) {
   return local.AppColors.textSecondary;
 }
 
-Widget _cabecalho(AgendamentoModel agendamento, {required bool aberto}) {
-  final String? barbearia = agendamento.nomeBarbearia;
-  final String? profissional = agendamento.nomeFuncionario;
-  final String subtitulo = <String>[?barbearia, ?profissional].join(' · ');
+Widget _cabecalho(AgendamentoModel agendamento, {required bool mostrarSeta}) {
+  final String subtitulo = agendamento.nomeBarbearia ?? '';
 
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.center,
     children: [
-      Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _blocoData(agendamento),
-          appSizedBox(width: AppSpacing.normal + 2),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                appText(
-                  agendamento.nomeServico ?? AppStrings.vazio,
-                  bold: true,
+      _blocoData(agendamento),
+      appSizedBox(width: AppSpacing.normal + 2),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            appText(
+              agendamento.nomeServico ?? AppStrings.vazio,
+              bold: true,
+              maxLines: 1,
+              overflow: true,
+              color: local.AppColors.text,
+              fontSize: 15,
+            ),
+            if (subtitulo.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: appText(
+                  subtitulo,
                   maxLines: 1,
                   overflow: true,
-                  color: local.AppColors.text,
-                  fontSize: 15,
-                ),
-                if (subtitulo.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: appText(
-                      subtitulo,
-                      maxLines: 1,
-                      overflow: true,
-                      color: local.AppColors.textSecondary,
-                      fontSize: 12,
-                    ),
-                  ),
-                appSizedBox(height: 6),
-                Row(
-                  children: [
-                    if (agendamento.horarioFaixa.isNotEmpty) ...[
-                      Icon(
-                        Phosphor.clock,
-                        size: 13,
-                        color: AppEstilo.campoIcone,
-                      ),
-                      appSizedBox(width: 4),
-                      appText(
-                        agendamento.horarioFaixa,
-                        bold: true,
-                        color: local.AppColors.text,
-                        fontSize: 12,
-                      ),
-                      appSizedBox(width: AppSpacing.small + 3),
-                    ],
-                    Flexible(child: _status(agendamento)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          appSizedBox(width: AppSpacing.small),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (agendamento.preco != null)
-                appText(
-                  formataDinheiro(agendamento.preco!),
-                  bold: true,
-                  color: local.AppColors.primary,
-                  fontSize: 15,
-                ),
-              if (agendamento.pago)
-                Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: _selo(
-                    'Pago',
-                    local.AppColors.statusAberto,
-                    icone: Phosphor.checkCircle,
-                  ),
-                ),
-              appSizedBox(height: 6),
-              AnimatedRotation(
-                turns: aberto ? 0.5 : 0,
-                duration: const Duration(milliseconds: 250),
-                child: Icon(
-                  Phosphor.caretDown,
-                  size: 16,
-                  color: AppEstilo.campoIcone,
+                  color: local.AppColors.textSecondary,
+                  fontSize: 12,
                 ),
               ),
-            ],
-          ),
+            appSizedBox(height: 6),
+            Row(
+              children: [
+                if (agendamento.horarioFaixa.isNotEmpty) ...[
+                  Icon(Phosphor.clock, size: 13, color: AppEstilo.campoIcone),
+                  appSizedBox(width: 4),
+                  appText(
+                    agendamento.horarioFaixa,
+                    bold: true,
+                    color: local.AppColors.text,
+                    fontSize: 12,
+                  ),
+                  appSizedBox(width: AppSpacing.small + 3),
+                ],
+                Flexible(child: _status(agendamento)),
+              ],
+            ),
+          ],
+        ),
+      ),
+      appSizedBox(width: AppSpacing.small),
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (agendamento.preco != null)
+            appText(
+              formataDinheiro(agendamento.preco!),
+              bold: true,
+              color: local.AppColors.primary,
+              fontSize: 15,
+            ),
+          if (agendamento.pago)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: _selo(
+                'Pago',
+                local.AppColors.statusAberto,
+                icone: Phosphor.checkCircle,
+              ),
+            ),
+          if (mostrarSeta) ...[
+            appSizedBox(height: 6),
+            Icon(Phosphor.caretRight, size: 16, color: AppEstilo.campoIcone),
+          ],
         ],
       ),
-      if (agendamento.reembolsoLabel != null)
-        Padding(
-          padding: EdgeInsets.only(top: AppSpacing.normal),
-          child: _selo(
-            agendamento.reembolsoLabel!,
-            corReembolso(agendamento.statusReembolso),
-          ),
-        ),
-      if (agendamento.cancelamentoLabel != null)
-        Padding(
-          padding: EdgeInsets.only(top: AppSpacing.small + 2),
-          child: _aviso(
-            agendamento.canceladoPelaBarbearia &&
-                    agendamento.motivoCancelamento != null
-                ? '${agendamento.cancelamentoLabel}: ${agendamento.motivoCancelamento}'
-                : agendamento.cancelamentoLabel!,
-          ),
-        ),
     ],
   );
 }
@@ -437,73 +658,6 @@ Widget _blocoData(AgendamentoModel agendamento) {
   );
 }
 
-Widget _linhaDetalhe({
-  required IconData icone,
-  required String rotulo,
-  required String valor,
-  int maxLines = 1,
-}) {
-  return Padding(
-    padding: EdgeInsets.only(bottom: AppSpacing.normal),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: AppEstilo.campoFundo,
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icone, size: 16, color: local.AppColors.primary),
-        ),
-        appSizedBox(width: AppSpacing.normal),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              appText(
-                rotulo,
-                color: local.AppColors.textSecondary,
-                fontSize: 11,
-              ),
-              appSizedBox(height: 1),
-              appText(
-                valor,
-                bold: true,
-                maxLines: maxLines,
-                overflow: true,
-                color: local.AppColors.text,
-                fontSize: 13,
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _aviso(String texto) {
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Icon(Phosphor.info, size: 14, color: local.AppColors.textSecondary),
-      appSizedBox(width: 6),
-      Expanded(
-        child: appText(
-          texto,
-          maxLines: 3,
-          overflow: true,
-          color: local.AppColors.textSecondary,
-          fontSize: 12,
-        ),
-      ),
-    ],
-  );
-}
-
 Widget _acoes({
   required AgendamentoModel agendamento,
   VoidCallback? onComoChegar,
@@ -511,6 +665,7 @@ Widget _acoes({
   VoidCallback? onMostrarQr,
   VoidCallback? onPagar,
   VoidCallback? onEditar,
+  required VoidCallback onVerInfo,
   required bool cancelando,
 }) {
   final bool mostrarPagar = onPagar != null && agendamento.podePagarPeloApp;
@@ -536,6 +691,12 @@ Widget _acoes({
         cor: local.AppColors.primary,
         onTap: onEditar,
       ),
+    _botaoSecundario(
+      icone: Phosphor.info,
+      texto: 'Ver info',
+      cor: local.AppColors.primary,
+      onTap: onVerInfo,
+    ),
     if (mostrarCancelar)
       _botaoSecundario(
         icone: Phosphor.xCircle,
@@ -568,6 +729,7 @@ Widget _acoes({
         if (mostrarPagar || mostrarQr) appSizedBox(height: AppSpacing.small),
         Container(
           decoration: BoxDecoration(
+            color: local.AppColors.surface,
             borderRadius: BorderRadius.circular(AppEstilo.raioCampo),
             border: Border.all(color: local.AppColors.border),
           ),
