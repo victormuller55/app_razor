@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:app_razor/pages/menu/menu_espaco.dart';
 import 'package:app_razor/app_config/const/app_recursos.dart';
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_radius.dart';
@@ -550,7 +551,7 @@ class _HomePageState extends State<HomePage>
       builder: (BuildContext context, HomeState state) {
         final bool secoesVazias = state.todasSecoesVazias;
         final bool carregando = state.carregando;
-        final double paddingBottom = AppSpacing.giant + kBottomNavigationBarHeight;
+        final double paddingBottom = AppSpacing.giant + espacoBarraMenu(context);
         final double alturaCentro = (alturaMinima - AppSpacing.medium * 2 - paddingBottom - 72)
             .clamp(180.0, 560.0);
 

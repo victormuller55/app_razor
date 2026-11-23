@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:app_razor/pages/menu/menu_espaco.dart';
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/app_radius.dart';
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
@@ -533,7 +534,7 @@ class _PerfilPageState extends State<PerfilPage> {
           0,
           0,
           0,
-          AppSpacing.normal + kBottomNavigationBarHeight,
+          AppSpacing.normal + espacoBarraMenu(context),
         ),
         children: [
           // O título rola junto com o conteúdo.
