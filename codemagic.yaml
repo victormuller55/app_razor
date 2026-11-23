@@ -16,11 +16,11 @@ workflows:
 
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.net.convertix.scissor
+        bundle_identifier: br.com.cortaro.cliente
 
       vars:
         # Apple ID from App Store Connect (App information -> Apple ID)
-        APP_STORE_APPLE_ID: "6790021546"
+        APP_STORE_APPLE_ID: "6838117236"
 
         # Firebase (push). Não são segredo: vão dentro do app instalado. Os mesmos valores do
         # firebase.env.json local; sem eles o push fica desligado.
@@ -28,8 +28,8 @@ workflows:
         FIREBASE_SENDER_ID: "352977395234"
         FIREBASE_API_KEY: "AIzaSyB22kX95alzDgXQSiY1Q77RfQdmcWcs5d0"
         FIREBASE_API_KEY_IOS: "AIzaSyAfVigbGUd0KaeqD6nhdQJ3cf69CLEuN_Y"
-        FIREBASE_APP_ID_IOS: "1:352977395234:ios:9f7c1be2d050723d81347b"
-        FIREBASE_IOS_BUNDLE_ID: "com.net.convertix.scissor"
+        FIREBASE_APP_ID_IOS: "1:352977395234:ios:b101ee054691ee6681347b"
+        FIREBASE_IOS_BUNDLE_ID: "br.com.cortaro.cliente"
 
     triggering:
       events:
@@ -99,7 +99,7 @@ workflows:
 
           # A extensão só entra se o ios_signing instalou um perfil para ela;
           # sem perfil, o app é gerado sem o lembrete em vez de falhar.
-          EXTENSAO="com.net.convertix.scissor.SessionLiveActivity"
+          EXTENSAO="br.com.cortaro.cliente.SessionLiveActivity"
           TEM_PERFIL=0
           for PERFIL in "$HOME/Library/MobileDevice/Provisioning Profiles/"*.mobileprovision; do
             [ -e "$PERFIL" ] || continue

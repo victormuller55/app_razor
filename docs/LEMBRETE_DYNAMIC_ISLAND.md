@@ -46,7 +46,7 @@ Regras de segurança:
   início do horário. O iOS a redesenha sozinho e a contagem vira o botão do QR,
   mesmo com o app fechado.
 - **Foto:** a extensão não acessa a rede. O app baixa a foto, reduz para 120 px
-  e grava no App Group `group.com.net.convertix.scissor`. A extensão lê o
+  e grava no App Group `group.br.com.cortaro.cliente`. A extensão lê o
   arquivo de lá. Numa atividade iniciada pelo servidor, o app baixa a foto
   quando o iOS o acorda para entregar o token.
 - **Links:**
@@ -114,12 +114,12 @@ Regras de segurança:
 
 1. **App Group:**
    1. developer.apple.com → Identifiers → **App Groups** → `+` →
-      `group.com.net.convertix.scissor`.
-   2. Ative **App Groups** nos App IDs `com.net.convertix.scissor` e
-      `com.net.convertix.scissor.SessionLiveActivity`, marcando esse grupo nos
+      `group.br.com.cortaro.cliente`.
+   2. Ative **App Groups** nos App IDs `br.com.cortaro.cliente` e
+      `br.com.cortaro.cliente.SessionLiveActivity`, marcando esse grupo nos
       dois.
-2. **Perfis:** gere de novo os dois perfis App Store, "Scissor App Store" e
-   `app_scissor_activity` (Edit → Save). Depois, no Codemagic, Code signing
+2. **Perfis:** gere de novo os dois perfis App Store, "Cortaro App Store" e
+   `cortaro_activity` (Edit → Save). Depois, no Codemagic, Code signing
    identities → **Fetch profiles**.
 3. **Push:** nada novo. A Live Activity usa a mesma capability Push
    Notifications e a mesma chave .p8 do Firebase.
@@ -176,8 +176,8 @@ do Codemagic.
 
 ## Assinatura da extensão
 
-A extensão usa o bundle id `com.net.convertix.scissor.SessionLiveActivity`, com
-o perfil App Store `app_scissor_activity` no Codemagic. Sem esse perfil, o build
+A extensão usa o bundle id `br.com.cortaro.cliente.SessionLiveActivity`, com
+o perfil App Store `cortaro_activity` no Codemagic. Sem esse perfil, o build
 gera o app sem a extensão: o log mostra "AVISO: nenhum perfil para ...". O
 target não fica salvo no projeto: o Codemagic roda
 `ios/scripts/adicionar_live_activity.rb` a cada build. Num Mac, rode

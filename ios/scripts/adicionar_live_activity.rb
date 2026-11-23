@@ -8,8 +8,8 @@ require 'xcodeproj'
 PASTA_IOS = File.expand_path('..', __dir__)
 PROJETO = File.join(PASTA_IOS, 'Runner.xcodeproj')
 NOME = 'RazorLiveActivity'
-BUNDLE_APP = 'com.net.convertix.scissor'
-# Bundle id do perfil "app_scissor_activity" que já existe no Codemagic.
+BUNDLE_APP = 'br.com.cortaro.cliente'
+# Bundle id do perfil "cortaro_activity" que já existe no Codemagic.
 BUNDLE_EXTENSAO = "#{BUNDLE_APP}.SessionLiveActivity"
 IOS_MINIMO = '16.2'
 
