@@ -16,6 +16,7 @@ import 'package:app_razor/pages/home/home_page.dart';
 import 'package:app_razor/pages/menu/widgets/menu_barra_android.dart';
 import 'package:app_razor/pages/perfil/perfil_page.dart';
 import 'package:cupertino_native_better/cupertino_native_better.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -199,8 +200,22 @@ class _MenuScreenState extends State<MenuScreen> {
     );
   }
 
+  /// A barra nativa de vidro não redesenha ao mudar o tema com o app aberto, então troca a view inteira
+  /// (a chave muda com o tema) e já nasce com o brilho certo pelo CupertinoTheme.
   Widget _barraNavegacaoIos() {
+    final bool escuro = local.AppColors.escuro;
+
+    return CupertinoTheme(
+      data: CupertinoThemeData(
+        brightness: escuro ? Brightness.dark : Brightness.light,
+      ),
+      child: _tabBarIos(escuro),
+    );
+  }
+
+  Widget _tabBarIos(bool escuro) {
     return CNTabBar(
+      key: ValueKey<bool>(escuro),
       currentIndex: MenuConst.currentIndex,
       onTap: _selectAba,
       tint: local.AppColors.primary,
@@ -266,18 +281,15 @@ class _MenuScreenState extends State<MenuScreen> {
     if (_iosNativo) {
       return PopScope(
         canPop: false,
+        // A barra de vidro fica por cima do corpo (extendBody), mas como barra do Scaffold: as abas recebem
+        // a altura dela no padding de baixo e as snackbars aparecem acima dela.
         child: Scaffold(
           backgroundColor: local.AppColors.background,
-          body: Stack(
-            children: <Widget>[
-              Positioned.fill(child: _bodyTela()),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: _barraOcultavel(_barraNavegacaoIos(), encolher: false),
-              ),
-            ],
+          extendBody: true,
+          body: _bodyTela(),
+          bottomNavigationBar: _barraOcultavel(
+            _barraNavegacaoIos(),
+            encolher: false,
           ),
         ),
       );

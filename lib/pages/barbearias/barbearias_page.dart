@@ -1,3 +1,4 @@
+import 'package:app_razor/pages/menu/menu_espaco.dart';
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/models/barbearia_model.dart';
@@ -209,7 +210,7 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
           AppSpacing.medium,
           0,
           AppSpacing.medium,
-          kBottomNavigationBarHeight,
+          espacoBarraMenu(context),
         ),
         child: Center(child: child),
       ),
@@ -229,7 +230,7 @@ class _BarbeariasPageState extends State<BarbeariasPage> {
         AppSpacing.medium,
         AppSpacing.small,
         AppSpacing.medium,
-        AppSpacing.giant + kBottomNavigationBarHeight,
+        AppSpacing.giant + espacoBarraMenu(context),
       ),
       sliver: SliverMainAxisGroup(
         slivers: <Widget>[

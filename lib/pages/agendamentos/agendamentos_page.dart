@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_razor/pages/menu/menu_espaco.dart';
 import 'package:app_razor/app_config/const/app_colors.dart' as local;
 import 'package:app_razor/app_config/const/phosphor_icons.dart';
 import 'package:app_razor/functions/abrir_rota.dart';
@@ -226,7 +227,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
         hasScrollBody: false,
         // Centraliza no espaço restante, descontando a barra de navegação.
         child: Padding(
-          padding: const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
+          padding: EdgeInsets.only(bottom: espacoBarraMenu(context)),
           child: Center(
             child: homeEmptyState(
               message: 'Nenhum agendamento por aqui',
@@ -253,7 +254,7 @@ class _AgendamentosPageState extends State<AgendamentosPage> {
         AppSpacing.medium,
         AppSpacing.small,
         AppSpacing.medium,
-        AppSpacing.giant + kBottomNavigationBarHeight,
+        AppSpacing.giant + espacoBarraMenu(context),
       ),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((BuildContext context, int index) {
